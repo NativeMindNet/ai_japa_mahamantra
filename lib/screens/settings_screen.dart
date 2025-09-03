@@ -34,15 +34,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Consumer<JapaProvider>(
         builder: (context, japaProvider, child) {
-          return SettingsTheme(
-            theme: SettingsThemeData(
-              settingsListBackground: Color(AppConstants.backgroundColor),
-              dividerColor: Colors.grey.withOpacity(0.3),
-              titleTextColor: Color(AppConstants.primaryColor),
-              subtitleTextColor: Colors.grey[600],
-              trailingTextColor: Color(AppConstants.primaryColor),
-              leadingIconsColor: Color(AppConstants.primaryColor),
-            ),
+          return Container(
+            color: Color(AppConstants.backgroundColor),
             child: SettingsList(
               sections: [
                 // Основные настройки джапы
