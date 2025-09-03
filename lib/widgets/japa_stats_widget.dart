@@ -69,7 +69,7 @@ class JapaStatsWidget extends StatelessWidget {
                   title: 'Бусины',
                   current: currentBead,
                   total: totalBeads,
-                  icon: Icons.beads,
+                  icon: Icons.circle,
                   color: Color(AppConstants.accentColor),
                 ),
               ),

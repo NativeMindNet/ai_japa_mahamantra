@@ -119,7 +119,7 @@ class JapaControlsWidget extends StatelessWidget {
                   value: '0/16',
                 ),
                 _buildInfoItem(
-                  icon: Icons.beads,
+                  icon: Icons.circle,
                   label: 'Бусины',
                   value: '0/108',
                 ),

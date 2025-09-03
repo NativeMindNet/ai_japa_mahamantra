@@ -191,7 +191,7 @@ class BackgroundService {
   }
   
   /// Устанавливает время для ежедневного напоминания
-  static Future<void> setDailyReminderTime(Time time) async {
+  static Future<void> setDailyReminderTime(TimeOfDay time) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('daily_reminder_time', '${time.hour}:${time.minute}');
     
@@ -204,14 +204,14 @@ class BackgroundService {
   }
   
   /// Получает время ежедневного напоминания
-  static Future<Time?> getDailyReminderTime() async {
+  static Future<TimeOfDay?> getDailyReminderTime() async {
     final prefs = await SharedPreferences.getInstance();
     final timeString = prefs.getString('daily_reminder_time');
     
     if (timeString != null) {
       final parts = timeString.split(':');
       if (parts.length == 2) {
-        return Time(
+        return TimeOfDay(
           hour: int.parse(parts[0]),
           minute: int.parse(parts[1]),
         );
@@ -238,7 +238,7 @@ class BackgroundService {
   }
   
   /// Устанавливает расписание джапы
-  static Future<void> setJapaSchedule(List<Time> times) async {
+  static Future<void> setJapaSchedule(List<TimeOfDay> times) async {
     final prefs = await SharedPreferences.getInstance();
     final scheduleStrings = times.map((t) => '${t.hour}:${t.minute}').toList();
     await prefs.setStringList('japa_schedule', scheduleStrings);
@@ -261,13 +261,13 @@ class BackgroundService {
   }
   
   /// Получает расписание джапы
-  static Future<List<Time>> getJapaSchedule() async {
+  static Future<List<TimeOfDay>> getJapaSchedule() async {
     final prefs = await SharedPreferences.getInstance();
     final scheduleStrings = prefs.getStringList('japa_schedule') ?? [];
     
     return scheduleStrings.map((s) {
       final parts = s.split(':');
-      return Time(
+      return TimeOfDay(
         hour: int.parse(parts[0]),
         minute: int.parse(parts[1]),
       );

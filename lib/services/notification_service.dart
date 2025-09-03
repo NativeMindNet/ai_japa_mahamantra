@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
@@ -51,7 +52,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('mantra_bell'),
       icon: '@mipmap/ic_launcher',
-      color: Color(AppConstants.primaryColor),
+      color: Colors.blue,
     );
     
     const iosDetails = DarwinNotificationDetails(
@@ -86,19 +87,20 @@ class NotificationService {
       'japa_progress_channel',
       'Прогресс джапы',
       channelDescription: 'Уведомления о прогрессе в джапе',
-      importance: Importance.medium,
-      priority: Priority.medium,
+      importance: Importance.default,
+      priority: Priority.default,
       showWhen: true,
       enableVibration: true,
       playSound: true,
       icon: '@mipmap/ic_launcher',
-      color: Color(AppConstants.successColor),
+      color: Colors.green,
     );
     
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: false,
       presentSound: true,
+      sound: 'mantra_bell.wav',
     );
     
     const details = NotificationDetails(
@@ -107,9 +109,9 @@ class NotificationService {
     );
     
     await _notifications.show(
-      roundNumber,
-      'Круг $roundNumber завершен! 🎉',
-      'Продолжайте практику. Осталось ${totalRounds - roundNumber} кругов.',
+      2, // ID уведомления
+      'Круг завершен!',
+      'Вы завершили круг $roundNumber из $totalRounds',
       details,
       payload: 'round_complete',
     );
@@ -117,67 +119,22 @@ class NotificationService {
   
   /// Показывает уведомление о завершении сессии
   static Future<void> showSessionComplete({
-    required int completedRounds,
-    required Duration sessionDuration,
+    required int totalRounds,
+    required Duration duration,
   }) async {
     if (!_isInitialized) return;
     
     const androidDetails = AndroidNotificationDetails(
       'japa_session_channel',
-      'Сессии джапы',
-      channelDescription: 'Уведомления о завершении сессий джапы',
+      'Завершение сессии',
+      channelDescription: 'Уведомления о завершении сессии джапы',
       importance: Importance.high,
       priority: Priority.high,
       showWhen: true,
       enableVibration: true,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('session_complete'),
       icon: '@mipmap/ic_launcher',
-      color: Color(AppConstants.successColor),
-    );
-    
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      sound: 'session_complete.wav',
-    );
-    
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-    
-    final minutes = sessionDuration.inMinutes;
-    final seconds = sessionDuration.inSeconds % 60;
-    
-    await _notifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      'Сессия завершена! 🕉️',
-      'Вы завершили $completedRounds кругов за ${minutes}м ${seconds}с. Харе Кришна!',
-      details,
-      payload: 'session_complete',
-    );
-  }
-  
-  /// Показывает уведомление о времени для джапы
-  static Future<void> showJapaTimeReminder() async {
-    if (!_isInitialized) return;
-    
-    const androidDetails = AndroidNotificationDetails(
-      'japa_time_channel',
-      'Время джапы',
-      channelDescription: 'Напоминания о времени для практики джапы',
-      importance: Importance.high,
-      priority: Priority.high,
-      showWhen: true,
-      enableVibration: true,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('mantra_bell'),
-      icon: '@mipmap/ic_launcher',
-      color: Color(AppConstants.primaryColor),
-      ongoing: false,
-      autoCancel: true,
+      color: Colors.blue,
     );
     
     const iosDetails = DarwinNotificationDetails(
@@ -192,10 +149,13 @@ class NotificationService {
       iOS: iosDetails,
     );
     
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    
     await _notifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      'Время для джапы! 🕉️',
-      'Пришло время для духовной практики. Откройте приложение и начните сессию.',
+      3, // ID уведомления
+      'Сессия завершена!',
+      'Вы завершили $totalRounds кругов за ${minutes}м ${seconds}с',
       details,
       payload: 'japa_time',
     );
@@ -203,7 +163,7 @@ class NotificationService {
   
   /// Планирует ежедневное напоминание
   static Future<void> scheduleDailyReminder({
-    required Time time,
+    required TimeOfDay time,
     required String title,
     required String body,
   }) async {
@@ -219,7 +179,7 @@ class NotificationService {
       enableVibration: true,
       playSound: true,
       icon: '@mipmap/ic_launcher',
-      color: Color(AppConstants.primaryColor),
+      color: Colors.blue,
     );
     
     const iosDetails = DarwinNotificationDetails(
@@ -265,7 +225,7 @@ class NotificationService {
   }
   
   /// Вычисляет следующее время для уведомления
-  static DateTime _nextInstanceOfTime(Time time) {
+  static DateTime _nextInstanceOfTime(TimeOfDay time) {
     final now = DateTime.now();
     var scheduledDate = DateTime(
       now.year,
@@ -273,7 +233,6 @@ class NotificationService {
       now.day,
       time.hour,
       time.minute,
-      time.second,
     );
     
     if (scheduledDate.isBefore(now)) {

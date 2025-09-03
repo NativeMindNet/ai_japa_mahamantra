@@ -1,7 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 import '../models/japa_session.dart';
 import '../services/ai_service.dart';
+import '../services/notification_service.dart';
+import '../services/background_service.dart';
+import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
   // Текущая сессия
@@ -24,6 +29,17 @@ class JapaProvider with ChangeNotifier {
   Timer? _sessionTimer;
   Duration _sessionDuration = Duration.zero;
   
+  // Настройки
+  bool _vibrationEnabled = true;
+  bool _soundEnabled = true;
+  bool _notificationsEnabled = true;
+  bool _autoStartEnabled = false;
+  
+  // Статистика
+  int _totalSessions = 0;
+  int _totalRounds = 0;
+  Duration _totalTime = Duration.zero;
+  
   // Геттеры
   JapaSession? get currentSession => _currentSession;
   bool get isSessionActive => _isSessionActive;
@@ -33,12 +49,143 @@ class JapaProvider with ChangeNotifier {
   int get currentBead => _currentBead;
   int get completedRounds => _completedRounds;
   Duration get sessionDuration => _sessionDuration;
+  bool get vibrationEnabled => _vibrationEnabled;
+  bool get soundEnabled => _soundEnabled;
+  bool get notificationsEnabled => _notificationsEnabled;
+  bool get autoStartEnabled => _autoStartEnabled;
+  int get totalSessions => _totalSessions;
+  int get totalRounds => _totalRounds;
+  Duration get totalTime => _totalTime;
+  
+  JapaProvider() {
+    _loadSettings();
+    _loadStatistics();
+    _checkAutoStart();
+  }
+  
+  /// Загружает настройки
+  Future<void> _loadSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _vibrationEnabled = prefs.getBool('vibration_enabled') ?? true;
+      _soundEnabled = prefs.getBool('sound_enabled') ?? true;
+      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      _autoStartEnabled = prefs.getBool('auto_start_enabled') ?? false;
+      _targetRounds = prefs.getInt('target_rounds') ?? 16;
+      notifyListeners();
+    } catch (e) {
+      print('Ошибка загрузки настроек: $e');
+    }
+  }
+  
+  /// Сохраняет настройки
+  Future<void> _saveSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('vibration_enabled', _vibrationEnabled);
+      await prefs.setBool('sound_enabled', _soundEnabled);
+      await prefs.setBool('notifications_enabled', _notificationsEnabled);
+      await prefs.setBool('auto_start_enabled', _autoStartEnabled);
+      await prefs.setInt('target_rounds', _targetRounds);
+    } catch (e) {
+      print('Ошибка сохранения настроек: $e');
+    }
+  }
+  
+  /// Загружает статистику
+  Future<void> _loadStatistics() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _totalSessions = prefs.getInt('total_sessions') ?? 0;
+      _totalRounds = prefs.getInt('total_rounds') ?? 0;
+      final totalMinutes = prefs.getInt('total_time_minutes') ?? 0;
+      _totalTime = Duration(minutes: totalMinutes);
+      notifyListeners();
+    } catch (e) {
+      print('Ошибка загрузки статистики: $e');
+    }
+  }
+  
+  /// Сохраняет статистику
+  Future<void> _saveStatistics() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('total_sessions', _totalSessions);
+      await prefs.setInt('total_rounds', _totalRounds);
+      await prefs.setInt('total_time_minutes', _totalTime.inMinutes);
+    } catch (e) {
+      print('Ошибка сохранения статистики: $e');
+    }
+  }
+  
+  /// Проверяет автозапуск
+  Future<void> _checkAutoStart() async {
+    if (!_autoStartEnabled) return;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastSessionDate = prefs.getString('last_session_date');
+      
+      if (lastSessionDate != null) {
+        final lastSession = DateTime.parse(lastSessionDate);
+        final now = DateTime.now();
+        
+        // Если прошло больше 24 часов, предлагаем начать сессию
+        if (now.difference(lastSession).inHours >= 24) {
+          if (_notificationsEnabled) {
+            await NotificationService.showJapaReminder(
+              title: 'Время для джапы! 🕉️',
+              body: 'Прошло 24 часа с последней сессии. Начните новую практику.',
+              payload: 'auto_start_reminder',
+            );
+          }
+        }
+      }
+    } catch (e) {
+      print('Ошибка проверки автозапуска: $e');
+    }
+  }
   
   /// Устанавливает целевое количество кругов
   void setTargetRounds(int rounds) {
     if (rounds > 0 && rounds <= 64) {
       _targetRounds = rounds;
+      _saveSettings();
       notifyListeners();
+    }
+  }
+  
+  /// Включает/выключает вибрацию
+  void setVibrationEnabled(bool enabled) {
+    _vibrationEnabled = enabled;
+    _saveSettings();
+    notifyListeners();
+  }
+  
+  /// Включает/выключает звук
+  void setSoundEnabled(bool enabled) {
+    _soundEnabled = enabled;
+    _saveSettings();
+    notifyListeners();
+  }
+  
+  /// Включает/выключает уведомления
+  void setNotificationsEnabled(bool enabled) {
+    _notificationsEnabled = enabled;
+    _saveSettings();
+    notifyListeners();
+  }
+  
+  /// Включает/выключает автозапуск
+  void setAutoStartEnabled(bool enabled) {
+    _autoStartEnabled = enabled;
+    _saveSettings();
+    notifyListeners();
+    
+    if (enabled) {
+      BackgroundService.registerJapaReminder();
+    } else {
+      BackgroundService.cancelTask('japa_reminder');
     }
   }
   
@@ -65,6 +212,20 @@ class JapaProvider with ChangeNotifier {
     // Запускаем таймер
     _startSessionTimer();
     
+    // Вибрация и звук
+    if (_vibrationEnabled) {
+      Vibration.vibrate(duration: AppConstants.shortVibration);
+    }
+    
+    // Уведомление о начале сессии
+    if (_notificationsEnabled) {
+      NotificationService.showJapaReminder(
+        title: 'Сессия началась! 🕉️',
+        body: 'Начинайте практику джапы. Цель: $_targetRounds кругов.',
+        payload: 'session_started',
+      );
+    }
+    
     notifyListeners();
   }
   
@@ -75,6 +236,11 @@ class JapaProvider with ChangeNotifier {
     _isPaused = true;
     _sessionPauseTime = DateTime.now();
     _sessionTimer?.cancel();
+    
+    // Вибрация
+    if (_vibrationEnabled) {
+      Vibration.vibrate(duration: AppConstants.mediumVibration);
+    }
     
     notifyListeners();
   }
@@ -92,6 +258,11 @@ class JapaProvider with ChangeNotifier {
     // Возобновляем таймер
     _startSessionTimer();
     
+    // Вибрация
+    if (_vibrationEnabled) {
+      Vibration.vibrate(duration: AppConstants.shortVibration);
+    }
+    
     notifyListeners();
   }
   
@@ -100,6 +271,11 @@ class JapaProvider with ChangeNotifier {
     if (!_isSessionActive || beadIndex < 0 || beadIndex > 108) return;
     
     _currentBead = beadIndex;
+    
+    // Вибрация
+    if (_vibrationEnabled) {
+      Vibration.vibrate(duration: AppConstants.shortVibration);
+    }
     
     // Проверяем, завершен ли круг
     if (_currentBead == 108) {
@@ -117,6 +293,11 @@ class JapaProvider with ChangeNotifier {
       _currentBead++;
     } else {
       _completeRound();
+    }
+    
+    // Вибрация
+    if (_vibrationEnabled) {
+      Vibration.vibrate(duration: AppConstants.shortVibration);
     }
     
     notifyListeners();
@@ -153,6 +334,19 @@ class JapaProvider with ChangeNotifier {
       );
     }
     
+    // Вибрация завершения круга
+    if (_vibrationEnabled) {
+      Vibration.vibrate(duration: AppConstants.mediumVibration);
+    }
+    
+    // Уведомление о завершении круга
+    if (_notificationsEnabled) {
+      NotificationService.showRoundComplete(
+        roundNumber: _currentRound,
+        totalRounds: _targetRounds,
+      );
+    }
+    
     // Проверяем, завершена ли сессия
     if (_completedRounds >= _targetRounds) {
       _endSession();
@@ -186,7 +380,39 @@ class JapaProvider with ChangeNotifier {
       );
     }
     
+    // Обновляем статистику
+    _totalSessions++;
+    _totalRounds += _completedRounds;
+    _totalTime += _sessionDuration;
+    _saveStatistics();
+    
+    // Сохраняем дату последней сессии
+    _saveLastSessionDate();
+    
+    // Вибрация завершения сессии
+    if (_vibrationEnabled) {
+      Vibration.vibrate(duration: AppConstants.longVibration);
+    }
+    
+    // Уведомление о завершении сессии
+    if (_notificationsEnabled) {
+      NotificationService.showSessionComplete(
+        completedRounds: _completedRounds,
+        sessionDuration: _sessionDuration,
+      );
+    }
+    
     notifyListeners();
+  }
+  
+  /// Сохраняет дату последней сессии
+  Future<void> _saveLastSessionDate() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_session_date', DateTime.now().toIso8601String());
+    } catch (e) {
+      print('Ошибка сохранения даты сессии: $e');
+    }
   }
   
   /// Запускает таймер сессии
@@ -230,6 +456,73 @@ class JapaProvider with ChangeNotifier {
       'isActive': _isSessionActive,
       'isPaused': _isPaused,
     };
+  }
+  
+  /// Получает общую статистику
+  Map<String, dynamic> getOverallStats() {
+    return {
+      'totalSessions': _totalSessions,
+      'totalRounds': _totalRounds,
+      'totalTime': _totalTime,
+      'averageRoundsPerSession': _totalSessions > 0 ? (_totalRounds / _totalSessions).round() : 0,
+      'averageTimePerSession': _totalSessions > 0 ? _totalTime.inMinutes ~/ _totalSessions : 0,
+    };
+  }
+  
+  /// Получает статистику за день
+  Future<Map<String, dynamic>> getDailyStats(DateTime date) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final dateKey = date.toIso8601String().split('T')[0];
+      final dailyStats = prefs.getString('daily_stats_$dateKey');
+      
+      if (dailyStats != null) {
+        return Map<String, dynamic>.from(
+          dailyStats as Map<String, dynamic>
+        );
+      }
+      
+      return {};
+    } catch (e) {
+      return {};
+    }
+  }
+  
+  /// Получает статистику за неделю
+  Future<Map<String, dynamic>> getWeeklyStats(DateTime weekStart) async {
+    try {
+      final weekEnd = weekStart.add(const Duration(days: 7));
+      final stats = <String, dynamic>{};
+      
+      for (int i = 0; i < 7; i++) {
+        final date = weekStart.add(Duration(days: i));
+        final dailyStats = await getDailyStats(date);
+        stats[date.toIso8601String().split('T')[0]] = dailyStats;
+      }
+      
+      return stats;
+    } catch (e) {
+      return {};
+    }
+  }
+  
+  /// Получает статистику за месяц
+  Future<Map<String, dynamic>> getMonthlyStats(DateTime monthStart) async {
+    try {
+      final monthEnd = DateTime(monthStart.year, monthStart.month + 1, 0);
+      final daysInMonth = monthEnd.day;
+      final stats = <String, dynamic>{};
+      
+      for (int i = 1; i <= daysInMonth; i++) {
+        final date = DateTime(monthStart.year, monthStart.month, i);
+        final dailyStats = await getDailyStats(date);
+        stats[date.toIso8601String().split('T')[0]] = dailyStats;
+      }
+      
+      return stats;
+    } catch (e) {
+      return {};
+    }
   }
   
   @override
