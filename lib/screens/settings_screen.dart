@@ -112,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: 'Настроить несколько времен',
                       leading: const Icon(Icons.calendar_today),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showScheduleDialog();
                       },
                     ),
