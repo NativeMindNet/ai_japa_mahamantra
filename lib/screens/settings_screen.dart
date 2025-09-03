@@ -59,6 +59,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
                 
+                // Настройки темы
+                SettingsSection(
+                  title: 'Тема',
+                  tiles: [
+                    SettingsTile.switchTile(
+                      title: 'Темная тема',
+                      subtitle: 'Переключить между светлой и темной темой',
+                      leading: const Icon(Icons.dark_mode),
+                      switchValue: localeProvider.isDarkTheme,
+                      onToggle: (value) {
+                        localeProvider.setTheme(value);
+                      },
+                    ),
+                  ],
+                ),
+                
                 // Основные настройки джапы
                 SettingsSection(
                   title: l10n.basicSettings,
