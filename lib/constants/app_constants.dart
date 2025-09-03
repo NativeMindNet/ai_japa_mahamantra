@@ -48,13 +48,21 @@ class AppConstants {
     'Что такое према?',
   ];
   
-  // Цвета приложения
+  // Цвета приложения для светлой и темной тем
   static const int primaryColor = 0xFF8E24AA; // Фиолетовый
   static const int accentColor = 0xFFFF9800;  // Оранжевый
-  static const int backgroundColor = 0xFFF5F5F5;
-  static const int surfaceColor = 0xFFFFFFFF;
-  static const int errorColor = 0xFFD32F2F;
-  static const int successColor = 0xFF388E3C;
+  static const int errorColor = 0xFFD32F2F;   // Красный
+  static const int successColor = 0xFF388E3C;  // Зеленый
+  
+  // Светлая тема
+  static const int lightBackgroundColor = 0xFFF5F5F5;
+  static const int lightSurfaceColor = 0xFFFFFFFF;
+  static const int lightSurfaceVariantColor = 0xFFF0F0F0;
+  
+  // Темная тема
+  static const int darkBackgroundColor = 0xFF121212;
+  static const int darkSurfaceColor = 0xFF1E1E1E;
+  static const int darkSurfaceVariantColor = 0xFF2D2D2D;
   
   // Размеры
   static const double defaultPadding = 16.0;
