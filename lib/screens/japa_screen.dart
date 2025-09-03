@@ -85,6 +85,15 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
         elevation: 0,
         actions: [
           IconButton(
+            icon: Icon(
+              localeProvider.isDarkTheme ? Icons.light_mode : Icons.dark_mode,
+            ),
+            onPressed: () {
+              localeProvider.toggleTheme();
+            },
+            tooltip: localeProvider.isDarkTheme ? 'Светлая тема' : 'Темная тема',
+          ),
+          IconButton(
             icon: const Icon(Icons.smart_toy),
             onPressed: () {
               Navigator.push(
