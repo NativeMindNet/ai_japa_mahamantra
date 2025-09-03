@@ -80,9 +80,9 @@ class AIJapaMahamantraApp extends StatelessWidget {
     );
   }
   
-  /// Строит тему в зависимости от выбранного языка
+  /// Строит тему в зависимости от выбранной темы
   ThemeData _buildTheme(LocaleProvider localeProvider) {
-    final colorScheme = localeProvider.getLanguageColorScheme();
+    final colorScheme = localeProvider.getThemeColorScheme();
     
     return ThemeData(
       primarySwatch: Colors.purple,

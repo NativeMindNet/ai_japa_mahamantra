@@ -3,10 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocaleProvider extends ChangeNotifier {
   static const String _localeKey = 'selected_locale';
+  static const String _themeKey = 'selected_theme';
   
   Locale _currentLocale = const Locale('ru');
+  bool _isDarkTheme = false;
   
   Locale get currentLocale => _currentLocale;
+  bool get isDarkTheme => _isDarkTheme;
   
   // Доступные языки
   static const List<Map<String, String>> availableLocales = [
@@ -19,10 +22,10 @@ class LocaleProvider extends ChangeNotifier {
     },
     {
       'code': 'en',
-      'name': 'Atreides',
-      'nativeName': 'Atreides',
-      'description': 'The language of House Atreides - noble and refined',
-      'flag': '🏰'
+      'name': 'English',
+      'nativeName': 'English',
+      'description': 'English language - international and modern',
+      'flag': '🇺🇸'
     },
     {
       'code': 'harkonnen',
@@ -35,6 +38,7 @@ class LocaleProvider extends ChangeNotifier {
   
   LocaleProvider() {
     _loadSavedLocale();
+    _loadSavedTheme();
   }
   
   /// Загружает сохраненную локаль
@@ -53,6 +57,18 @@ class LocaleProvider extends ChangeNotifier {
     }
   }
   
+  /// Загружает сохраненную тему
+  Future<void> _loadSavedTheme() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isDarkTheme = prefs.getBool(_themeKey) ?? false;
+      notifyListeners();
+    } catch (e) {
+      // В случае ошибки используем светлую тему по умолчанию
+      _isDarkTheme = false;
+    }
+  }
+  
   /// Устанавливает новую локаль
   Future<void> setLocale(String localeCode) async {
     if (_currentLocale.languageCode == localeCode) return;
@@ -62,6 +78,36 @@ class LocaleProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_localeKey, localeCode);
+    } catch (e) {
+      // Игнорируем ошибки сохранения
+    }
+    
+    notifyListeners();
+  }
+  
+  /// Переключает тему
+  Future<void> toggleTheme() async {
+    _isDarkTheme = !_isDarkTheme;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_themeKey, _isDarkTheme);
+    } catch (e) {
+      // Игнорируем ошибки сохранения
+    }
+    
+    notifyListeners();
+  }
+  
+  /// Устанавливает конкретную тему
+  Future<void> setTheme(bool isDark) async {
+    if (_isDarkTheme == isDark) return;
+    
+    _isDarkTheme = isDark;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_themeKey, _isDarkTheme);
     } catch (e) {
       // Игнорируем ошибки сохранения
     }
@@ -88,8 +134,8 @@ class LocaleProvider extends ChangeNotifier {
   /// Проверяет, является ли текущий язык русским
   bool get isRussian => _currentLocale.languageCode == 'ru';
   
-  /// Проверяет, является ли текущий язык английским (Атрейдес)
-  bool get isAtreides => _currentLocale.languageCode == 'en';
+  /// Проверяет, является ли текущий язык английским
+  bool get isEnglish => _currentLocale.languageCode == 'en';
   
   /// Проверяет, является ли текущий язык харконненским
   bool get isHarkonnen => _currentLocale.languageCode == 'harkonnen';
@@ -102,11 +148,10 @@ class LocaleProvider extends ChangeNotifier {
         fontSize: 16,
         letterSpacing: 1.2,
       );
-    } else if (isAtreides) {
+    } else if (isEnglish) {
       return const TextStyle(
         fontWeight: FontWeight.w500,
         fontSize: 16,
-        fontStyle: FontStyle.italic,
         letterSpacing: 0.5,
       );
     } else {
@@ -118,38 +163,26 @@ class LocaleProvider extends ChangeNotifier {
     }
   }
   
-  /// Получает цветовую схему для текущего языка
-  ColorScheme getLanguageColorScheme() {
-    if (isHarkonnen) {
+  /// Получает цветовую схему для текущей темы
+  ColorScheme getThemeColorScheme() {
+    if (_isDarkTheme) {
       return const ColorScheme(
         brightness: Brightness.dark,
-        primary: Color(0xFF8B0000), // Темно-красный
+        primary: Color(0xFF8E24AA), // Фиолетовый
         onPrimary: Colors.white,
-        secondary: Color(0xFF2F2F2F), // Темно-серый
+        secondary: Color(0xFFFF9800), // Оранжевый
         onSecondary: Colors.white,
-        error: Color(0xFFDC143C), // Crimson
+        error: Color(0xFFD32F2F), // Красный
         onError: Colors.white,
-        background: Color(0xFF1A1A1A), // Почти черный
+        background: Color(0xFF121212), // Темный фон
         onBackground: Colors.white,
-        surface: Color(0xFF2D2D2D), // Темно-серый
+        surface: Color(0xFF1E1E1E), // Темная поверхность
         onSurface: Colors.white,
-      );
-    } else if (isAtreides) {
-      return const ColorScheme(
-        brightness: Brightness.light,
-        primary: Color(0xFF1E3A8A), // Темно-синий
-        onPrimary: Colors.white,
-        secondary: Color(0xFF059669), // Изумрудный
-        onSecondary: Colors.white,
-        error: Color(0xFFDC2626), // Красный
-        onError: Colors.white,
-        background: Color(0xFFF8FAFC), // Светло-серый
-        onBackground: Color(0xFF1E293B), // Темно-синий
-        surface: Colors.white,
-        onSurface: Color(0xFF1E293B), // Темно-синий
+        surfaceVariant: Color(0xFF2D2D2D), // Вариант темной поверхности
+        onSurfaceVariant: Colors.white70,
       );
     } else {
-      // Русский язык - стандартная схема
+      // Светлая тема
       return const ColorScheme(
         brightness: Brightness.light,
         primary: Color(0xFF8E24AA), // Фиолетовый
@@ -158,10 +191,12 @@ class LocaleProvider extends ChangeNotifier {
         onSecondary: Colors.white,
         error: Color(0xFFD32F2F), // Красный
         onError: Colors.white,
-        background: Color(0xFFF5F5F5), // Светло-серый
+        background: Color(0xFFF5F5F5), // Светло-серый фон
         onBackground: Colors.black,
-        surface: Colors.white,
+        surface: Colors.white, // Белая поверхность
         onSurface: Colors.black,
+        surfaceVariant: Color(0xFFF0F0F0), // Вариант светлой поверхности
+        onSurfaceVariant: Colors.black87,
       );
     }
   }
