@@ -199,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.checkMozgachAvailability,
                       leading: const Icon(Icons.smart_toy),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _checkAIStatus();
                       },
                     ),
@@ -208,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.aiAssistantParameters,
                       leading: const Icon(Icons.settings),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showAISettingsDialog(l10n);
                       },
                     ),
@@ -217,7 +217,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.aiAssistantUsage,
                       leading: const Icon(Icons.analytics),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showAIStatsDialog(l10n);
                       },
                     ),
@@ -233,7 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.viewAllAchievements,
                       leading: const Icon(Icons.bar_chart),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showOverallStatsDialog(l10n);
                       },
                     ),
@@ -242,7 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.saveDataToDevice,
                       leading: const Icon(Icons.download),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _exportData(l10n);
                       },
                     ),
@@ -251,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.deleteAllSavedData,
                       leading: const Icon(Icons.delete_forever),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showClearDataDialog(l10n);
                       },
                     ),
@@ -272,7 +272,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.openSource,
                       leading: const Icon(Icons.description),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showLicenseDialog(l10n);
                       },
                     ),

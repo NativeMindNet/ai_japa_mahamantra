@@ -131,7 +131,7 @@ class BackgroundService {
       'japa_reminder_task',
       frequency: const Duration(hours: 1),
       constraints: Constraints(
-        networkType: NetworkType.not_required,
+        networkType: NetworkType.connected,
         requiresBatteryNotLow: false,
         requiresCharging: false,
         requiresDeviceIdle: false,
@@ -147,7 +147,7 @@ class BackgroundService {
       'japa_schedule_check',
       frequency: const Duration(minutes: 15),
       constraints: Constraints(
-        networkType: NetworkType.not_required,
+        networkType: NetworkType.connected,
         requiresBatteryNotLow: false,
         requiresCharging: false,
         requiresDeviceIdle: false,
@@ -253,13 +253,13 @@ class BackgroundService {
         'japa_schedule_$i',
         'japa_schedule_check',
         inputData: {'scheduled_time': '${times[i].hour}:${times[i].minute}'},
-        constraints: Constraints(
-          networkType: NetworkType.not_required,
-          requiresBatteryNotLow: false,
-          requiresCharging: false,
-          requiresDeviceIdle: false,
-          requiresStorageNotLow: false,
-        ),
+                  constraints: Constraints(
+            networkType: NetworkType.connected,
+            requiresBatteryNotLow: false,
+            requiresCharging: false,
+            requiresDeviceIdle: false,
+            requiresStorageNotLow: false,
+          ),
       );
     }
   }

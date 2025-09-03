@@ -524,7 +524,30 @@ class JapaProvider with ChangeNotifier {
       return {};
     }
   }
-  
+
+  /// Получает историю сессий
+  List<Map<String, dynamic>> getSessionHistory() {
+    // TODO: Реализовать получение истории из локального хранилища
+    // Пока возвращаем тестовые данные
+    return [
+      {
+        'rounds': 16,
+        'duration': const Duration(minutes: 240),
+        'date': 'Сегодня',
+      },
+      {
+        'rounds': 8,
+        'duration': const Duration(minutes: 120),
+        'date': 'Вчера',
+      },
+      {
+        'rounds': 4,
+        'duration': const Duration(minutes: 60),
+        'date': '2 дня назад',
+      },
+    ];
+  }
+
   @override
   void dispose() {
     _sessionTimer?.cancel();

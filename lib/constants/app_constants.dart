@@ -84,4 +84,8 @@ class AppConstants {
   static const int shortVibration = 50;
   static const int mediumVibration = 100;
   static const int longVibration = 200;
+  
+  // Цвета для виджетов
+  static const int surfaceColor = 0xFFFFFFFF;
+  static const int backgroundColor = 0xFFF5F5F5;
 }

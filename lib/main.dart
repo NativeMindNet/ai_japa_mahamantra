@@ -27,7 +27,7 @@ void main() async {
     'japa_reminder_task',
     frequency: const Duration(hours: 1),
     constraints: Constraints(
-      networkType: NetworkType.not_required,
+      networkType: NetworkType.connected,
       requiresBatteryNotLow: false,
       requiresCharging: false,
       requiresDeviceIdle: false,

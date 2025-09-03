@@ -144,9 +144,9 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                   child: JapaMalaWidget(
                     currentBead: japaProvider.currentBead,
                     totalBeads: AppConstants.totalBeads,
-                    onBeadTap: japaProvider.nextBead,
-                    animationController: _malaAnimationController,
-                    scaleAnimation: _malaScaleAnimation,
+                    onBeadTap: (int beadIndex) {
+                      japaProvider.nextBead();
+                    },
                   ),
                 ),
                 
@@ -154,11 +154,18 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                 Expanded(
                   flex: 2,
                   child: JapaControlsWidget(
-                    isActive: japaProvider.isActive,
-                    onStart: japaProvider.startSession,
-                    onPause: japaProvider.pauseSession,
-                    onStop: japaProvider.stopSession,
-                    onReset: japaProvider.resetSession,
+                    isSessionActive: japaProvider.isSessionActive,
+                    onStartSession: () {
+                      japaProvider.startSession();
+                      _malaAnimationController.forward();
+                    },
+                    onPauseSession: japaProvider.pauseSession,
+                    onResumeSession: japaProvider.resumeSession,
+                    onCompleteRound: japaProvider.completeRound,
+                    onEndSession: () {
+                      japaProvider.endSession();
+                      _showSessionCompleteDialog(l10n);
+                    },
                   ),
                 ),
                 
@@ -167,10 +174,10 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                   flex: 1,
                   child: JapaStatsWidget(
                     currentRound: japaProvider.currentRound,
-                    targetRounds: japaProvider.targetRounds,
+                    totalRounds: japaProvider.targetRounds,
                     currentBead: japaProvider.currentBead,
                     totalBeads: AppConstants.totalBeads,
-                    sessionTime: japaProvider.sessionTime,
+                    sessionDuration: japaProvider.sessionDuration,
                   ),
                 ),
               ],
@@ -226,7 +233,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
         letterSpacing: 1.5,
         color: Colors.white,
       );
-    } else if (localeProvider.isAtreides) {
+    } else if (localeProvider.isEnglish) {
       return baseStyle.copyWith(
         fontSize: 18,
         fontWeight: FontWeight.w500,
@@ -282,6 +289,76 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             },
           ),
           actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(l10n.close),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Показывает диалог завершения сессии
+  void _showSessionCompleteDialog(AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Сессия завершена! 🎉',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Consumer<JapaProvider>(
+            builder: (context, japaProvider, child) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Поздравляем! Вы завершили ${japaProvider.completedRounds} кругов джапы.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppConstants.smallPadding),
+                  Text(
+                    'Время сессии: ${japaProvider.sessionDuration.inMinutes} минут',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: AppConstants.smallPadding),
+                  const Text(
+                    'Теперь вы можете задать духовные вопросы AI помощнику.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AIAssistantScreen(),
+                  ),
+                );
+              },
+              child: const Text(
+                'Задать вопрос AI',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
