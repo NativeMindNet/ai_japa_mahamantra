@@ -51,7 +51,10 @@ Future<void> _handleJapaReminder() async {
   // Проверяем время дня (джапа лучше всего утром и вечером)
   final hour = now.hour;
   if (hour >= 4 && hour <= 8 || hour >= 17 && hour <= 21) {
-    await NotificationService.showJapaTimeReminder();
+    await NotificationService.showJapaReminder(
+      title: 'Время для джапы! 🕉️',
+      body: 'Пришло время для духовной практики. Харе Кришна!',
+    );
   }
 }
 

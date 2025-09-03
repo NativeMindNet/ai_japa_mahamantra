@@ -397,8 +397,8 @@ class JapaProvider with ChangeNotifier {
     // Уведомление о завершении сессии
     if (_notificationsEnabled) {
       NotificationService.showSessionComplete(
-        completedRounds: _completedRounds,
-        sessionDuration: _sessionDuration,
+        totalRounds: _completedRounds,
+        duration: _sessionDuration,
       );
     }
     

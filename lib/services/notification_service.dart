@@ -193,16 +193,11 @@ class NotificationService {
       iOS: iosDetails,
     );
     
-    await _notifications.zonedSchedule(
+    await _notifications.show(
       1, // ID уведомления
       title,
       body,
-      _nextInstanceOfTime(time),
       details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: 
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
   
