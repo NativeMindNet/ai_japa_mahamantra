@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/japa_provider.dart';
+import 'providers/locale_provider.dart';
 import 'screens/japa_screen.dart';
 import 'constants/app_constants.dart';
 import 'services/notification_service.dart';
 import 'services/background_service.dart';
+import 'l10n/app_localizations_delegate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,67 +46,92 @@ class AIJapaMahamantraApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => JapaProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: MaterialApp(
-        title: 'AI Джапа Махамантра',
-        theme: ThemeData(
-          primarySwatch: Colors.purple,
-          primaryColor: Color(AppConstants.primaryColor),
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(AppConstants.primaryColor),
-            primary: Color(AppConstants.primaryColor),
-            secondary: Color(AppConstants.accentColor),
-            background: Color(AppConstants.backgroundColor),
-            surface: Color(AppConstants.surfaceColor),
-            error: Color(AppConstants.errorColor),
-          ),
-          appBarTheme: AppBarTheme(
-            backgroundColor: Color(AppConstants.primaryColor),
-            foregroundColor: Colors.white,
-            elevation: 0,
-            centerTitle: true,
-            titleTextStyle: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(AppConstants.primaryColor),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.defaultPadding,
-                vertical: AppConstants.smallPadding,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-              ),
-            ),
-          ),
-          cardTheme: CardThemeData(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-            ),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-              borderSide: BorderSide(
-                color: Color(AppConstants.primaryColor),
-                width: 2,
-              ),
-            ),
-          ),
-          useMaterial3: true,
-        ),
-        home: const JapaScreen(),
-        debugShowCheckedModeBanner: false,
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, child) {
+          return MaterialApp(
+            title: 'AI Джапа Махамантра',
+            locale: localeProvider.currentLocale,
+            supportedLocales: const [
+              Locale('ru'),
+              Locale('en'),
+              Locale('harkonnen'),
+            ],
+            localizationsDelegates: const [
+              AppLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            localeResolutionCallback: (locale, supportedLocales) {
+              // Если локаль не поддерживается, возвращаем русский
+              if (locale == null || !supportedLocales.contains(locale)) {
+                return const Locale('ru');
+              }
+              return locale;
+            },
+            theme: _buildTheme(localeProvider),
+            home: const JapaScreen(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
+    );
+  }
+  
+  /// Строит тему в зависимости от выбранного языка
+  ThemeData _buildTheme(LocaleProvider localeProvider) {
+    final colorScheme = localeProvider.getLanguageColorScheme();
+    
+    return ThemeData(
+      primarySwatch: Colors.purple,
+      primaryColor: colorScheme.primary,
+      colorScheme: colorScheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: colorScheme.onPrimary,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.defaultPadding,
+            vertical: AppConstants.smallPadding,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          ),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        ),
+        color: colorScheme.surface,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          borderSide: BorderSide(
+            color: colorScheme.primary,
+            width: 2,
+          ),
+        ),
+      ),
+      useMaterial3: true,
     );
   }
 }

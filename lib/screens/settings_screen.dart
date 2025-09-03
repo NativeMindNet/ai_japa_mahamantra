@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../providers/japa_provider.dart';
+import '../providers/locale_provider.dart';
 import '../services/background_service.dart';
 import '../constants/app_constants.dart';
+import '../l10n/app_localizations_delegate.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,33 +20,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    
     return Scaffold(
-      backgroundColor: Color(AppConstants.backgroundColor),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text(
-          'Настройки',
+        title: Text(
+          l10n.settings,
           style: TextStyle(
             fontFamily: 'Sanskrit',
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Color(AppConstants.primaryColor),
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 0,
       ),
       body: Consumer<JapaProvider>(
         builder: (context, japaProvider, child) {
           return Container(
-            color: Color(AppConstants.backgroundColor),
+            color: Theme.of(context).colorScheme.background,
             child: SettingsList(
               sections: [
-                // Основные настройки джапы
+                // Выбор языка
                 SettingsSection(
-                  title: 'Основные настройки',
+                  title: l10n.language,
                   tiles: [
                     SettingsTile(
-                      title: 'Целевые круги',
-                      subtitle: '${japaProvider.targetRounds} кругов',
+                      title: l10n.selectLanguage,
+                      subtitle: _getCurrentLanguageName(localeProvider),
+                      leading: const Icon(Icons.language),
+                      trailing: const Icon(Icons.arrow_forward_ios),
+                      onPressed: (context) {
+                        _showLanguageSelectionDialog(localeProvider);
+                      },
+                    ),
+                  ],
+                ),
+                
+                // Основные настройки джапы
+                SettingsSection(
+                  title: l10n.basicSettings,
+                  tiles: [
+                    SettingsTile(
+                      title: l10n.targetRounds,
+                      subtitle: '${japaProvider.targetRounds} ${l10n.rounds}',
                       leading: const Icon(Icons.track_changes),
                       trailing: DropdownButton<int>(
                         value: japaProvider.targetRounds,
@@ -62,27 +83,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     SettingsTile(
-                      title: 'Время на круг',
-                      subtitle: '${AppConstants.minutesPerRound} минут',
+                      title: l10n.timePerRound,
+                      subtitle: '${AppConstants.minutesPerRound} ${l10n.minutes}',
                       leading: const Icon(Icons.timer),
                       trailing: const Text('Примерно'),
                     ),
                     SettingsTile(
-                      title: 'Максимум кругов в день',
-                      subtitle: '${AppConstants.maxRoundsPerDay} кругов',
+                      title: l10n.maxRoundsPerDay,
+                      subtitle: '${AppConstants.maxRoundsPerDay} ${l10n.rounds}',
                       leading: const Icon(Icons.warning),
-                      trailing: const Text('Не рекомендуется превышать'),
+                      trailing: Text(l10n.notRecommendedToExceed),
                     ),
                   ],
                 ),
 
                 // Уведомления и напоминания
                 SettingsSection(
-                  title: 'Уведомления и напоминания',
+                  title: l10n.notificationsAndReminders,
                   tiles: [
                     SettingsTile.switchTile(
-                      title: 'Уведомления',
-                      subtitle: 'Уведомления о прогрессе джапы',
+                      title: l10n.notifications,
+                      subtitle: l10n.japaProgressNotifications,
                       leading: const Icon(Icons.notifications),
                       switchValue: japaProvider.notificationsEnabled,
                       onToggle: (value) {
@@ -90,8 +111,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SettingsTile.switchTile(
-                      title: 'Автозапуск',
-                      subtitle: 'Напоминания о времени джапы',
+                      title: l10n.autoStart,
+                      subtitle: l10n.japaTimeReminders,
                       leading: const Icon(Icons.schedule),
                       switchValue: japaProvider.autoStartEnabled,
                       onToggle: (value) {
@@ -99,21 +120,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SettingsTile(
-                      title: 'Ежедневное напоминание',
-                      subtitle: 'Установить время для джапы',
+                      title: l10n.dailyReminder,
+                      subtitle: l10n.setJapaTime,
                       leading: const Icon(Icons.access_time),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: (context) {
-                        _showDailyReminderDialog();
+                        _showDailyReminderDialog(l10n);
                       },
                     ),
                     SettingsTile(
-                      title: 'Расписание джапы',
-                      subtitle: 'Настроить несколько времен',
+                      title: l10n.japaSchedule,
+                      subtitle: l10n.setMultipleTimes,
                       leading: const Icon(Icons.calendar_today),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: (context) {
-                        _showScheduleDialog();
+                        _showScheduleDialog(l10n);
                       },
                     ),
                   ],
@@ -121,11 +142,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // Звук и вибрация
                 SettingsSection(
-                  title: 'Звук и вибрация',
+                  title: l10n.soundAndVibration,
                   tiles: [
                     SettingsTile.switchTile(
-                      title: 'Вибрация',
-                      subtitle: 'Вибрация при нажатии на бусины',
+                      title: l10n.vibration,
+                      subtitle: l10n.beadClickVibration,
                       leading: const Icon(Icons.vibration),
                       switchValue: japaProvider.vibrationEnabled,
                       onToggle: (value) {
@@ -133,8 +154,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SettingsTile.switchTile(
-                      title: 'Звук',
-                      subtitle: 'Звуковые эффекты',
+                      title: l10n.sound,
+                      subtitle: l10n.soundEffects,
                       leading: const Icon(Icons.volume_up),
                       switchValue: japaProvider.soundEnabled,
                       onToggle: (value) {
@@ -142,12 +163,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SettingsTile(
-                      title: 'Звуки джапы',
-                      subtitle: 'Настроить звуки для разных событий',
+                      title: l10n.japaSounds,
+                      subtitle: l10n.configureSounds,
                       leading: const Icon(Icons.music_note),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _showSoundSettingsDialog();
+                        _showSoundSettingsDialog(l10n);
                       },
                     ),
                   ],
@@ -155,11 +176,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // AI помощник
                 SettingsSection(
-                  title: 'AI Помощник',
+                  title: l10n.aiAssistantSection,
                   tiles: [
                     SettingsTile(
-                      title: 'Статус AI',
-                      subtitle: 'Проверить доступность mozgach:latest',
+                      title: l10n.aiStatus,
+                      subtitle: l10n.checkMozgachAvailability,
                       leading: const Icon(Icons.smart_toy),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
@@ -167,21 +188,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     SettingsTile(
-                      title: 'Настройки AI',
-                      subtitle: 'Параметры AI помощника',
+                      title: l10n.aiSettings,
+                      subtitle: l10n.aiAssistantParameters,
                       leading: const Icon(Icons.settings),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _showAISettingsDialog();
+                        _showAISettingsDialog(l10n);
                       },
                     ),
                     SettingsTile(
-                      title: 'Статистика AI',
-                      subtitle: 'Использование AI помощника',
+                      title: l10n.aiStatistics,
+                      subtitle: l10n.aiAssistantUsage,
                       leading: const Icon(Icons.analytics),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _showAIStatsDialog();
+                        _showAIStatsDialog(l10n);
                       },
                     ),
                   ],
@@ -189,33 +210,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // Статистика и данные
                 SettingsSection(
-                  title: 'Статистика и данные',
+                  title: l10n.statisticsAndData,
                   tiles: [
                     SettingsTile(
-                      title: 'Общая статистика',
-                      subtitle: 'Просмотр всех достижений',
+                      title: l10n.overallStatistics,
+                      subtitle: l10n.viewAllAchievements,
                       leading: const Icon(Icons.bar_chart),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _showOverallStatsDialog();
+                        _showOverallStatsDialog(l10n);
                       },
                     ),
                     SettingsTile(
-                      title: 'Экспорт данных',
-                      subtitle: 'Сохранить данные на устройство',
+                      title: l10n.dataExport,
+                      subtitle: l10n.saveDataToDevice,
                       leading: const Icon(Icons.download),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _exportData();
+                        _exportData(l10n);
                       },
                     ),
                     SettingsTile(
-                      title: 'Очистить данные',
-                      subtitle: 'Удалить все сохраненные данные',
+                      title: l10n.clearData,
+                      subtitle: l10n.deleteAllSavedData,
                       leading: const Icon(Icons.delete_forever),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _showClearDataDialog();
+                        _showClearDataDialog(l10n);
                       },
                     ),
                   ],
@@ -223,29 +244,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // О приложении
                 SettingsSection(
-                  title: 'О приложении',
+                  title: l10n.aboutApp,
                   tiles: [
                     SettingsTile(
-                      title: 'Версия',
+                      title: l10n.version,
                       subtitle: '1.0.0',
                       leading: const Icon(Icons.info),
                     ),
                     SettingsTile(
-                      title: 'Лицензия',
-                      subtitle: 'Открытый исходный код',
+                      title: l10n.license,
+                      subtitle: l10n.openSource,
                       leading: const Icon(Icons.description),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _showLicenseDialog();
+                        _showLicenseDialog(l10n);
                       },
                     ),
                     SettingsTile(
-                      title: 'Разработчики',
-                      subtitle: 'Команда AI Джапа Махамантра',
+                      title: l10n.developers,
+                      subtitle: l10n.aiJapaTeam,
                       leading: const Icon(Icons.people),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onPressed: () {
-                        _showDevelopersDialog();
+                        _showDevelopersDialog(l10n);
                       },
                     ),
                   ],
@@ -258,27 +279,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Показывает диалог ежедневного напоминания
-  void _showDailyReminderDialog() {
+  /// Получает название текущего языка
+  String _getCurrentLanguageName(LocaleProvider localeProvider) {
+    final currentInfo = localeProvider.getCurrentLocaleInfo();
+    return currentInfo?['nativeName'] ?? 'Русский';
+  }
+
+  /// Показывает диалог выбора языка
+  void _showLanguageSelectionDialog(LocaleProvider localeProvider) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Ежедневное напоминание'),
-          content: const Text('Выберите время для ежедневного напоминания о джапе'),
+          title: Text(AppLocalizations.of(context).selectLanguage),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: LocaleProvider.availableLocales.length,
+              itemBuilder: (context, index) {
+                final locale = LocaleProvider.availableLocales[index];
+                final isSelected = localeProvider.currentLocale.languageCode == locale['code'];
+                
+                return ListTile(
+                  leading: Text(
+                    locale['flag']!,
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                  title: Text(
+                    locale['name']!,
+                    style: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  subtitle: Text(locale['description']!),
+                  trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+                  onTap: () {
+                    localeProvider.setLocale(locale['code']!);
+                    Navigator.of(context).pop();
+                  },
+                );
+              },
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Отмена'),
+              child: Text(AppLocalizations.of(context).close),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Показывает диалог ежедневного напоминания
+  void _showDailyReminderDialog(AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(l10n.dailyReminder),
+          content: Text(l10n.setJapaTime),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // TODO: Показать выбор времени
               },
-              child: const Text('Установить'),
+              child: Text(l10n.set),
             ),
           ],
         );
@@ -287,26 +364,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог расписания
-  void _showScheduleDialog() {
+  void _showScheduleDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Расписание джапы'),
-          content: const Text('Настройте несколько времен для напоминаний о джапе'),
+          title: Text(l10n.japaSchedule),
+          content: Text(l10n.setMultipleTimes),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Отмена'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // TODO: Показать настройку расписания
               },
-              child: const Text('Настроить'),
+              child: Text(l10n.configure),
             ),
           ],
         );
@@ -315,26 +392,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог настроек звука
-  void _showSoundSettingsDialog() {
+  void _showSoundSettingsDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Настройки звука'),
-          content: const Text('Настройте звуки для разных событий в джапе'),
+          title: Text(l10n.japaSounds),
+          content: Text(l10n.configureSounds),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Отмена'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // TODO: Показать настройки звука
               },
-              child: const Text('Настроить'),
+              child: Text(l10n.configure),
             ),
           ],
         );
@@ -356,26 +433,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог настроек AI
-  void _showAISettingsDialog() {
+  void _showAISettingsDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Настройки AI'),
-          content: const Text('Настройте параметры AI помощника'),
+          title: Text(l10n.aiSettings),
+          content: Text(l10n.aiAssistantParameters),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Отмена'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // TODO: Показать настройки AI
               },
-              child: const Text('Настроить'),
+              child: Text(l10n.configure),
             ),
           ],
         );
@@ -384,19 +461,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог статистики AI
-  void _showAIStatsDialog() {
+  void _showAIStatsDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Статистика AI'),
-          content: const Text('Статистика использования AI помощника'),
+          title: Text(l10n.aiStatistics),
+          content: Text(l10n.aiAssistantUsage),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Закрыть'),
+              child: Text(l10n.close),
             ),
           ],
         );
@@ -405,12 +482,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог общей статистики
-  void _showOverallStatsDialog() {
+  void _showOverallStatsDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Общая статистика'),
+          title: Text(l10n.overallStatistics),
           content: Consumer<JapaProvider>(
             builder: (context, japaProvider, child) {
               final stats = japaProvider.getOverallStats();
@@ -418,11 +495,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Всего сессий: ${stats['totalSessions']}'),
-                  Text('Всего кругов: ${stats['totalRounds']}'),
-                  Text('Общее время: ${stats['totalTime'].inHours}ч ${stats['totalTime'].inMinutes % 60}м'),
-                  Text('Среднее кругов за сессию: ${stats['averageRoundsPerSession']}'),
-                  Text('Среднее время сессии: ${stats['averageTimePerSession']} минут'),
+                  Text('${l10n.totalSessions}: ${stats['totalSessions']}'),
+                  Text('${l10n.totalRounds}: ${stats['totalRounds']}'),
+                  Text('${l10n.totalTime}: ${stats['totalTime'].inHours}${l10n.hours} ${stats['totalTime'].inMinutes % 60}${l10n.minutesShort}'),
+                  Text('${l10n.averageRoundsPerSession}: ${stats['averageRoundsPerSession']}'),
+                  Text('${l10n.averageTimePerSession}: ${stats['averageTimePerSession']} ${l10n.minutes}'),
                 ],
               );
             },
@@ -432,7 +509,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Закрыть'),
+              child: Text(l10n.close),
             ),
           ],
         );
@@ -441,37 +518,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Экспортирует данные
-  void _exportData() {
+  void _exportData(AppLocalizations l10n) {
     // TODO: Реализовать экспорт данных
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text('Экспорт данных будет доступен в следующей версии'),
       ),
     );
   }
 
   /// Показывает диалог очистки данных
-  void _showClearDataDialog() {
+  void _showClearDataDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Очистить данные'),
-          content: const Text('Вы уверены, что хотите удалить все сохраненные данные? Это действие нельзя отменить.'),
+          title: Text(l10n.clearData),
+          content: Text('Вы уверены, что хотите удалить все сохраненные данные? Это действие нельзя отменить.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Отмена'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // TODO: Реализовать очистку данных
               },
-              child: const Text(
-                'Удалить',
+              child: Text(
+                l10n.delete,
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -482,19 +559,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог лицензии
-  void _showLicenseDialog() {
+  void _showLicenseDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Лицензия'),
-          content: const Text('Это приложение распространяется под лицензией MIT. Исходный код доступен на GitHub.'),
+          title: Text(l10n.license),
+          content: Text('Это приложение распространяется под лицензией MIT. Исходный код доступен на GitHub.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Закрыть'),
+              child: Text(l10n.close),
             ),
           ],
         );
@@ -503,19 +580,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог разработчиков
-  void _showDevelopersDialog() {
+  void _showDevelopersDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Разработчики'),
-          content: const Text('AI Джапа Махамантра разработана командой энтузиастов для духовного развития.'),
+          title: Text(l10n.developers),
+          content: Text('AI Джапа Махамантра разработана командой энтузиастов для духовного развития.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Закрыть'),
+              child: Text(l10n.close),
             ),
           ],
         );

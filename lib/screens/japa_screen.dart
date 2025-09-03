@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/japa_provider.dart';
+import '../providers/locale_provider.dart';
 import '../constants/app_constants.dart';
 import '../widgets/japa_mala_widget.dart';
 import '../widgets/japa_controls_widget.dart';
 import '../widgets/japa_stats_widget.dart';
+import '../l10n/app_localizations_delegate.dart';
 import 'ai_assistant_screen.dart';
+import 'settings_screen.dart';
 
 class JapaScreen extends StatefulWidget {
   const JapaScreen({super.key});
@@ -64,18 +67,21 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    
     return Scaffold(
-      backgroundColor: Color(AppConstants.backgroundColor),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text(
-          'AI Джапа Махамантра',
+        title: Text(
+          l10n.appTitle,
           style: TextStyle(
             fontFamily: 'Sanskrit',
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Color(AppConstants.primaryColor),
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 0,
         actions: [
           IconButton(
@@ -88,214 +94,149 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                 ),
               );
             },
-            tooltip: 'AI Помощник',
+            tooltip: l10n.aiAssistant,
           ),
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () {
-              _showHistoryDialog();
+              _showHistoryDialog(l10n);
             },
             tooltip: 'История сессий',
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              _showSettingsDialog();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
             },
-            tooltip: 'Настройки',
+            tooltip: l10n.settings,
           ),
         ],
       ),
       body: Consumer<JapaProvider>(
         builder: (context, japaProvider, child) {
-          return Column(
-            children: [
-              // Статистика текущей сессии
-              Expanded(
-                flex: 2,
-                child: JapaStatsWidget(
-                  currentRound: japaProvider.currentRound,
-                  totalRounds: japaProvider.targetRounds,
-                  currentBead: japaProvider.currentBead,
-                  totalBeads: AppConstants.totalBeads,
-                  sessionDuration: japaProvider.sessionDuration,
+          return Container(
+            color: Theme.of(context).colorScheme.background,
+            child: Column(
+              children: [
+                // Мантра
+                Expanded(
+                  flex: 2,
+                  child: _buildMantraSection(l10n, localeProvider),
                 ),
-              ),
-              
-              // Визуализация малы
-              Expanded(
-                flex: 4,
-                child: ScaleTransition(
-                  scale: _malaScaleAnimation,
+                
+                // Мала
+                Expanded(
+                  flex: 3,
                   child: JapaMalaWidget(
                     currentBead: japaProvider.currentBead,
                     totalBeads: AppConstants.totalBeads,
-                    onBeadTap: (beadIndex) {
-                      japaProvider.moveToBead(beadIndex);
-                    },
+                    onBeadTap: japaProvider.nextBead,
+                    animationController: _malaAnimationController,
+                    scaleAnimation: _malaScaleAnimation,
                   ),
                 ),
-              ),
-              
-              // Отображение мантры
-              Expanded(
-                flex: 2,
-                child: FadeTransition(
-                  opacity: _mantraFadeAnimation,
-                  child: Container(
-                    margin: const EdgeInsets.all(AppConstants.defaultPadding),
-                    padding: const EdgeInsets.all(AppConstants.defaultPadding),
-                    decoration: BoxDecoration(
-                      color: Color(AppConstants.surfaceColor),
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Текущая мантра:',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(AppConstants.primaryColor),
-                          ),
-                        ),
-                        const SizedBox(height: AppConstants.smallPadding),
-                        Text(
-                          _getCurrentMantra(japaProvider.currentBead),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Sanskrit',
-                          ),
-                        ),
-                      ],
-                    ),
+                
+                // Управление
+                Expanded(
+                  flex: 2,
+                  child: JapaControlsWidget(
+                    isActive: japaProvider.isActive,
+                    onStart: japaProvider.startSession,
+                    onPause: japaProvider.pauseSession,
+                    onStop: japaProvider.stopSession,
+                    onReset: japaProvider.resetSession,
                   ),
                 ),
-              ),
-              
-              // Элементы управления
-              Expanded(
-                flex: 2,
-                child: JapaControlsWidget(
-                  isSessionActive: japaProvider.isSessionActive,
-                  onStartSession: () {
-                    japaProvider.startSession();
-                    _malaAnimationController.forward();
-                  },
-                  onPauseSession: () {
-                    japaProvider.pauseSession();
-                  },
-                  onResumeSession: () {
-                    japaProvider.resumeSession();
-                  },
-                  onCompleteRound: () {
-                    japaProvider.completeRound();
-                    _malaAnimationController.forward();
-                  },
-                  onEndSession: () {
-                    japaProvider.endSession();
-                    _showSessionCompleteDialog();
-                  },
+                
+                // Статистика
+                Expanded(
+                  flex: 1,
+                  child: JapaStatsWidget(
+                    currentRound: japaProvider.currentRound,
+                    targetRounds: japaProvider.targetRounds,
+                    currentBead: japaProvider.currentBead,
+                    totalBeads: AppConstants.totalBeads,
+                    sessionTime: japaProvider.sessionTime,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  /// Возвращает мантру для текущей бусины
-  String _getCurrentMantra(int currentBead) {
-    if (currentBead <= 4 && currentBead > 0) {
-      return AppConstants.firstFourBeadsMantra;
-    } else {
-      return AppConstants.hareKrishnaMantra;
-    }
-  }
-
-  /// Показывает диалог завершения сессии
-  void _showSessionCompleteDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Сессия завершена! 🎉',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Color(AppConstants.successColor),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Consumer<JapaProvider>(
-            builder: (context, japaProvider, child) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Поздравляем! Вы завершили ${japaProvider.completedRounds} кругов джапы.',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppConstants.smallPadding),
-                  Text(
-                    'Время сессии: ${japaProvider.sessionDuration.inMinutes} минут',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: AppConstants.smallPadding),
-                  const Text(
-                    'Теперь вы можете задать духовные вопросы AI помощнику.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AIAssistantScreen(),
-                  ),
-                );
-              },
-              child: const Text(
-                'Задать вопрос AI',
-                style: TextStyle(
-                  color: Color(AppConstants.primaryColor),
-                  fontWeight: FontWeight.bold,
-                ),
+  /// Строит секцию с мантрой
+  Widget _buildMantraSection(AppLocalizations l10n, LocaleProvider localeProvider) {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Первые 4 бусины
+          if (Provider.of<JapaProvider>(context).currentBead <= 4)
+            FadeTransition(
+              opacity: _mantraFadeAnimation,
+              child: Text(
+                l10n.mantraFirstFour,
+                style: _getMantraStyle(localeProvider),
+                textAlign: TextAlign.center,
               ),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Закрыть'),
+          
+          const SizedBox(height: AppConstants.smallPadding),
+          
+          // Основная мантра
+          FadeTransition(
+            opacity: _mantraFadeAnimation,
+            child: Text(
+              l10n.mantraHareKrishna,
+              style: _getMantraStyle(localeProvider),
+              textAlign: TextAlign.center,
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 
-  /// Показывает диалог истории
-  void _showHistoryDialog() {
+  /// Получает стиль для мантры в зависимости от языка
+  TextStyle _getMantraStyle(LocaleProvider localeProvider) {
+    final baseStyle = localeProvider.getLanguageStyle();
+    
+    if (localeProvider.isHarkonnen) {
+      return baseStyle.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.5,
+        color: Colors.white,
+      );
+    } else if (localeProvider.isAtreides) {
+      return baseStyle.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        fontStyle: FontStyle.italic,
+        letterSpacing: 0.8,
+        color: Colors.white,
+      );
+    } else {
+      // Русский язык
+      return baseStyle.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.normal,
+        color: Colors.white,
+      );
+    }
+  }
+
+  /// Показывает диалог истории сессий
+  void _showHistoryDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -303,17 +244,31 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
           title: const Text('История сессий'),
           content: Consumer<JapaProvider>(
             builder: (context, japaProvider, child) {
-              final stats = japaProvider.getOverallStats();
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Всего сессий: ${stats['totalSessions']}'),
-                  Text('Всего кругов: ${stats['totalRounds']}'),
-                  Text('Общее время: ${stats['totalTime'].inHours}ч ${stats['totalTime'].inMinutes % 60}м'),
-                  Text('Среднее кругов за сессию: ${stats['averageRoundsPerSession']}'),
-                  Text('Среднее время сессии: ${stats['averageTimePerSession']} минут'),
-                ],
+              final sessions = japaProvider.getSessionHistory();
+              
+              if (sessions.isEmpty) {
+                return const Text('История сессий пуста');
+              }
+              
+              return SizedBox(
+                width: double.maxFinite,
+                height: 300,
+                child: ListView.builder(
+                  itemCount: sessions.length,
+                  itemBuilder: (context, index) {
+                    final session = sessions[index];
+                    return ListTile(
+                      title: Text('Сессия ${index + 1}'),
+                      subtitle: Text(
+                        '${session['rounds']} кругов, ${session['duration'].inMinutes} минут',
+                      ),
+                      trailing: Text(
+                        session['date'],
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -322,95 +277,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Закрыть'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// Показывает диалог настроек
-  void _showSettingsDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Настройки'),
-          content: Consumer<JapaProvider>(
-            builder: (context, japaProvider, child) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Целевое количество кругов
-                  ListTile(
-                    title: const Text('Целевые круги'),
-                    subtitle: Text('${japaProvider.targetRounds}'),
-                    trailing: DropdownButton<int>(
-                      value: japaProvider.targetRounds,
-                      items: AppConstants.recommendedRounds.map((rounds) {
-                        return DropdownMenuItem(
-                          value: rounds,
-                          child: Text('$rounds'),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          japaProvider.setTargetRounds(value);
-                        }
-                      },
-                    ),
-                  ),
-                  
-                  // Вибрация
-                  SwitchListTile(
-                    title: const Text('Вибрация'),
-                    subtitle: const Text('Вибрация при нажатии на бусины'),
-                    value: japaProvider.vibrationEnabled,
-                    onChanged: (value) {
-                      japaProvider.setVibrationEnabled(value);
-                    },
-                  ),
-                  
-                  // Звук
-                  SwitchListTile(
-                    title: const Text('Звук'),
-                    subtitle: const Text('Звуковые эффекты'),
-                    value: japaProvider.soundEnabled,
-                    onChanged: (value) {
-                      japaProvider.setSoundEnabled(value);
-                    },
-                  ),
-                  
-                  // Уведомления
-                  SwitchListTile(
-                    title: const Text('Уведомления'),
-                    subtitle: const Text('Уведомления о прогрессе'),
-                    value: japaProvider.notificationsEnabled,
-                    onChanged: (value) {
-                      japaProvider.setNotificationsEnabled(value);
-                    },
-                  ),
-                  
-                  // Автозапуск
-                  SwitchListTile(
-                    title: const Text('Автозапуск'),
-                    subtitle: const Text('Напоминания о джапе'),
-                    value: japaProvider.autoStartEnabled,
-                    onChanged: (value) {
-                      japaProvider.setAutoStartEnabled(value);
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Закрыть'),
+              child: Text(l10n.close),
             ),
           ],
         );

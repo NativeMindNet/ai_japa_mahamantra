@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/japa_provider.dart';
+import '../providers/locale_provider.dart';
 import '../services/ai_service.dart';
 import '../constants/app_constants.dart';
 import '../models/ai_assistant.dart';
+import '../l10n/app_localizations_delegate.dart';
 
 class AIAssistantScreen extends StatefulWidget {
   const AIAssistantScreen({super.key});
@@ -99,8 +101,8 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Ошибка при получении ответа: $e'),
-          backgroundColor: Color(AppConstants.errorColor),
+          content: Text('Ошибка при отправке вопроса: $e'),
+          backgroundColor: Colors.red,
         ),
       );
     } finally {
@@ -110,333 +112,158 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     }
   }
 
-  /// Сохраняет разговор в локальное хранилище
+  /// Сохраняет разговор
   Future<void> _saveConversation(AIConversation conversation) async {
-    // Здесь можно добавить сохранение в локальную базу данных
+    // TODO: Реализовать сохранение в локальное хранилище
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    
     return Scaffold(
-      backgroundColor: Color(AppConstants.backgroundColor),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text(
-          'AI Духовный Помощник',
+        title: Text(
+          l10n.aiAssistant,
           style: TextStyle(
             fontFamily: 'Sanskrit',
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Color(AppConstants.primaryColor),
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _checkAIStatus,
-            tooltip: 'Проверить статус AI',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // TODO: Открыть настройки AI
-            },
-            tooltip: 'Настройки AI',
-          ),
-        ],
       ),
-      body: Column(
-        children: [
-          // Статус AI
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            color: _isMozgachAvailable 
-                ? Color(AppConstants.successColor).withOpacity(0.1)
-                : Color(AppConstants.errorColor).withOpacity(0.1),
-            child: Row(
-              children: [
-                Icon(
-                  _isMozgachAvailable ? Icons.check_circle : Icons.error,
-                  color: _isMozgachAvailable 
-                      ? Color(AppConstants.successColor)
-                      : Color(AppConstants.errorColor),
-                ),
-                const SizedBox(width: AppConstants.smallPadding),
-                Expanded(
-                  child: Text(
-                    _aiStatus ?? 'Проверка статуса...',
-                    style: TextStyle(
-                      color: _isMozgachAvailable 
-                          ? Color(AppConstants.successColor)
-                          : Color(AppConstants.errorColor),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+      body: Container(
+        color: Theme.of(context).colorScheme.background,
+        child: Column(
+          children: [
+            // Статус AI
+            _buildAIStatusCard(l10n),
+            
+            // Форма вопроса
+            _buildQuestionForm(l10n),
+            
+            // История разговоров
+            Expanded(
+              child: _buildConversationsList(l10n),
             ),
-          ),
-
-          // Форма вопроса
-          Container(
-            margin: const EdgeInsets.all(AppConstants.defaultPadding),
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            decoration: BoxDecoration(
-              color: Color(AppConstants.surfaceColor),
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Задайте духовный вопрос:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(AppConstants.primaryColor),
-                  ),
-                ),
-                const SizedBox(height: AppConstants.smallPadding),
-                
-                // Выбор категории
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'Категория вопроса',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: AppConstants.spiritualCategories.map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  },
-                ),
-                
-                const SizedBox(height: AppConstants.smallPadding),
-                
-                // Поле вопроса
-                TextField(
-                  controller: _questionController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Ваш вопрос',
-                    hintText: 'Например: Как правильно читать джапу?',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                
-                const SizedBox(height: AppConstants.smallPadding),
-                
-                // Кнопка отправки
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _askQuestion,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Задать вопрос AI',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Подсказки
-          if (_conversations.isEmpty)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              decoration: BoxDecoration(
-                color: Color(AppConstants.surfaceColor),
-                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                border: Border.all(color: Color(AppConstants.primaryColor).withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '💡 Попробуйте задать один из этих вопросов:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(AppConstants.primaryColor),
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.smallPadding),
-                  ...AppConstants.spiritualQuestionHints.take(5).map((hint) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.lightbulb_outline, size: 16, color: Colors.amber),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              hint,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
-            ),
-
-          // История разговоров
-          Expanded(
-            child: _conversations.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Начните разговор с AI, задав духовный вопрос',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppConstants.defaultPadding),
-                    itemCount: _conversations.length,
-                    itemBuilder: (context, index) {
-                      final conversation = _conversations[index];
-                      return _buildConversationCard(conversation);
-                    },
-                  ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// Строит карточку разговора
-  Widget _buildConversationCard(AIConversation conversation) {
+  /// Строит карточку статуса AI
+  Widget _buildAIStatusCard(AppLocalizations l10n) {
     return Card(
-      margin: const EdgeInsets.only(bottom: AppConstants.defaultPadding),
+      margin: const EdgeInsets.all(AppConstants.defaultPadding),
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Заголовок
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color(AppConstants.primaryColor).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    conversation.category,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(AppConstants.primaryColor),
-                    ),
-                  ),
+                Icon(
+                  _isMozgachAvailable ? Icons.check_circle : Icons.error,
+                  color: _isMozgachAvailable ? Colors.green : Colors.red,
                 ),
-                const Spacer(),
+                const SizedBox(width: AppConstants.smallPadding),
                 Text(
-                  _formatTimestamp(conversation.timestamp),
+                  l10n.aiStatus,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: AppConstants.smallPadding),
+            Text(
+              _aiStatus ?? 'Проверка...',
+              style: TextStyle(
+                color: _isMozgachAvailable ? Colors.green : Colors.red,
+              ),
+            ),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: AppConstants.smallPadding),
+                child: LinearProgressIndicator(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Строит форму вопроса
+  Widget _buildQuestionForm(AppLocalizations l10n) {
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppConstants.defaultPadding,
+        vertical: AppConstants.smallPadding,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Задайте духовный вопрос:',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallPadding),
+            
+            // Категория
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: const InputDecoration(
+                labelText: 'Категория',
+                border: OutlineInputBorder(),
+              ),
+              items: l10n.spiritualCategories.asMap().entries.map((entry) {
+                return DropdownMenuItem(
+                  value: entry.key.toString(),
+                  child: Text(entry.value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value;
+                });
+              },
+            ),
             
             const SizedBox(height: AppConstants.smallPadding),
             
-            // Вопрос
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: Color(AppConstants.backgroundColor),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Color(AppConstants.primaryColor).withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '❓ Вопрос:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(AppConstants.primaryColor),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    conversation.question,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
+            // Поле вопроса
+            TextField(
+              controller: _questionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Ваш вопрос',
+                hintText: 'Например: ${l10n.spiritualQuestionHints.first}',
+                border: const OutlineInputBorder(),
               ),
             ),
             
             const SizedBox(height: AppConstants.smallPadding),
             
-            // Ответ
-            Container(
+            // Кнопка отправки
+            SizedBox(
               width: double.infinity,
-              padding: const EdgeInsets.all(AppConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: Color(AppConstants.successColor).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Color(AppConstants.successColor).withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.smart_toy,
-                        size: 16,
-                        color: Color(AppConstants.successColor),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'AI Ответ:',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(AppConstants.successColor),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    conversation.answer,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _askQuestion,
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Задать вопрос'),
               ),
             ),
           ],
@@ -445,19 +272,115 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     );
   }
 
+  /// Строит список разговоров
+  Widget _buildConversationsList(AppLocalizations l10n) {
+    if (_conversations.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: AppConstants.smallPadding),
+            Text(
+              'Начните разговор с AI',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallPadding),
+            Text(
+              'Задайте духовный вопрос выше',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      itemCount: _conversations.length,
+      itemBuilder: (context, index) {
+        final conversation = _conversations[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+          child: Padding(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Вопрос
+                Row(
+                  children: [
+                    const Icon(Icons.question_answer, color: Colors.blue),
+                    const SizedBox(width: AppConstants.smallPadding),
+                    Expanded(
+                      child: Text(
+                        conversation.question,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: AppConstants.smallPadding),
+                
+                // Ответ
+                Row(
+                  children: [
+                    const Icon(Icons.smart_toy, color: Colors.green),
+                    const SizedBox(width: AppConstants.smallPadding),
+                    Expanded(
+                      child: Text(
+                        conversation.answer,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: AppConstants.smallPadding),
+                
+                // Время
+                Text(
+                  _formatTimestamp(conversation.timestamp),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   /// Форматирует временную метку
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
     
-    if (difference.inDays > 0) {
-      return '${difference.inDays} дн. назад';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ч. назад';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} мин. назад';
-    } else {
+    if (difference.inMinutes < 1) {
       return 'Только что';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes} мин назад';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours} ч назад';
+    } else {
+      return '${timestamp.day}.${timestamp.month}.${timestamp.year}';
     }
   }
 }
