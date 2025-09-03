@@ -103,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: 'Установить время для джапы',
                       leading: const Icon(Icons.access_time),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showDailyReminderDialog();
                       },
                     ),
