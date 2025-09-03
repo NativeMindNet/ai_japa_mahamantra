@@ -349,7 +349,7 @@ class JapaProvider with ChangeNotifier {
     
     // Проверяем, завершена ли сессия
     if (_completedRounds >= _targetRounds) {
-      _endSession();
+      endSession();
       return;
     }
     

@@ -52,7 +52,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('mantra_bell'),
       icon: '@mipmap/ic_launcher',
-      color: Colors.blue,
+      color: Color(AppConstants.primaryColor),
     );
     
     const iosDetails = DarwinNotificationDetails(
@@ -87,13 +87,13 @@ class NotificationService {
       'japa_progress_channel',
       'Прогресс джапы',
       channelDescription: 'Уведомления о прогрессе в джапе',
-      importance: Importance.default,
-      priority: Priority.default,
+      importance: Importance.medium,
+      priority: Priority.medium,
       showWhen: true,
       enableVibration: true,
       playSound: true,
       icon: '@mipmap/ic_launcher',
-      color: Colors.green,
+      color: Color(AppConstants.successColor),
     );
     
     const iosDetails = DarwinNotificationDetails(
@@ -134,7 +134,7 @@ class NotificationService {
       enableVibration: true,
       playSound: true,
       icon: '@mipmap/ic_launcher',
-      color: Colors.blue,
+      color: Color(AppConstants.successColor),
     );
     
     const iosDetails = DarwinNotificationDetails(
@@ -260,6 +260,6 @@ class NotificationService {
           sound: true,
         );
     
-    return (androidEnabled ?? false) || (iosEnabled?.alert ?? false);
+    return (androidEnabled ?? false) || (iosEnabled ?? false);
   }
 }
