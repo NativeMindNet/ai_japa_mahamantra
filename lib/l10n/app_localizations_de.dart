@@ -251,4 +251,160 @@ class AppLocalizationsDe extends AppLocalizations {
     'Wie versteht man die Bhagavad-gita?',
     'Was ist Prema?'
   ];
+  
+  @override
+  String get german => 'Deutsch';
+  
+  @override
+  String get germanDescription => 'Deutsche Sprache - präzise und strukturiert';
+  
+  @override
+  String get startSession => 'Sitzung starten';
+  
+  @override
+  String get pauseSession => 'Pausieren';
+  
+  @override
+  String get resumeSession => 'Fortsetzen';
+  
+  @override
+  String get endSession => 'Sitzung beenden';
+  
+  @override
+  String get currentRound => 'Aktuelle Runde';
+  
+  @override
+  String get currentBead => 'Aktuelle Perle';
+  
+  @override
+  String get sessionDuration => 'Sitzungsdauer';
+  
+  @override
+  String get sessionComplete => 'Sitzung abgeschlossen';
+  
+  @override
+  String get askAIQuestion => 'KI-Frage stellen';
+  
+  @override
+  String get history => 'Verlauf';
+  
+  @override
+  String get achievements => 'Erfolge';
+  
+  @override
+  String get progress => 'Fortschritt';
+  
+  @override
+  String get meditation => 'Meditation';
+  
+  @override
+  String get spiritualGrowth => 'Spirituelles Wachstum';
+  
+  @override
+  String get dailyGoal => 'Tagesziel';
+  
+  @override
+  String get weeklyGoal => 'Wochenziel';
+  
+  @override
+  String get monthlyGoal => 'Monatsziel';
+  
+  @override
+  String get streak => 'Serie';
+  
+  @override
+  String get longestStreak => 'Längste Serie';
+  
+  @override
+  String get currentStreak => 'Aktuelle Serie';
+  
+  @override
+  String get totalMeditationTime => 'Gesamte Meditationszeit';
+  
+  @override
+  String get averageSessionTime => 'Durchschnittliche Sitzungszeit';
+  
+  @override
+  String get favoriteTime => 'Lieblingszeit';
+  
+  @override
+  String get mostProductiveDay => 'Produktivster Tag';
+  
+  @override
+  String get insights => 'Einblicke';
+  
+  @override
+  String get recommendations => 'Empfehlungen';
+  
+  @override
+  String get shareProgress => 'Fortschritt teilen';
+  
+  @override
+  String get exportData => 'Daten exportieren';
+  
+  @override
+  String get importData => 'Daten importieren';
+  
+  @override
+  String get backupData => 'Daten sichern';
+  
+  @override
+  String get restoreData => 'Daten wiederherstellen';
+  
+  @override
+  String get privacy => 'Datenschutz';
+  
+  @override
+  String get termsOfService => 'Nutzungsbedingungen';
+  
+  @override
+  String get help => 'Hilfe';
+  
+  @override
+  String get faq => 'FAQ';
+  
+  @override
+  String get contactSupport => 'Support kontaktieren';
+  
+  @override
+  String get feedback => 'Feedback';
+  
+  @override
+  String get rateApp => 'App bewerten';
+  
+  @override
+  String get shareApp => 'App teilen';
+  
+  @override
+  String get about => 'Über';
+  
+  @override
+  String get changelog => 'Änderungsprotokoll';
+  
+  @override
+  String get credits => 'Danksagungen';
+  
+  @override
+  String get donate => 'Spenden';
+  
+  @override
+  String get premium => 'Premium';
+  
+  @override
+  String get upgrade => 'Upgrade';
+  
+  @override
+  String get unlockFeatures => 'Funktionen freischalten';
+  
+  @override
+  String get subscription => 'Abonnement';
+  
+  @override
+  String get freeTrial => 'Kostenlose Testversion';
+  
+  @override
+  String get restorePurchases => 'Käufe wiederherstellen';
+  
+  @override
+  String get manageSubscription => 'Abonnement verwalten';
 }
