@@ -65,11 +65,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 
                 // Настройки темы
                 SettingsSection(
-                  title: 'Тема',
+                  title: l10n.theme,
                   tiles: [
                     SettingsTile.switchTile(
-                      title: 'Темная тема',
-                      subtitle: 'Переключить между светлой и темной темой',
+                      title: l10n.darkTheme,
+                      subtitle: l10n.themeDescription,
                       leading: const Icon(Icons.dark_mode),
                       switchValue: localeProvider.isDarkTheme,
                       onToggle: (value) {

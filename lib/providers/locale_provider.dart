@@ -28,6 +28,13 @@ class LocaleProvider extends ChangeNotifier {
       'flag': '🇺🇸'
     },
     {
+      'code': 'de',
+      'name': 'Deutsch',
+      'nativeName': 'Deutsch',
+      'description': 'Deutsche Sprache - präzise und strukturiert',
+      'flag': '🇩🇪'
+    },
+    {
       'code': 'harkonnen',
       'name': 'Harkonnen',
       'nativeName': 'ХАРКОННЕН',

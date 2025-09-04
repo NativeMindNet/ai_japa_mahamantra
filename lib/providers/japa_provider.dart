@@ -7,6 +7,7 @@ import '../models/japa_session.dart';
 import '../services/ai_service.dart';
 import '../services/notification_service.dart';
 import '../services/background_service.dart';
+import '../services/calendar_service.dart';
 import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
@@ -393,6 +394,9 @@ class JapaProvider with ChangeNotifier {
     // Сохраняем сессию в историю
     if (_currentSession != null) {
       await _saveSessionToHistory(_currentSession!);
+      
+      // Сохраняем событие в календарь
+      await _saveSessionToCalendar(_currentSession!);
     }
     
     // Вибрация завершения сессии
@@ -592,6 +596,26 @@ class JapaProvider with ChangeNotifier {
       
     } catch (e) {
       print('Ошибка при сохранении сессии в историю: $e');
+    }
+  }
+
+  /// Сохраняет сессию в календарь
+  Future<void> _saveSessionToCalendar(JapaSession session) async {
+    try {
+      if (session.endTime == null) return;
+      
+      final duration = session.endTime!.difference(session.startTime);
+      
+      final calendarEvent = CalendarService.createJapaEvent(
+        date: session.startTime,
+        rounds: session.completedRounds,
+        duration: duration,
+        notes: 'Сессия джапы завершена успешно',
+      );
+      
+      await CalendarService.saveJapaEvent(calendarEvent);
+    } catch (e) {
+      print('Ошибка при сохранении сессии в календарь: $e');
     }
   }
 

@@ -16,17 +16,52 @@ class AIAssistantScreen extends StatefulWidget {
   State<AIAssistantScreen> createState() => _AIAssistantScreenState();
 }
 
-class _AIAssistantScreenState extends State<AIAssistantScreen> {
+class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProviderStateMixin {
   final TextEditingController _questionController = TextEditingController();
   final List<AIConversation> _conversations = [];
   bool _isLoading = false;
   String? _selectedCategory;
   String? _aiStatus;
   bool _isMozgachAvailable = false;
+  
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    
+    _fadeController = AnimationController(
+      duration: AppConstants.mediumAnimation,
+      vsync: this,
+    );
+    
+    _slideController = AnimationController(
+      duration: AppConstants.longAnimation,
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    ));
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+    
+    _fadeController.forward();
+    _slideController.forward();
+    
     _checkAIStatus();
     _loadConversations();
   }
@@ -34,6 +69,8 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
   @override
   void dispose() {
     _questionController.dispose();
+    _fadeController.dispose();
+    _slideController.dispose();
     super.dispose();
   }
 

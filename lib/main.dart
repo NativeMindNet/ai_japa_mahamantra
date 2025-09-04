@@ -54,6 +54,7 @@ class AIJapaMahamantraApp extends StatelessWidget {
             supportedLocales: const [
               Locale('ru'),
               Locale('en'),
+              Locale('de'),
               Locale('harkonnen'),
             ],
             localizationsDelegates: const [

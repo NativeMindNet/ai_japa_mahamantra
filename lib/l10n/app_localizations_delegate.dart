@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'app_localizations_de.dart';
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
@@ -127,6 +128,12 @@ abstract class AppLocalizations {
   // Мантры
   String get mantraFirstFour;
   String get mantraHareKrishna;
+  
+  // Тема
+  String get theme;
+  String get darkTheme;
+  String get lightTheme;
+  String get themeDescription;
   
   // Категории
   List<String> get spiritualCategories;
@@ -344,6 +351,18 @@ class AppLocalizationsRu extends AppLocalizations {
   
   @override
   String get mantraHareKrishna => 'Харе Кришна Харе Кришна Кришна Кришна Харе Харе\nХаре Рама Харе Рама Рама Рама Харе Харе';
+  
+  @override
+  String get theme => 'Тема';
+  
+  @override
+  String get darkTheme => 'Темная тема';
+  
+  @override
+  String get lightTheme => 'Светлая тема';
+  
+  @override
+  String get themeDescription => 'Переключить между светлой и темной темой';
   
   @override
   List<String> get spiritualCategories => [
@@ -587,6 +606,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mantraHareKrishna => 'Hare Krishna Hare Krishna Krishna Krishna Hare Hare\nHare Rama Hare Rama Rama Rama Hare Hare';
   
   @override
+  String get theme => 'Theme';
+  
+  @override
+  String get darkTheme => 'Dark Theme';
+  
+  @override
+  String get lightTheme => 'Light Theme';
+  
+  @override
+  String get themeDescription => 'Switch between light and dark theme';
+  
+  @override
   List<String> get spiritualCategories => [
     'Bhakti Yoga',
     'Karma Yoga',
@@ -826,6 +857,18 @@ class AppLocalizationsHarkonnen extends AppLocalizations {
   
   @override
   String get mantraHareKrishna => 'ХАРЕ КРИШНА ХАРЕ КРИШНА КРИШНА КРИШНА ХАРЕ ХАРЕ\nХАРЕ РАМА ХАРЕ РАМА РАМА РАМА ХАРЕ ХАРЕ';
+  
+  @override
+  String get theme => 'ТЕМА';
+  
+  @override
+  String get darkTheme => 'ТЕМНАЯ ТЕМА';
+  
+  @override
+  String get lightTheme => 'СВЕТЛАЯ ТЕМА';
+  
+  @override
+  String get themeDescription => 'Переключить между светлой и темной темой';
   
   @override
   List<String> get spiritualCategories => [
