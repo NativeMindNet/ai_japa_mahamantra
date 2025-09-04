@@ -183,7 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.configureSounds,
                       leading: const Icon(Icons.music_note),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showSoundSettingsDialog(l10n);
                       },
                     ),
@@ -281,7 +281,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: l10n.aiJapaTeam,
                       leading: const Icon(Icons.people),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
+                      onPressed: (context) {
                         _showDevelopersDialog(l10n);
                       },
                     ),
