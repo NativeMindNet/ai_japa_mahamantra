@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../constants/app_constants.dart';
+import 'modern_ui_components.dart';
 
 class JapaMalaWidget extends StatefulWidget {
   final int currentBead;
@@ -47,17 +48,23 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(AppConstants.defaultPadding),
-      child: CustomPaint(
-        painter: JapaMalaPainter(
-          currentBead: widget.currentBead,
-          totalBeads: widget.totalBeads,
-        ),
-        child: GestureDetector(
-          onTapUp: (details) {
-            _handleBeadTap(details.localPosition);
-          },
+    return ModernUIComponents.gradientCard(
+      gradientColors: [
+        Theme.of(context).colorScheme.surface,
+        Theme.of(context).colorScheme.surface.withOpacity(0.8),
+      ],
+      child: Container(
+        margin: const EdgeInsets.all(AppConstants.defaultPadding),
+        child: CustomPaint(
+          painter: JapaMalaPainter(
+            currentBead: widget.currentBead,
+            totalBeads: widget.totalBeads,
+          ),
+          child: GestureDetector(
+            onTapUp: (details) {
+              _handleBeadTap(details.localPosition);
+            },
+          ),
         ),
       ),
     );

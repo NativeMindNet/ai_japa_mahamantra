@@ -7,6 +7,7 @@ import '../widgets/japa_mala_widget.dart';
 import '../widgets/japa_controls_widget.dart';
 import '../widgets/japa_stats_widget.dart';
 import '../l10n/app_localizations_delegate.dart';
+import '../animations/custom_page_transitions.dart';
 import 'ai_assistant_screen.dart';
 import 'settings_screen.dart';
 
@@ -96,12 +97,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
           IconButton(
             icon: const Icon(Icons.smart_toy),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AIAssistantScreen(),
-                ),
-              );
+              AnimatedNavigation.toAIAssistant(context);
             },
             tooltip: l10n.aiAssistant,
           ),
@@ -115,12 +111,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
+              AnimatedNavigation.toSettings(context);
             },
             tooltip: l10n.settings,
           ),
@@ -344,12 +335,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AIAssistantScreen(),
-                  ),
-                );
+                AnimatedNavigation.toAIAssistant(context);
               },
               child: const Text(
                 'Задать вопрос AI',

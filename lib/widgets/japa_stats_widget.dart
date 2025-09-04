@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
+import 'modern_ui_components.dart';
 
 class JapaStatsWidget extends StatelessWidget {
   final int currentRound;

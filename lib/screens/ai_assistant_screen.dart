@@ -8,6 +8,7 @@ import '../services/ai_service.dart';
 import '../constants/app_constants.dart';
 import '../models/ai_assistant.dart';
 import '../l10n/app_localizations_delegate.dart';
+import '../animations/custom_page_transitions.dart';
 
 class AIAssistantScreen extends StatefulWidget {
   const AIAssistantScreen({super.key});

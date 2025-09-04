@@ -8,6 +8,7 @@ import 'screens/japa_screen.dart';
 import 'constants/app_constants.dart';
 import 'services/notification_service.dart';
 import 'services/background_service.dart';
+import 'services/audio_service.dart';
 import 'l10n/app_localizations_delegate.dart';
 
 void main() async {
@@ -15,6 +16,9 @@ void main() async {
   
   // Инициализируем уведомления
   await NotificationService.initialize();
+  
+  // Инициализируем аудио сервис
+  await AudioService().initialize();
   
   // Инициализируем фоновые задачи
   await Workmanager().initialize(callbackDispatcher);

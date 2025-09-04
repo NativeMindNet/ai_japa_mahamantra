@@ -9,8 +9,10 @@ import '../providers/locale_provider.dart';
 import '../services/background_service.dart';
 import '../services/ai_service.dart';
 import '../services/notification_service.dart';
+import '../services/audio_service.dart';
 import '../constants/app_constants.dart';
 import '../l10n/app_localizations_delegate.dart';
+import '../animations/custom_page_transitions.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -307,10 +309,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Показывает диалог выбора языка
   void _showLanguageSelectionDialog(LocaleProvider localeProvider) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
+    AnimatedNavigation.showAnimatedDialog(
+      context,
+      child: AlertDialog(
           title: Text(AppLocalizations.of(context).selectLanguage),
           content: SizedBox(
             width: double.maxFinite,
@@ -350,8 +351,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(AppLocalizations.of(context).close),
             ),
           ],
-        );
-      },
+        ),
     );
   }
 
@@ -554,17 +554,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Показывает диалог настроек звука
   void _showSoundSettingsDialog(AppLocalizations l10n) {
-    String selectedSound = 'mantra_bell';
-    double volume = 0.7;
-    bool enableSound = true;
+    final audioService = AudioService();
+    final settings = audioService.getSettings();
     
-    final soundOptions = {
-      'mantra_bell': 'Колокольчик мантры',
-      'tibetan_bowl': 'Тибетская чаша',
-      'om_sound': 'Звук Ом',
-      'nature_sounds': 'Звуки природы',
-      'silent': 'Без звука',
-    };
+    String selectedSound = settings['currentSoundType'] as String;
+    double volume = settings['volume'] as double;
+    bool enableSound = settings['soundEnabled'] as bool;
+    
+    final availableSounds = audioService.getAvailableSounds();
+    final soundOptions = <String, String>{};
+    
+    for (final sound in availableSounds) {
+      soundOptions[sound] = audioService.getSoundName(sound);
+    }
     
     showDialog(
       context: context,
@@ -677,23 +679,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Воспроизводит тестовый звук
   void _playTestSound(String soundType, double volume) {
-    // Здесь можно добавить логику воспроизведения звука
-    // Пока просто показываем уведомление
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Воспроизводится: $soundType (громкость: ${(volume * 100).round()}%)'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    try {
+      AudioService().playTestSound(soundType);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Воспроизводится: ${AudioService().getSoundName(soundType)} (громкость: ${(volume * 100).round()}%)'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка воспроизведения звука: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   /// Сохраняет настройки звука
   Future<void> _saveSoundSettings(String soundType, double volume, bool enableSound, AppLocalizations l10n) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('japa_sound_type', soundType);
-      await prefs.setDouble('japa_sound_volume', volume);
-      await prefs.setBool('japa_sound_enabled', enableSound);
+      final audioService = AudioService();
+      await audioService.setSoundType(soundType);
+      await audioService.setVolume(volume);
+      await audioService.setSoundEnabled(enableSound);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
+import 'modern_ui_components.dart';
 
 class JapaControlsWidget extends StatelessWidget {
   final bool isSessionActive;
@@ -74,26 +75,11 @@ class JapaControlsWidget extends StatelessWidget {
           
           // Кнопка возобновления (если сессия на паузе)
           if (isSessionActive)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: onResumeSession,
-                icon: const Icon(Icons.play_arrow),
-                label: const Text(
-                  'Возобновить сессию',
-                  style: TextStyle(fontSize: 16),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(AppConstants.successColor),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppConstants.defaultPadding,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                  ),
-                ),
-              ),
+            ModernUIComponents.animatedButton(
+              text: 'Возобновить сессию',
+              icon: Icons.play_arrow,
+              onPressed: onResumeSession,
+              backgroundColor: Color(AppConstants.successColor),
             ),
           
           const SizedBox(height: AppConstants.smallPadding),

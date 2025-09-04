@@ -8,6 +8,7 @@ import '../services/ai_service.dart';
 import '../services/notification_service.dart';
 import '../services/background_service.dart';
 import '../services/calendar_service.dart';
+import '../services/audio_service.dart';
 import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
@@ -63,6 +64,16 @@ class JapaProvider with ChangeNotifier {
     _loadSettings();
     _loadStatistics();
     _checkAutoStart();
+    _initializeAudioService();
+  }
+  
+  /// Инициализирует аудио сервис
+  Future<void> _initializeAudioService() async {
+    try {
+      await AudioService().initialize();
+    } catch (e) {
+      print('Ошибка инициализации AudioService: $e');
+    }
   }
   
   /// Загружает настройки
@@ -167,6 +178,7 @@ class JapaProvider with ChangeNotifier {
   /// Включает/выключает звук
   void setSoundEnabled(bool enabled) {
     _soundEnabled = enabled;
+    AudioService().setSoundEnabled(enabled);
     _saveSettings();
     notifyListeners();
   }
@@ -219,6 +231,11 @@ class JapaProvider with ChangeNotifier {
       Vibration.vibrate(duration: AppConstants.shortVibration);
     }
     
+    // Звук начала сессии
+    if (_soundEnabled) {
+      await AudioService().playEventSound('session_start');
+    }
+    
     // Уведомление о начале сессии
     if (_notificationsEnabled) {
       NotificationService.showJapaReminder(
@@ -242,6 +259,11 @@ class JapaProvider with ChangeNotifier {
     // Вибрация
     if (_vibrationEnabled) {
       Vibration.vibrate(duration: AppConstants.mediumVibration);
+    }
+    
+    // Звук завершения круга
+    if (_soundEnabled) {
+      await AudioService().playEventSound('round_complete');
     }
     
     notifyListeners();
@@ -300,6 +322,11 @@ class JapaProvider with ChangeNotifier {
     // Вибрация
     if (_vibrationEnabled) {
       Vibration.vibrate(duration: AppConstants.shortVibration);
+    }
+    
+    // Звук нажатия на бусину
+    if (_soundEnabled) {
+      AudioService().playEventSound('bead_click');
     }
     
     notifyListeners();
@@ -402,6 +429,11 @@ class JapaProvider with ChangeNotifier {
     // Вибрация завершения сессии
     if (_vibrationEnabled) {
       Vibration.vibrate(duration: AppConstants.longVibration);
+    }
+    
+    // Звук завершения сессии
+    if (_soundEnabled) {
+      await AudioService().playEventSound('session_complete');
     }
     
     // Уведомление о завершении сессии
