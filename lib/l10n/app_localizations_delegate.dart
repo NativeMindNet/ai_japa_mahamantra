@@ -6,7 +6,7 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
 
   @override
   bool isSupported(Locale locale) {
-    return ['ru', 'en', 'harkonnen'].contains(locale.languageCode);
+    return ['ru', 'en', 'harkonnen', 'de'].contains(locale.languageCode);
   }
 
   @override
@@ -18,6 +18,8 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
         return AppLocalizationsEn();
       case 'harkonnen':
         return AppLocalizationsHarkonnen();
+      case 'de':
+        return AppLocalizationsDe();
       default:
         return AppLocalizationsRu();
     }
