@@ -13,7 +13,7 @@ import 'package:ai_japa_mahamantra/main.dart';
 void main() {
   testWidgets('App loads successfully', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const AiJapaMahamantraApp());
+    await tester.pumpWidget(const AIJapaMahamantraApp());
 
     // Verify that our app loads without crashing
     expect(find.byType(MaterialApp), findsOneWidget);
