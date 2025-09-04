@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -389,6 +390,11 @@ class JapaProvider with ChangeNotifier {
     // Сохраняем дату последней сессии
     _saveLastSessionDate();
     
+    // Сохраняем сессию в историю
+    if (_currentSession != null) {
+      await _saveSessionToHistory(_currentSession!);
+    }
+    
     // Вибрация завершения сессии
     if (_vibrationEnabled) {
       Vibration.vibrate(duration: AppConstants.longVibration);
@@ -526,26 +532,67 @@ class JapaProvider with ChangeNotifier {
   }
 
   /// Получает историю сессий
-  List<Map<String, dynamic>> getSessionHistory() {
-    // TODO: Реализовать получение истории из локального хранилища
-    // Пока возвращаем тестовые данные
-    return [
-      {
-        'rounds': 16,
-        'duration': const Duration(minutes: 240),
-        'date': 'Сегодня',
-      },
-      {
-        'rounds': 8,
-        'duration': const Duration(minutes: 120),
-        'date': 'Вчера',
-      },
-      {
-        'rounds': 4,
-        'duration': const Duration(minutes: 60),
-        'date': '2 дня назад',
-      },
-    ];
+  Future<List<Map<String, dynamic>>> getSessionHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final sessionsJson = prefs.getStringList('japa_sessions_history') ?? [];
+      
+      final sessions = <Map<String, dynamic>>[];
+      
+      for (final jsonString in sessionsJson) {
+        try {
+          final json = jsonDecode(jsonString) as Map<String, dynamic>;
+          sessions.add(json);
+        } catch (e) {
+          print('Ошибка при загрузке сессии: $e');
+        }
+      }
+      
+      // Сортируем по дате (новые сверху)
+      sessions.sort((a, b) {
+        final dateA = DateTime.tryParse(a['date'] ?? '') ?? DateTime(1970);
+        final dateB = DateTime.tryParse(b['date'] ?? '') ?? DateTime(1970);
+        return dateB.compareTo(dateA);
+      });
+      
+      return sessions;
+    } catch (e) {
+      print('Ошибка при получении истории сессий: $e');
+      return [];
+    }
+  }
+
+  /// Сохраняет сессию в историю
+  Future<void> _saveSessionToHistory(JapaSession session) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final sessionsJson = prefs.getStringList('japa_sessions_history') ?? [];
+      
+      final sessionData = {
+        'id': session.id,
+        'startTime': session.startTime.toIso8601String(),
+        'endTime': session.endTime?.toIso8601String(),
+        'completedRounds': session.completedRounds,
+        'targetRounds': session.targetRounds,
+        'duration': session.endTime != null 
+            ? session.endTime!.difference(session.startTime).inMinutes 
+            : 0,
+        'date': session.startTime.toIso8601String().split('T')[0],
+        'isActive': session.isActive,
+      };
+      
+      sessionsJson.add(jsonEncode(sessionData));
+      
+      // Ограничиваем количество сохраненных сессий (последние 50)
+      if (sessionsJson.length > 50) {
+        sessionsJson.removeRange(0, sessionsJson.length - 50);
+      }
+      
+      await prefs.setStringList('japa_sessions_history', sessionsJson);
+      
+    } catch (e) {
+      print('Ошибка при сохранении сессии в историю: $e');
+    }
   }
 
   @override

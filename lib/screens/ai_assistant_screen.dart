@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/japa_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/ai_service.dart';
@@ -62,8 +64,34 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 
   /// Загружает историю разговоров
   Future<void> _loadConversations() async {
-    // Здесь можно загрузить сохраненные разговоры из локального хранилища
-    // Пока оставляем пустым
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final conversationsJson = prefs.getStringList('ai_conversations') ?? [];
+      
+      final conversations = <AIConversation>[];
+      
+      for (final jsonString in conversationsJson) {
+        try {
+          final json = jsonDecode(jsonString) as Map<String, dynamic>;
+          final conversation = AIConversation.fromJson(json);
+          conversations.add(conversation);
+        } catch (e) {
+          print('Ошибка при загрузке разговора: $e');
+        }
+      }
+      
+      // Сортируем по времени (новые сверху)
+      conversations.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      if (mounted) {
+        setState(() {
+          _conversations.addAll(conversations);
+        });
+      }
+      
+    } catch (e) {
+      print('Ошибка при загрузке разговоров: $e');
+    }
   }
 
   /// Отправляет вопрос к AI
@@ -114,7 +142,32 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 
   /// Сохраняет разговор
   Future<void> _saveConversation(AIConversation conversation) async {
-    // TODO: Реализовать сохранение в локальное хранилище
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Получаем существующие разговоры
+      final conversationsJson = prefs.getStringList('ai_conversations') ?? [];
+      
+      // Добавляем новый разговор
+      conversationsJson.add(jsonEncode(conversation.toJson()));
+      
+      // Ограничиваем количество сохраненных разговоров (последние 100)
+      if (conversationsJson.length > 100) {
+        conversationsJson.removeRange(0, conversationsJson.length - 100);
+      }
+      
+      // Сохраняем обратно
+      await prefs.setStringList('ai_conversations', conversationsJson);
+      
+      // Обновляем статистику
+      await AIService.updateUsageStats(
+        isSuccessful: true,
+        isLocal: false,
+      );
+      
+    } catch (e) {
+      print('Ошибка при сохранении разговора: $e');
+    }
   }
 
   @override
