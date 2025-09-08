@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
+import '../models/achievement.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications = 
@@ -161,6 +162,47 @@ class NotificationService {
     );
   }
   
+<<<<<<< HEAD
+=======
+  /// Показывает уведомление о разблокированном достижении
+  static Future<void> showAchievementUnlocked(Achievement achievement) async {
+    if (!_isInitialized) return;
+    
+    const androidDetails = AndroidNotificationDetails(
+      'japa_achievement_channel',
+      'Достижения',
+      channelDescription: 'Уведомления о разблокированных достижениях',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+      enableVibration: true,
+      playSound: true,
+      icon: '@mipmap/ic_launcher',
+      color: Color(0xFF4CAF50),
+    );
+    
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      sound: 'achievement_unlock.wav',
+    );
+    
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+    
+    await _notifications.show(
+      achievement.id.hashCode, // Уникальный ID для каждого достижения
+      'Достижение разблокировано! ${achievement.icon}',
+      '${achievement.title}: ${achievement.description}',
+      details,
+      payload: 'achievement_${achievement.id}',
+    );
+  }
+  
+>>>>>>> febb44688318def3e703b7d1a81a020c7b457fd7
   /// Планирует ежедневное напоминание
   static Future<void> scheduleDailyReminder({
     required TimeOfDay time,

@@ -20,30 +20,17 @@ class JapaStatsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(AppConstants.defaultPadding),
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
-      decoration: BoxDecoration(
-        color: Color(AppConstants.surfaceColor),
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return ModernUIComponents.gradientCard(
+      gradientColors: [
+        Theme.of(context).colorScheme.surface,
+        Theme.of(context).colorScheme.surface.withOpacity(0.8),
+      ],
       child: Column(
         children: [
           // Заголовок
-          Text(
-            'Прогресс сессии',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(AppConstants.primaryColor),
-            ),
+          ModernUIComponents.modernSectionHeader(
+            title: 'Прогресс сессии',
+            subtitle: 'Отслеживайте свой духовный прогресс',
           ),
           
           const SizedBox(height: AppConstants.defaultPadding),
@@ -123,13 +110,11 @@ class JapaStatsWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              LinearProgressIndicator(
+              ModernUIComponents.modernProgressIndicator(
                 value: _calculateOverallProgress(),
+                height: 8,
                 backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Color(AppConstants.primaryColor),
-                ),
-                minHeight: 8,
+                progressColor: Color(AppConstants.primaryColor),
               ),
               const SizedBox(height: 4),
               Text(
@@ -155,13 +140,11 @@ class JapaStatsWidget extends StatelessWidget {
   }) {
     final progress = total > 0 ? current / total : 0.0;
     
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.smallPadding),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
+    return ModernUIComponents.gradientCard(
+      gradientColors: [
+        color.withOpacity(0.1),
+        color.withOpacity(0.05),
+      ],
       child: Column(
         children: [
           Icon(icon, color: color, size: 24),
@@ -184,11 +167,11 @@ class JapaStatsWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          LinearProgressIndicator(
+          ModernUIComponents.modernProgressIndicator(
             value: progress,
+            height: 4,
             backgroundColor: color.withOpacity(0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 4,
+            progressColor: color,
           ),
         ],
       ),

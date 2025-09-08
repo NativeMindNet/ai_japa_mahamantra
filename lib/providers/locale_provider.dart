@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../themes/app_themes.dart';
 
 class LocaleProvider extends ChangeNotifier {
   static const String _localeKey = 'selected_locale';
   static const String _themeKey = 'selected_theme';
   
   Locale _currentLocale = const Locale('ru');
-  bool _isDarkTheme = false;
+  ThemeType _currentTheme = ThemeType.light;
   
   Locale get currentLocale => _currentLocale;
-  bool get isDarkTheme => _isDarkTheme;
+  ThemeType get currentTheme => _currentTheme;
+  bool get isDarkTheme => _currentTheme == ThemeType.dark;
   
   // Доступные языки
   static const List<Map<String, String>> availableLocales = [
@@ -68,11 +70,12 @@ class LocaleProvider extends ChangeNotifier {
   Future<void> _loadSavedTheme() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isDarkTheme = prefs.getBool(_themeKey) ?? false;
+      final themeIndex = prefs.getInt(_themeKey) ?? 0;
+      _currentTheme = ThemeType.values[themeIndex];
       notifyListeners();
     } catch (e) {
       // В случае ошибки используем светлую тему по умолчанию
-      _isDarkTheme = false;
+      _currentTheme = ThemeType.light;
     }
   }
   
@@ -94,11 +97,11 @@ class LocaleProvider extends ChangeNotifier {
   
   /// Переключает тему
   Future<void> toggleTheme() async {
-    _isDarkTheme = !_isDarkTheme;
+    _currentTheme = _currentTheme == ThemeType.light ? ThemeType.dark : ThemeType.light;
     
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_themeKey, _isDarkTheme);
+      await prefs.setInt(_themeKey, _currentTheme.index);
     } catch (e) {
       // Игнорируем ошибки сохранения
     }
@@ -107,14 +110,14 @@ class LocaleProvider extends ChangeNotifier {
   }
   
   /// Устанавливает конкретную тему
-  Future<void> setTheme(bool isDark) async {
-    if (_isDarkTheme == isDark) return;
+  Future<void> setTheme(ThemeType theme) async {
+    if (_currentTheme == theme) return;
     
-    _isDarkTheme = isDark;
+    _currentTheme = theme;
     
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_themeKey, _isDarkTheme);
+      await prefs.setInt(_themeKey, _currentTheme.index);
     } catch (e) {
       // Игнорируем ошибки сохранения
     }

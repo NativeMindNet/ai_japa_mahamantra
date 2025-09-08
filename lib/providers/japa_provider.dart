@@ -9,6 +9,8 @@ import '../services/notification_service.dart';
 import '../services/background_service.dart';
 import '../services/calendar_service.dart';
 import '../services/audio_service.dart';
+import '../services/achievement_service.dart';
+import '../models/achievement.dart';
 import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
@@ -444,6 +446,8 @@ class JapaProvider with ChangeNotifier {
       );
     }
     
+    // Проверяем достижения
+    await _checkAchievements();
     notifyListeners();
   }
   
@@ -457,6 +461,24 @@ class JapaProvider with ChangeNotifier {
     }
   }
   
+  /// Проверяет достижения после завершения сессии
+  Future<void> _checkAchievements() async {
+    if (_currentSession == null) return;
+    
+    try {
+      final achievementService = AchievementService();
+      final newlyUnlocked = await achievementService.updateProgressFromSession(_currentSession!);
+      
+      // Показываем уведомления о новых достижениях
+      for (final achievement in newlyUnlocked) {
+        if (_notificationsEnabled) {
+          NotificationService.showAchievementUnlocked(achievement);
+        }
+      }
+    } catch (e) {
+      print('Ошибка проверки достижений: $e');
+    }
+  }
   /// Запускает таймер сессии
   void _startSessionTimer() {
     _sessionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {

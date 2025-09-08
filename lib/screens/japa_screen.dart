@@ -8,6 +8,7 @@ import '../widgets/japa_controls_widget.dart';
 import '../widgets/japa_stats_widget.dart';
 import '../l10n/app_localizations_delegate.dart';
 import '../animations/custom_page_transitions.dart';
+import '../widgets/chudny_video_widget.dart';
 import 'ai_assistant_screen.dart';
 import 'settings_screen.dart';
 
@@ -102,6 +103,16 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             tooltip: l10n.aiAssistant,
           ),
           IconButton(
+<<<<<<< HEAD
+=======
+            icon: const Icon(Icons.play_circle_outline),
+            onPressed: () {
+              _showChudnyVideo();
+            },
+            tooltip: 'Мотивация от Чудного',
+          ),
+          IconButton(
+>>>>>>> febb44688318def3e703b7d1a81a020c7b457fd7
             icon: const Icon(Icons.history),
             onPressed: () {
               _showHistoryDialog(l10n);
@@ -292,6 +303,36 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
     );
   }
 
+<<<<<<< HEAD
+=======
+  /// Показывает видео с Чудным
+  void _showChudnyVideo() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+            child: ChudnyMotivationWidget(
+              onStartJapa: () {
+                Navigator.of(context).pop();
+                // Автоматически начинаем джапу после мотивации
+                Provider.of<JapaProvider>(context, listen: false).startSession();
+                _malaAnimationController.forward();
+              },
+              onSkip: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+>>>>>>> febb44688318def3e703b7d1a81a020c7b457fd7
   /// Показывает диалог завершения сессии
   void _showSessionCompleteDialog(AppLocalizations l10n) {
     showDialog(
