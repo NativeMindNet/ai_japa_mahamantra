@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../constants/app_constants.dart';
+import '../screens/japa_screen.dart';
+import '../screens/ai_assistant_screen.dart';
+import '../screens/settings_screen.dart';
 
 /// Кастомные переходы между страницами
 class CustomPageTransitions {
@@ -418,8 +421,3 @@ class AnimatedNavigation {
     });
   }
 }
-
-// Импорты для экранов (добавьте их в соответствующие файлы)
-import '../screens/japa_screen.dart';
-import '../screens/ai_assistant_screen.dart';
-import '../screens/settings_screen.dart';

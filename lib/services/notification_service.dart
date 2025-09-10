@@ -162,8 +162,6 @@ class NotificationService {
     );
   }
   
-<<<<<<< HEAD
-=======
   /// Показывает уведомление о разблокированном достижении
   static Future<void> showAchievementUnlocked(Achievement achievement) async {
     if (!_isInitialized) return;
@@ -201,8 +199,7 @@ class NotificationService {
       payload: 'achievement_${achievement.id}',
     );
   }
-  
->>>>>>> febb44688318def3e703b7d1a81a020c7b457fd7
+
   /// Планирует ежедневное напоминание
   static Future<void> scheduleDailyReminder({
     required TimeOfDay time,

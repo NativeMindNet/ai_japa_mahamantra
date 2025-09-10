@@ -103,8 +103,6 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             tooltip: l10n.aiAssistant,
           ),
           IconButton(
-<<<<<<< HEAD
-=======
             icon: const Icon(Icons.play_circle_outline),
             onPressed: () {
               _showChudnyVideo();
@@ -112,7 +110,6 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             tooltip: 'Мотивация от Чудного',
           ),
           IconButton(
->>>>>>> febb44688318def3e703b7d1a81a020c7b457fd7
             icon: const Icon(Icons.history),
             onPressed: () {
               _showHistoryDialog(l10n);
@@ -303,8 +300,6 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
     );
   }
 
-<<<<<<< HEAD
-=======
   /// Показывает видео с Чудным
   void _showChudnyVideo() {
     showDialog(
@@ -332,7 +327,6 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
     );
   }
 
->>>>>>> febb44688318def3e703b7d1a81a020c7b457fd7
   /// Показывает диалог завершения сессии
   void _showSessionCompleteDialog(AppLocalizations l10n) {
     showDialog(
