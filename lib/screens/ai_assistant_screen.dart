@@ -2,13 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../providers/japa_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/ai_service.dart';
 import '../constants/app_constants.dart';
 import '../models/ai_assistant.dart';
 import '../l10n/app_localizations_delegate.dart';
-import '../animations/custom_page_transitions.dart';
 
 class AIAssistantScreen extends StatefulWidget {
   const AIAssistantScreen({super.key});
@@ -24,45 +22,10 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
   String? _selectedCategory;
   String? _aiStatus;
   bool _isMozgachAvailable = false;
-  
-  late AnimationController _fadeController;
-  late AnimationController _slideController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
-    
-    _fadeController = AnimationController(
-      duration: AppConstants.mediumAnimation,
-      vsync: this,
-    );
-    
-    _slideController = AnimationController(
-      duration: AppConstants.longAnimation,
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeIn,
-    ));
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-    
-    _fadeController.forward();
-    _slideController.forward();
-    
     _checkAIStatus();
     _loadConversations();
   }
@@ -70,8 +33,6 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
   @override
   void dispose() {
     _questionController.dispose();
-    _fadeController.dispose();
-    _slideController.dispose();
     super.dispose();
   }
 
@@ -85,18 +46,22 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
       final isAvailable = await AIService.isServerAvailable();
       final isMozgach = await AIService.isMozgachAvailable();
       
-      setState(() {
-        _aiStatus = isAvailable 
-            ? (isMozgach ? 'mozgach:latest доступен' : 'AI доступен, но mozgach:latest не найден')
-            : 'AI сервер недоступен';
-        _isMozgachAvailable = isMozgach;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _aiStatus = isAvailable 
+              ? (isMozgach ? 'mozgach:latest доступен' : 'AI доступен, но mozgach:latest не найден')
+              : 'AI сервер недоступен';
+          _isMozgachAvailable = isMozgach;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _aiStatus = 'Ошибка проверки AI';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _aiStatus = 'Ошибка проверки AI';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -114,7 +79,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
           final conversation = AIConversation.fromJson(json);
           conversations.add(conversation);
         } catch (e) {
-          print('Ошибка при загрузке разговора: $e');
+          // silent
         }
       }
       
@@ -128,7 +93,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
       }
       
     } catch (e) {
-      print('Ошибка при загрузке разговоров: $e');
+      // silent
     }
   }
 
@@ -154,27 +119,33 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
           timestamp: DateTime.now(),
           category: _selectedCategory ?? 'spiritual',
         );
-
-        setState(() {
-          _conversations.insert(0, conversation);
-          _questionController.clear();
-          _selectedCategory = null;
-        });
+        
+        if (mounted) {
+          setState(() {
+            _conversations.insert(0, conversation);
+            _questionController.clear();
+            _selectedCategory = null;
+          });
+        }
 
         // Сохраняем разговор
         await _saveConversation(conversation);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Ошибка при отправке вопроса: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка при отправке вопроса: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if(mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -204,21 +175,20 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
       );
       
     } catch (e) {
-      print('Ошибка при сохранении разговора: $e');
+      // silent
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final localeProvider = Provider.of<LocaleProvider>(context);
     
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           l10n.aiAssistant,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'Sanskrit',
             fontWeight: FontWeight.bold,
           ),
@@ -228,7 +198,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
         elevation: 0,
       ),
       body: Container(
-        color: Theme.of(context).colorScheme.background,
+        color: Theme.of(context).colorScheme.surface,
         child: Column(
           children: [
             // Статус AI

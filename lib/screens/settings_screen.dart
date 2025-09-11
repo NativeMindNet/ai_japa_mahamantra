@@ -30,11 +30,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final localeProvider = Provider.of<LocaleProvider>(context);
     
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           l10n.settings,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'Sanskrit',
             fontWeight: FontWeight.bold,
           ),
@@ -46,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Consumer<JapaProvider>(
         builder: (context, japaProvider, child) {
           return Container(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             child: SettingsList(
               sections: [
                 // Выбор языка
@@ -465,7 +465,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         final time = entry.value;
                         return ListTile(
                           leading: const Icon(Icons.schedule),
-                          title: Text('${time.format(context)}'),
+                          title: Text(time.format(context)),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {
@@ -475,7 +475,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             },
                           ),
                         );
-                      }).toList(),
+                      }),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
                       onPressed: () async {
@@ -600,7 +600,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       
                       // Выбор звука
                       DropdownButtonFormField<String>(
-                        value: selectedSound,
+                        initialValue: selectedSound,
                         decoration: const InputDecoration(
                           labelText: 'Тип звука',
                           border: OutlineInputBorder(),
@@ -706,7 +706,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await audioService.setSoundEnabled(enableSound);
       
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Настройки звука сохранены'),
           backgroundColor: Colors.green,
         ),
@@ -884,7 +884,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       
                       // Выбор модели
                       DropdownButtonFormField<String>(
-                        value: selectedModel,
+                        initialValue: selectedModel,
                         decoration: const InputDecoration(
                           labelText: 'AI Модель',
                           border: OutlineInputBorder(),
@@ -1019,8 +1019,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await prefs.setBool('ai_enable_cache', enableCache);
       
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Настройки AI сохранены'),
+        const SnackBar(
+          content: Text('Настройки AI сохранены'),
           backgroundColor: Colors.green,
         ),
       );
@@ -1324,7 +1324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(l10n.license),
-          content: Text('Это приложение распространяется под лицензией MIT. Исходный код доступен на GitHub.'),
+          content: const Text('Это приложение распространяется под лицензией MIT. Исходный код доступен на GitHub.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -1345,7 +1345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(l10n.developers),
-          content: Text('AI Джапа Махамантра разработана командой энтузиастов для духовного развития.'),
+          content: const Text('AI Джапа Махамантра разработана командой энтузиастов для духовного развития.'),
           actions: [
             TextButton(
               onPressed: () {

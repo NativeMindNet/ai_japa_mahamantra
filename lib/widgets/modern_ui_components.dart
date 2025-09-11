@@ -6,6 +6,7 @@ class ModernUIComponents {
   
   /// Создает современную карточку с градиентом
   static Widget gradientCard({
+    required BuildContext context,
     required Widget child,
     List<Color>? gradientColors,
     double? elevation,
@@ -40,6 +41,7 @@ class ModernUIComponents {
   
   /// Создает современную кнопку с анимацией
   static Widget animatedButton({
+    required BuildContext context,
     required String text,
     required VoidCallback onPressed,
     IconData? icon,
@@ -114,6 +116,7 @@ class ModernUIComponents {
   
   /// Создает современный индикатор прогресса
   static Widget modernProgressIndicator({
+    required BuildContext context,
     required double value,
     double? height,
     Color? backgroundColor,
@@ -135,7 +138,7 @@ class ModernUIComponents {
         Container(
           height: height ?? 8,
           decoration: BoxDecoration(
-            color: backgroundColor ?? Theme.of(context).colorScheme.surfaceVariant,
+            color: backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(4),
           ),
           child: ClipRRect(
@@ -155,6 +158,7 @@ class ModernUIComponents {
   
   /// Создает современный чип
   static Widget modernChip({
+    required BuildContext context,
     required String label,
     bool isSelected = false,
     VoidCallback? onTap,
@@ -173,7 +177,7 @@ class ModernUIComponents {
         decoration: BoxDecoration(
           color: isSelected
               ? (backgroundColor ?? Theme.of(context).colorScheme.primary)
-              : Theme.of(context).colorScheme.surfaceVariant,
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
@@ -213,6 +217,7 @@ class ModernUIComponents {
   
   /// Создает современный список
   static Widget modernListTile({
+    required BuildContext context,
     required String title,
     String? subtitle,
     IconData? leadingIcon,
@@ -294,6 +299,7 @@ class ModernUIComponents {
   
   /// Создает современный переключатель
   static Widget modernSwitch({
+    required BuildContext context,
     required bool value,
     required ValueChanged<bool> onChanged,
     String? label,
@@ -349,6 +355,7 @@ class ModernUIComponents {
   
   /// Создает современный слайдер
   static Widget modernSlider({
+    required BuildContext context,
     required double value,
     required ValueChanged<double> onChanged,
     double min = 0.0,
@@ -398,7 +405,7 @@ class ModernUIComponents {
             max: max,
             divisions: divisions,
             activeColor: Theme.of(context).colorScheme.primary,
-            inactiveColor: Theme.of(context).colorScheme.surfaceVariant,
+            inactiveColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
         ],
       ),
@@ -407,6 +414,7 @@ class ModernUIComponents {
   
   /// Создает современный индикатор загрузки
   static Widget modernLoadingIndicator({
+    required BuildContext context,
     String? message,
     double size = 40,
     Color? color,
@@ -440,6 +448,7 @@ class ModernUIComponents {
   
   /// Создает современный разделитель
   static Widget modernDivider({
+    required BuildContext context,
     double? height,
     Color? color,
     EdgeInsetsGeometry? margin,
@@ -456,6 +465,7 @@ class ModernUIComponents {
   
   /// Создает современный заголовок секции
   static Widget modernSectionHeader({
+    required BuildContext context,
     required String title,
     String? subtitle,
     Widget? action,
@@ -497,6 +507,7 @@ class ModernUIComponents {
   
   /// Создает современный бейдж
   static Widget modernBadge({
+    required BuildContext context,
     required String text,
     Color? backgroundColor,
     Color? textColor,

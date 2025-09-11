@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/ai_assistant.dart';
 import '../constants/app_constants.dart';
+import 'package:dio/dio.dart';
 
 class AIService {
   static const String _baseUrl = 'http://localhost:11434';
@@ -175,6 +173,7 @@ class AIService {
   
   /// Отправляет вопрос к AI модели
   static Future<String?> askQuestion(String question, {String category = 'spiritual'}) async {
+    final dio = Dio();
     try {
       // Проверяем кэш
       if (_responseCache.containsKey(question)) {
@@ -190,10 +189,9 @@ class AIService {
       
       // Проверяем доступность AI сервера
       if (await isServerAvailable()) {
-        final response = await http.post(
-          Uri.parse('$_baseUrl/api/generate'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
+        final response = await dio.post(
+          '$_baseUrl/api/generate',
+          data: {
             'model': _model,
             'prompt': _buildPrompt(question, category),
             'stream': false,
@@ -202,11 +200,12 @@ class AIService {
               'top_p': 0.9,
               'max_tokens': 500,
             }
-          }),
-        ).timeout(const Duration(seconds: 30));
+          },
+          options: Options(sendTimeout: const Duration(seconds: 30), receiveTimeout: const Duration(seconds: 30)),
+        );
         
         if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
+          final data = response.data as Map<String, dynamic>;
           final answer = data['response'] as String?;
           
           if (answer != null && answer.isNotEmpty) {
@@ -222,7 +221,6 @@ class AIService {
       return _getFallbackAnswer(question, category);
       
     } catch (e) {
-      print('Ошибка при обращении к AI: $e');
       return _getFallbackAnswer(question, category);
     }
   }
@@ -324,7 +322,7 @@ class AIService {
         }
       }
     } catch (e) {
-      print('Ошибка при сохранении ответа: $e');
+      // silent
     }
   }
   
@@ -335,10 +333,12 @@ class AIService {
   
   /// Проверяет доступность AI сервера
   static Future<bool> isServerAvailable() async {
+    final dio = Dio();
     try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/tags'),
-      ).timeout(const Duration(seconds: 5));
+      final response = await dio.get(
+        '$_baseUrl/api/tags',
+        options: Options(sendTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 5)),
+      );
       
       return response.statusCode == 200;
     } catch (e) {
@@ -348,13 +348,15 @@ class AIService {
   
   /// Получает информацию о доступных моделях
   static Future<List<String>> getAvailableModels() async {
+    final dio = Dio();
     try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/tags'),
-      ).timeout(const Duration(seconds: 10));
+      final response = await dio.get(
+        '$_baseUrl/api/tags',
+        options: Options(sendTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10)),
+      );
       
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data as Map<String, dynamic>;
         final models = data['models'] as List?;
         
         if (models != null) {
@@ -380,15 +382,16 @@ class AIService {
   
   /// Получает информацию о модели
   static Future<Map<String, dynamic>?> getModelInfo() async {
+    final dio = Dio();
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/show'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'name': _model}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await dio.post(
+        '$_baseUrl/api/show',
+        data: {'name': _model},
+        options: Options(sendTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10)),
+      );
       
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return response.data as Map<String, dynamic>;
       }
       
       return null;
@@ -403,7 +406,7 @@ class AIService {
   }
   
   /// Получает размер кэша
-  int getCacheSize() {
+  static int getCacheSize() {
     return _responseCache.length;
   }
   
@@ -448,7 +451,7 @@ class AIService {
         await prefs.setInt('ai_local_responses', localResponses);
       }
     } catch (e) {
-      print('Ошибка при обновлении статистики: $e');
+      // silent
     }
   }
 }

@@ -43,7 +43,7 @@ class AchievementService {
             .toList();
       }
     } catch (e) {
-      print('Ошибка загрузки достижений: $e');
+      // silent
     }
   }
 
@@ -60,7 +60,7 @@ class AchievementService {
         );
       }
     } catch (e) {
-      print('Ошибка загрузки прогресса достижений: $e');
+      // silent
     }
   }
 
@@ -74,7 +74,7 @@ class AchievementService {
         _stats = AchievementStats.fromJson(json.decode(statsJson));
       }
     } catch (e) {
-      print('Ошибка загрузки статистики достижений: $e');
+      // silent
     }
   }
 
@@ -87,7 +87,7 @@ class AchievementService {
       );
       await prefs.setString(_achievementsKey, achievementsJson);
     } catch (e) {
-      print('Ошибка сохранения достижений: $e');
+      // silent
     }
   }
 
@@ -100,7 +100,7 @@ class AchievementService {
       );
       await prefs.setString(_progressKey, progressJson);
     } catch (e) {
-      print('Ошибка сохранения прогресса достижений: $e');
+      // silent
     }
   }
 
@@ -113,7 +113,7 @@ class AchievementService {
         await prefs.setString(_statsKey, statsJson);
       }
     } catch (e) {
-      print('Ошибка сохранения статистики достижений: $e');
+      // silent
     }
   }
 
@@ -121,7 +121,7 @@ class AchievementService {
   Future<void> _createDefaultAchievements() async {
     _achievements = [
       // Достижения по количеству сессий
-      Achievement(
+      const Achievement(
         id: 'first_session',
         title: 'Первые шаги',
         description: 'Завершите свою первую сессию джапы',
@@ -135,7 +135,7 @@ class AchievementService {
         metadata: {'category': 'beginner'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'dedicated_practitioner',
         title: 'Преданный практик',
         description: 'Завершите 10 сессий джапы',
@@ -149,7 +149,7 @@ class AchievementService {
         metadata: {'category': 'dedication'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'japa_master',
         title: 'Мастер джапы',
         description: 'Завершите 100 сессий джапы',
@@ -164,7 +164,7 @@ class AchievementService {
       ),
       
       // Достижения по количеству кругов
-      Achievement(
+      const Achievement(
         id: 'first_round',
         title: 'Первый круг',
         description: 'Завершите свой первый круг джапы',
@@ -178,7 +178,7 @@ class AchievementService {
         metadata: {'category': 'beginner'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'hundred_rounds',
         title: 'Сотня кругов',
         description: 'Завершите 100 кругов джапы',
@@ -192,7 +192,7 @@ class AchievementService {
         metadata: {'category': 'milestone'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'thousand_rounds',
         title: 'Тысяча кругов',
         description: 'Завершите 1000 кругов джапы',
@@ -207,7 +207,7 @@ class AchievementService {
       ),
       
       // Достижения по времени
-      Achievement(
+      const Achievement(
         id: 'one_hour',
         title: 'Час медитации',
         description: 'Проведите в общей сложности 1 час в джапе',
@@ -221,7 +221,7 @@ class AchievementService {
         metadata: {'category': 'time'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'ten_hours',
         title: 'Десять часов',
         description: 'Проведите в общей сложности 10 часов в джапе',
@@ -235,7 +235,7 @@ class AchievementService {
         metadata: {'category': 'time'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'hundred_hours',
         title: 'Сто часов',
         description: 'Проведите в общей сложности 100 часов в джапе',
@@ -250,7 +250,7 @@ class AchievementService {
       ),
       
       // Достижения по сериям
-      Achievement(
+      const Achievement(
         id: 'three_day_streak',
         title: 'Трехдневная серия',
         description: 'Практикуйте джапу 3 дня подряд',
@@ -264,7 +264,7 @@ class AchievementService {
         metadata: {'category': 'streak'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'week_streak',
         title: 'Недельная серия',
         description: 'Практикуйте джапу 7 дней подряд',
@@ -278,7 +278,7 @@ class AchievementService {
         metadata: {'category': 'streak'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'month_streak',
         title: 'Месячная серия',
         description: 'Практикуйте джапу 30 дней подряд',
@@ -293,7 +293,7 @@ class AchievementService {
       ),
       
       // Специальные достижения
-      Achievement(
+      const Achievement(
         id: 'early_bird',
         title: 'Ранняя пташка',
         description: 'Практикуйте джапу до 6 утра',
@@ -307,7 +307,7 @@ class AchievementService {
         metadata: {'category': 'special', 'time_requirement': 'before_6am'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'night_owl',
         title: 'Ночная сова',
         description: 'Практикуйте джапу после 10 вечера',
@@ -321,7 +321,7 @@ class AchievementService {
         metadata: {'category': 'special', 'time_requirement': 'after_10pm'},
       ),
       
-      Achievement(
+      const Achievement(
         id: 'perfect_session',
         title: 'Идеальная сессия',
         description: 'Завершите сессию без пауз',
@@ -357,7 +357,9 @@ class AchievementService {
           newValue += session.completedRounds;
           break;
         case AchievementType.timeSpent:
-          newValue += session.duration.inSeconds;
+          if(session.endTime != null) {
+            newValue += session.endTime!.difference(session.startTime).inSeconds;
+          }
           break;
         case AchievementType.streak:
           // Логика для серий будет реализована отдельно
@@ -370,7 +372,7 @@ class AchievementService {
           } else if (achievement.id == 'night_owl' && _isLateEvening(session.startTime)) {
             newValue = 1;
             shouldUnlock = true;
-          } else if (achievement.id == 'perfect_session' && !session.wasPaused) {
+          } else if (achievement.id == 'perfect_session' && !session.isPaused) {
             newValue = 1;
             shouldUnlock = true;
           }
@@ -477,8 +479,14 @@ class AchievementService {
       _achievements.where((a) => a.rarity == rarity).toList();
 
   /// Получает достижение по ID
-  Achievement? getAchievementById(String id) =>
-      _achievements.firstWhere((a) => a.id == id, orElse: () => throw StateError('Achievement not found'));
+  Achievement? getAchievementById(String id) {
+    try {
+      return _achievements.firstWhere((a) => a.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
 
   /// Получает статистику достижений
   AchievementStats? get stats => _stats;

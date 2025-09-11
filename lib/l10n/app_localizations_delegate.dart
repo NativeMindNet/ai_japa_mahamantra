@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app_localizations_de.dart';
 import 'app_localizations_extended.dart';
 
@@ -200,7 +199,7 @@ abstract class AppLocalizations {
 }
 
 // Русская локализация
-class AppLocalizationsRu extends AppLocalizations {
+abstract class AppLocalizationsRu extends AppLocalizations {
   @override
   String get appTitle => 'AI Джапа Махамантра';
   
@@ -453,7 +452,7 @@ class AppLocalizationsRu extends AppLocalizations {
 }
 
 // Английская локализация (Атрейдес)
-class AppLocalizationsEn extends AppLocalizations {
+abstract class AppLocalizationsEn extends AppLocalizations {
   @override
   String get appTitle => 'AI Japa Mahamantra';
   
@@ -706,7 +705,7 @@ class AppLocalizationsEn extends AppLocalizations {
 }
 
 // Харконненская локализация
-class AppLocalizationsHarkonnen extends AppLocalizations {
+abstract class AppLocalizationsHarkonnen extends AppLocalizations {
   @override
   String get appTitle => 'AI ДЖАПА МАХАМАНТРА';
   

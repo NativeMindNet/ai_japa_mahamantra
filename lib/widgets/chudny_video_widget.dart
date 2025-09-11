@@ -65,7 +65,7 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
           _playVideo();
         }
       }
-    }).catchError((error) {
+    }).catchError((Object error) {
       if (mounted) {
         setState(() {
           _hasError = true;

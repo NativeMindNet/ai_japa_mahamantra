@@ -26,7 +26,7 @@ class JapaControlsWidget extends StatelessWidget {
       margin: const EdgeInsets.all(AppConstants.defaultPadding),
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
       decoration: BoxDecoration(
-        color: Color(AppConstants.surfaceColor),
+        color: const Color(AppConstants.surfaceColor),
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
@@ -48,8 +48,8 @@ class JapaControlsWidget extends StatelessWidget {
                 icon: isSessionActive ? Icons.pause : Icons.play_arrow,
                 label: isSessionActive ? 'Пауза' : 'Старт',
                 color: isSessionActive 
-                    ? Color(AppConstants.errorColor)
-                    : Color(AppConstants.successColor),
+                    ? const Color(AppConstants.errorColor)
+                    : const Color(AppConstants.successColor),
                 onPressed: isSessionActive ? onPauseSession : onStartSession,
               ),
               
@@ -57,7 +57,7 @@ class JapaControlsWidget extends StatelessWidget {
               _buildControlButton(
                 icon: Icons.refresh,
                 label: 'Круг',
-                color: Color(AppConstants.accentColor),
+                color: const Color(AppConstants.accentColor),
                 onPressed: isSessionActive ? onCompleteRound : null,
               ),
               
@@ -65,7 +65,7 @@ class JapaControlsWidget extends StatelessWidget {
               _buildControlButton(
                 icon: Icons.stop,
                 label: 'Стоп',
-                color: Color(AppConstants.errorColor),
+                color: const Color(AppConstants.errorColor),
                 onPressed: isSessionActive ? onEndSession : null,
               ),
             ],
@@ -79,7 +79,7 @@ class JapaControlsWidget extends StatelessWidget {
               text: 'Возобновить сессию',
               icon: Icons.play_arrow,
               onPressed: onResumeSession,
-              backgroundColor: Color(AppConstants.successColor),
+              backgroundColor: const Color(AppConstants.successColor),
             ),
           
           const SizedBox(height: AppConstants.smallPadding),
@@ -88,10 +88,10 @@ class JapaControlsWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppConstants.smallPadding),
             decoration: BoxDecoration(
-              color: Color(AppConstants.backgroundColor),
+              color: const Color(AppConstants.backgroundColor),
               borderRadius: BorderRadius.circular(AppConstants.borderRadius),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildInfoItem(
@@ -152,24 +152,33 @@ class JapaControlsWidget extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: onPressed != null 
-                ? Color(AppConstants.primaryColor)
+                ? const Color(AppConstants.primaryColor)
                 : Colors.grey,
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildInfoItem({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+class _buildInfoItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _buildInfoItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         Icon(
           icon,
-          color: Color(AppConstants.primaryColor),
+          color: const Color(AppConstants.primaryColor),
           size: 20,
         ),
         const SizedBox(height: 4),
@@ -183,7 +192,7 @@ class JapaControlsWidget extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: Color(AppConstants.primaryColor),

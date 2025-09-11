@@ -175,7 +175,7 @@ class LocaleProvider extends ChangeNotifier {
   
   /// Получает цветовую схему для текущей темы
   ColorScheme getThemeColorScheme() {
-    if (_isDarkTheme) {
+    if (isDarkTheme) {
       return const ColorScheme(
         brightness: Brightness.dark,
         primary: Color(0xFF8E24AA), // Фиолетовый
@@ -184,11 +184,8 @@ class LocaleProvider extends ChangeNotifier {
         onSecondary: Colors.white,
         error: Color(0xFFD32F2F), // Красный
         onError: Colors.white,
-        background: Color(0xFF121212), // Темный фон
-        onBackground: Colors.white,
         surface: Color(0xFF1E1E1E), // Темная поверхность
         onSurface: Colors.white,
-        surfaceVariant: Color(0xFF2D2D2D), // Вариант темной поверхности
         onSurfaceVariant: Colors.white70,
       );
     } else {
@@ -201,11 +198,8 @@ class LocaleProvider extends ChangeNotifier {
         onSecondary: Colors.white,
         error: Color(0xFFD32F2F), // Красный
         onError: Colors.white,
-        background: Color(0xFFF5F5F5), // Светло-серый фон
-        onBackground: Colors.black,
         surface: Colors.white, // Белая поверхность
         onSurface: Colors.black,
-        surfaceVariant: Color(0xFFF0F0F0), // Вариант светлой поверхности
         onSurfaceVariant: Colors.black87,
       );
     }

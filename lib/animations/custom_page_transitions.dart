@@ -40,8 +40,8 @@ class CustomPageTransitions {
     return CupertinoPageTransition(
       primaryRouteAnimation: animation,
       secondaryRouteAnimation: secondaryAnimation,
-      child: child,
       linearTransition: false,
+      child: child,
     );
   }
   
@@ -244,12 +244,11 @@ class CustomPageRoute<T> extends PageRouteBuilder<T> {
     required this.child,
     this.transitionType = 'default',
     this.duration = AppConstants.mediumAnimation,
-    RouteSettings? settings,
+    super.settings,
   }) : super(
           pageBuilder: (context, animation, secondaryAnimation) => child,
           transitionDuration: duration,
           reverseTransitionDuration: duration,
-          settings: settings,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             switch (transitionType) {
               case 'slideUp':

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/japa_provider.dart';
 import '../services/achievement_service.dart';
 import '../models/achievement.dart';
 import '../constants/app_constants.dart';
 import '../widgets/modern_ui_components.dart';
-import '../animations/custom_page_transitions.dart';
 
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
@@ -46,7 +43,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       _achievements = _achievementService.achievements;
       _stats = _achievementService.stats;
     } catch (e) {
-      print('Ошибка загрузки достижений: $e');
+      // silent
     } finally {
       setState(() {
         _isLoading = false;
@@ -318,7 +315,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 ...AchievementType.values.map((type) {
                   final count = _stats!.typeCounts[type] ?? 0;
                   return _buildTypeStatCard(type, count);
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -342,7 +339,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       orElse: () => throw StateError('Achievement not found'),
                     );
                     return _buildRecentAchievementCard(achievement);
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -356,11 +353,11 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       gradientColors: achievement.isUnlocked
           ? [
               Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))),
-              Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withOpacity(0.8),
+              Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withAlpha(204),
             ]
           : [
-              Theme.of(context).colorScheme.surfaceVariant,
-              Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.8),
+              Theme.of(context).colorScheme.surfaceContainerHighest,
+              Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(204),
             ],
       child: Row(
         children: [
@@ -370,8 +367,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             height: 60,
             decoration: BoxDecoration(
               color: achievement.isUnlocked
-                  ? Colors.white.withOpacity(0.2)
-                  : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.1),
+                  ? Colors.white.withAlpha(51)
+                  : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(25),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Center(
@@ -403,7 +400,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   achievement.description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: achievement.isUnlocked
-                        ? Colors.white.withOpacity(0.9)
+                        ? Colors.white.withAlpha(230)
                         : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -413,8 +410,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     ModernUIComponents.modernBadge(
                       text: achievement.rarityName,
                       backgroundColor: achievement.isUnlocked
-                          ? Colors.white.withOpacity(0.2)
-                          : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.1),
+                          ? Colors.white.withAlpha(51)
+                          : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(25),
                       textColor: achievement.isUnlocked
                           ? Colors.white
                           : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -423,7 +420,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     if (achievement.isUnlocked && achievement.unlockedAt != null)
                       ModernUIComponents.modernBadge(
                         text: 'Разблокировано',
-                        backgroundColor: Colors.green.withOpacity(0.2),
+                        backgroundColor: Colors.green.withAlpha(51),
                         textColor: Colors.green,
                       ),
                   ],
@@ -451,8 +448,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   value: achievement.progress,
                   height: 4,
                   backgroundColor: achievement.isUnlocked
-                      ? Colors.white.withOpacity(0.3)
-                      : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
+                      ? Colors.white.withAlpha(76)
+                      : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(76),
                   progressColor: achievement.isUnlocked
                       ? Colors.white
                       : Theme.of(context).colorScheme.primary,
@@ -469,9 +466,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha(25),
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withAlpha(76)),
       ),
       child: Column(
         children: [
@@ -515,10 +512,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withOpacity(0.1),
+        color: Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withAlpha(25),
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         border: Border.all(
-          color: Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withOpacity(0.3),
+          color: Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withAlpha(76),
         ),
       ),
       child: Column(

@@ -9,8 +9,6 @@ import '../widgets/japa_stats_widget.dart';
 import '../l10n/app_localizations_delegate.dart';
 import '../animations/custom_page_transitions.dart';
 import '../widgets/chudny_video_widget.dart';
-import 'ai_assistant_screen.dart';
-import 'settings_screen.dart';
 
 class JapaScreen extends StatefulWidget {
   const JapaScreen({super.key});
@@ -22,7 +20,6 @@ class JapaScreen extends StatefulWidget {
 class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   late AnimationController _malaAnimationController;
   late AnimationController _mantraAnimationController;
-  late Animation<double> _malaScaleAnimation;
   late Animation<double> _mantraFadeAnimation;
 
   @override
@@ -38,14 +35,6 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
       duration: AppConstants.longAnimation,
       vsync: this,
     );
-    
-    _malaScaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _malaAnimationController,
-      curve: Curves.elasticOut,
-    ));
     
     _mantraFadeAnimation = Tween<double>(
       begin: 0.0,
@@ -73,11 +62,11 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
     final localeProvider = Provider.of<LocaleProvider>(context);
     
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           l10n.appTitle,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'Sanskrit',
             fontWeight: FontWeight.bold,
           ),
@@ -128,7 +117,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
       body: Consumer<JapaProvider>(
         builder: (context, japaProvider, child) {
           return Container(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             child: Column(
               children: [
                 // Мантра
@@ -255,16 +244,26 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final japaProvider = Provider.of<JapaProvider>(context, listen: false);
         return AlertDialog(
           title: const Text('История сессий'),
-          content: Consumer<JapaProvider>(
-            builder: (context, japaProvider, child) {
-              final sessions = japaProvider.getSessionHistory();
-              
+          content: FutureBuilder<List<Map<String, dynamic>>>(
+            future: japaProvider.getSessionHistory(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return const Text('Ошибка загрузки истории');
+              }
+
+              final sessions = snapshot.data ?? [];
+
               if (sessions.isEmpty) {
                 return const Text('История сессий пуста');
               }
-              
+
               return SizedBox(
                 width: double.maxFinite,
                 height: 300,
@@ -275,7 +274,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                     return ListTile(
                       title: Text('Сессия ${index + 1}'),
                       subtitle: Text(
-                        '${session['rounds']} кругов, ${session['duration'].inMinutes} минут',
+                        '${session['completedRounds']} кругов, ${session['duration']} минут',
                       ),
                       trailing: Text(
                         session['date'],

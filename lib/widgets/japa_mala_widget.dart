@@ -135,7 +135,7 @@ class JapaMalaPainter extends CustomPainter {
 
   void _drawMala(Canvas canvas, Offset center, double radius) {
     final paint = Paint()
-      ..color = Color(AppConstants.primaryColor)
+      ..color = const Color(AppConstants.primaryColor)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -152,8 +152,8 @@ class JapaMalaPainter extends CustomPainter {
 
       final beadPaint = Paint()
         ..color = i == currentBead 
-            ? Color(AppConstants.accentColor)
-            : Color(AppConstants.primaryColor)
+            ? const Color(AppConstants.accentColor)
+            : const Color(AppConstants.primaryColor)
         ..style = PaintingStyle.fill;
 
       // Размер бусины зависит от позиции
@@ -169,7 +169,7 @@ class JapaMalaPainter extends CustomPainter {
       // Рисуем обводку для текущей бусины
       if (i == currentBead) {
         final borderPaint = Paint()
-          ..color = Color(AppConstants.accentColor)
+          ..color = const Color(AppConstants.accentColor)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3.0;
         canvas.drawCircle(beadCenter, beadSize + 2, borderPaint);
@@ -182,14 +182,14 @@ class JapaMalaPainter extends CustomPainter {
     final zeroBeadCenter = Offset(center.dx, center.dy + radius * 0.6);
     
     final zeroBeadPaint = Paint()
-      ..color = Color(AppConstants.successColor)
+      ..color = const Color(AppConstants.successColor)
       ..style = PaintingStyle.fill;
     
     canvas.drawCircle(zeroBeadCenter, 20.0, zeroBeadPaint);
     
     // Обводка нулевой бусины
     final zeroBeadBorderPaint = Paint()
-      ..color = Color(AppConstants.primaryColor)
+      ..color = const Color(AppConstants.primaryColor)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
     
@@ -229,7 +229,7 @@ class JapaMalaPainter extends CustomPainter {
 
     // Подсветка текущей бусины
     final highlightPaint = Paint()
-      ..color = Color(AppConstants.accentColor).withOpacity(0.3)
+      ..color = const Color(AppConstants.accentColor).withOpacity(0.3)
       ..style = PaintingStyle.fill;
     
     canvas.drawCircle(beadCenter, 15.0, highlightPaint);

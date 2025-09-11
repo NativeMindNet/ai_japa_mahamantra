@@ -1,8 +1,7 @@
+import 'dart:convert';
 import 'package:workmanager/workmanager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
 import 'notification_service.dart';
 
 /// Обработчик фоновых задач
@@ -21,11 +20,10 @@ void callbackDispatcher() {
           await _handleProgressSync();
           break;
         default:
-          print('Неизвестная задача: $task');
+        // silent
       }
       return true;
     } catch (e) {
-      print('Ошибка в фоновой задаче: $e');
       return false;
     }
   });
@@ -109,16 +107,14 @@ Future<void> _syncProgress() async {
   
   // Сохраняем статистику за день
   final today = DateTime.now().toIso8601String().split('T')[0];
-  final dailyStats = prefs.getString('daily_stats_$today');
+  final dailyStatsJson = prefs.getString('daily_stats_$today');
   
-  if (dailyStats != null) {
-    final stats = Map<String, dynamic>.from(
-      dailyStats as Map<String, dynamic>
-    );
+  if (dailyStatsJson != null) {
+    final stats = jsonDecode(dailyStatsJson) as Map<String, dynamic>;
     stats['total_rounds'] = totalRounds;
     stats['total_sessions'] = totalSessions;
     stats['total_time_minutes'] = totalTime;
-    await prefs.setString('daily_stats_$today', stats.toString());
+    await prefs.setString('daily_stats_$today', jsonEncode(stats));
   }
 }
 

@@ -256,7 +256,7 @@ class CalendarService {
   
   /// Форматирует дату для формата ICS
   static String _formatDateTimeForICS(DateTime dateTime) {
-    return dateTime.toUtc().toIso8601String().replaceAll(RegExp(r'[-:]'), '').split('.')[0] + 'Z';
+    return '${dateTime.toUtc().toIso8601String().replaceAll(RegExp(r'[-:]'), '').split('.')[0]}Z';
   }
   
   /// Создает напоминание о джапе

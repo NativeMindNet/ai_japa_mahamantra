@@ -45,7 +45,7 @@ class JapaStatsWidget extends StatelessWidget {
                   current: currentRound,
                   total: totalRounds,
                   icon: Icons.refresh,
-                  color: Color(AppConstants.primaryColor),
+                  color: const Color(AppConstants.primaryColor),
                 ),
               ),
               
@@ -58,7 +58,7 @@ class JapaStatsWidget extends StatelessWidget {
                   current: currentBead,
                   total: totalBeads,
                   icon: Icons.circle,
-                  color: Color(AppConstants.accentColor),
+                  color: const Color(AppConstants.accentColor),
                 ),
               ),
             ],
@@ -71,13 +71,13 @@ class JapaStatsWidget extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(AppConstants.smallPadding),
             decoration: BoxDecoration(
-              color: Color(AppConstants.backgroundColor),
+              color: const Color(AppConstants.backgroundColor),
               borderRadius: BorderRadius.circular(AppConstants.borderRadius),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.timer,
                   color: Color(AppConstants.primaryColor),
                   size: 20,
@@ -85,7 +85,7 @@ class JapaStatsWidget extends StatelessWidget {
                 const SizedBox(width: AppConstants.smallPadding),
                 Text(
                   'Время сессии: ${_formatDuration(sessionDuration)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Color(AppConstants.primaryColor),
@@ -101,7 +101,7 @@ class JapaStatsWidget extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Общий прогресс',
                 style: TextStyle(
                   fontSize: 14,
@@ -114,7 +114,7 @@ class JapaStatsWidget extends StatelessWidget {
                 value: _calculateOverallProgress(),
                 height: 8,
                 backgroundColor: Colors.grey[300],
-                progressColor: Color(AppConstants.primaryColor),
+                progressColor: const Color(AppConstants.primaryColor),
               ),
               const SizedBox(height: 4),
               Text(

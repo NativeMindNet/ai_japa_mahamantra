@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../constants/app_constants.dart';
 
 class AudioService {
   static final AudioService _instance = AudioService._internal();
@@ -48,7 +47,7 @@ class AudioService {
       await _preloadSounds();
       _isInitialized = true;
     } catch (e) {
-      print('Ошибка инициализации AudioService: $e');
+      // silent
     }
   }
 
@@ -60,7 +59,7 @@ class AudioService {
       _volume = prefs.getDouble('japa_sound_volume') ?? 0.7;
       _currentSoundType = prefs.getString('japa_sound_type') ?? 'mantra_bell';
     } catch (e) {
-      print('Ошибка загрузки настроек звука: $e');
+      // silent
     }
   }
 
@@ -72,7 +71,7 @@ class AudioService {
       await prefs.setDouble('japa_sound_volume', _volume);
       await prefs.setString('japa_sound_type', _currentSoundType);
     } catch (e) {
-      print('Ошибка сохранения настроек звука: $e');
+      // silent
     }
   }
 
@@ -87,7 +86,7 @@ class AudioService {
         }
       }
     } catch (e) {
-      print('Ошибка предзагрузки звуков: $e');
+      // silent
     }
   }
 
@@ -119,7 +118,7 @@ class AudioService {
       
       await _playSound(soundType);
     } catch (e) {
-      print('Ошибка воспроизведения звука события: $e');
+      // silent
     }
   }
 
@@ -142,18 +141,18 @@ class AudioService {
       await player.setVolume(_volume);
       await player.resume();
     } catch (e) {
-      print('Ошибка воспроизведения звука $soundType: $e');
+      // silent
     }
   }
 
   /// Воспроизводит тестовый звук
-  Future<void> playTestSound(String soundType) async {
+  void playTestSound(String soundType) {
     if (!_isInitialized) return;
     
     try {
-      await _playSound(soundType);
+      _playSound(soundType);
     } catch (e) {
-      print('Ошибка воспроизведения тестового звука: $e');
+      // silent
     }
   }
 
@@ -178,7 +177,7 @@ class AudioService {
   }
 
   /// Получает текущие настройки
-  Map<String, dynamic> getSettings() {
+  Map<String, Object> getSettings() {
     return {
       'soundEnabled': _soundEnabled,
       'volume': _volume,
@@ -216,7 +215,7 @@ class AudioService {
         await player.stop();
       }
     } catch (e) {
-      print('Ошибка остановки звуков: $e');
+      // silent
     }
   }
 
@@ -230,7 +229,7 @@ class AudioService {
       _soundCache.clear();
       await _audioPlayer.dispose();
     } catch (e) {
-      print('Ошибка освобождения ресурсов AudioService: $e');
+      // silent
     }
   }
 

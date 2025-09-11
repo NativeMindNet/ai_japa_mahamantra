@@ -4,13 +4,11 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 import '../models/japa_session.dart';
-import '../services/ai_service.dart';
 import '../services/notification_service.dart';
 import '../services/background_service.dart';
 import '../services/calendar_service.dart';
 import '../services/audio_service.dart';
 import '../services/achievement_service.dart';
-import '../models/achievement.dart';
 import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
@@ -74,7 +72,7 @@ class JapaProvider with ChangeNotifier {
     try {
       await AudioService().initialize();
     } catch (e) {
-      print('Ошибка инициализации AudioService: $e');
+      // silent
     }
   }
   
@@ -89,7 +87,7 @@ class JapaProvider with ChangeNotifier {
       _targetRounds = prefs.getInt('target_rounds') ?? 16;
       notifyListeners();
     } catch (e) {
-      print('Ошибка загрузки настроек: $e');
+      // silent
     }
   }
   
@@ -103,7 +101,7 @@ class JapaProvider with ChangeNotifier {
       await prefs.setBool('auto_start_enabled', _autoStartEnabled);
       await prefs.setInt('target_rounds', _targetRounds);
     } catch (e) {
-      print('Ошибка сохранения настроек: $e');
+      // silent
     }
   }
   
@@ -117,7 +115,7 @@ class JapaProvider with ChangeNotifier {
       _totalTime = Duration(minutes: totalMinutes);
       notifyListeners();
     } catch (e) {
-      print('Ошибка загрузки статистики: $e');
+      // silent
     }
   }
   
@@ -129,7 +127,7 @@ class JapaProvider with ChangeNotifier {
       await prefs.setInt('total_rounds', _totalRounds);
       await prefs.setInt('total_time_minutes', _totalTime.inMinutes);
     } catch (e) {
-      print('Ошибка сохранения статистики: $e');
+      // silent
     }
   }
   
@@ -157,7 +155,7 @@ class JapaProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      print('Ошибка проверки автозапуска: $e');
+      // silent
     }
   }
   
@@ -206,7 +204,7 @@ class JapaProvider with ChangeNotifier {
   }
   
   /// Начинает новую сессию
-  void startSession() {
+  Future<void> startSession() async {
     if (_isSessionActive) return;
     
     _currentSession = JapaSession(
@@ -251,7 +249,7 @@ class JapaProvider with ChangeNotifier {
   }
   
   /// Приостанавливает сессию
-  void pauseSession() {
+  Future<void> pauseSession() async {
     if (!_isSessionActive || _isPaused) return;
     
     _isPaused = true;
@@ -293,7 +291,7 @@ class JapaProvider with ChangeNotifier {
   }
   
   /// Перемещает к определенной бусине
-  void moveToBead(int beadIndex) {
+  Future<void> moveToBead(int beadIndex) async {
     if (!_isSessionActive || beadIndex < 0 || beadIndex > 108) return;
     
     _currentBead = beadIndex;
@@ -305,20 +303,20 @@ class JapaProvider with ChangeNotifier {
     
     // Проверяем, завершен ли круг
     if (_currentBead == 108) {
-      _completeRound();
+      await _completeRound();
     }
     
     notifyListeners();
   }
   
   /// Переходит к следующей бусине
-  void nextBead() {
+  Future<void> nextBead() async {
     if (!_isSessionActive) return;
     
     if (_currentBead < 108) {
       _currentBead++;
     } else {
-      _completeRound();
+      await _completeRound();
     }
     
     // Вибрация
@@ -328,22 +326,22 @@ class JapaProvider with ChangeNotifier {
     
     // Звук нажатия на бусину
     if (_soundEnabled) {
-      AudioService().playEventSound('bead_click');
+      await AudioService().playEventSound('bead_click');
     }
     
     notifyListeners();
   }
   
   /// Завершает текущий круг
-  void completeRound() {
+  Future<void> completeRound() async {
     if (!_isSessionActive) return;
     
-    _completeRound();
+    await _completeRound();
     notifyListeners();
   }
   
   /// Внутренний метод завершения круга
-  void _completeRound() {
+  Future<void> _completeRound() async {
     _completedRounds++;
     
     // Добавляем круг в сессию
@@ -380,7 +378,7 @@ class JapaProvider with ChangeNotifier {
     
     // Проверяем, завершена ли сессия
     if (_completedRounds >= _targetRounds) {
-      endSession();
+      await endSession();
       return;
     }
     
@@ -394,7 +392,7 @@ class JapaProvider with ChangeNotifier {
   }
   
   /// Завершает сессию
-  void endSession() {
+  Future<void> endSession() async {
     if (!_isSessionActive) return;
     
     _isSessionActive = false;
@@ -457,7 +455,7 @@ class JapaProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('last_session_date', DateTime.now().toIso8601String());
     } catch (e) {
-      print('Ошибка сохранения даты сессии: $e');
+      // silent
     }
   }
   
@@ -476,7 +474,7 @@ class JapaProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      print('Ошибка проверки достижений: $e');
+      // silent
     }
   }
   /// Запускает таймер сессии
@@ -538,12 +536,10 @@ class JapaProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final dateKey = date.toIso8601String().split('T')[0];
-      final dailyStats = prefs.getString('daily_stats_$dateKey');
+      final dailyStatsJson = prefs.getString('daily_stats_$dateKey');
       
-      if (dailyStats != null) {
-        return Map<String, dynamic>.from(
-          dailyStats as Map<String, dynamic>
-        );
+      if (dailyStatsJson != null) {
+        return jsonDecode(dailyStatsJson) as Map<String, dynamic>;
       }
       
       return {};
@@ -555,7 +551,6 @@ class JapaProvider with ChangeNotifier {
   /// Получает статистику за неделю
   Future<Map<String, dynamic>> getWeeklyStats(DateTime weekStart) async {
     try {
-      final weekEnd = weekStart.add(const Duration(days: 7));
       final stats = <String, dynamic>{};
       
       for (int i = 0; i < 7; i++) {
@@ -602,7 +597,7 @@ class JapaProvider with ChangeNotifier {
           final json = jsonDecode(jsonString) as Map<String, dynamic>;
           sessions.add(json);
         } catch (e) {
-          print('Ошибка при загрузке сессии: $e');
+          // silent
         }
       }
       
@@ -615,7 +610,6 @@ class JapaProvider with ChangeNotifier {
       
       return sessions;
     } catch (e) {
-      print('Ошибка при получении истории сессий: $e');
       return [];
     }
   }
@@ -649,7 +643,7 @@ class JapaProvider with ChangeNotifier {
       await prefs.setStringList('japa_sessions_history', sessionsJson);
       
     } catch (e) {
-      print('Ошибка при сохранении сессии в историю: $e');
+      // silent
     }
   }
 
@@ -669,7 +663,7 @@ class JapaProvider with ChangeNotifier {
       
       await CalendarService.saveJapaEvent(calendarEvent);
     } catch (e) {
-      print('Ошибка при сохранении сессии в календарь: $e');
+      // silent
     }
   }
 
