@@ -94,7 +94,8 @@ class Achievement {
   bool get isAchieved => currentValue >= targetValue;
 
   /// Возвращает прогресс в процентах
-  double get progress => targetValue > 0 ? (currentValue / targetValue).clamp(0.0, 1.0) : 0.0;
+  double get progress =>
+      targetValue > 0 ? (currentValue / targetValue).clamp(0.0, 1.0) : 0.0;
 
   /// Возвращает цвет достижения в зависимости от редкости
   String get rarityColor {
@@ -124,7 +125,8 @@ class Achievement {
     }
   }
 
-  factory Achievement.fromJson(Map<String, dynamic> json) => _$AchievementFromJson(json);
+  factory Achievement.fromJson(Map<String, dynamic> json) =>
+      _$AchievementFromJson(json);
   Map<String, dynamic> toJson() => _$AchievementToJson(this);
 
   @override
@@ -159,7 +161,8 @@ class AchievementProgress {
     required this.lastUpdated,
   });
 
-  factory AchievementProgress.fromJson(Map<String, dynamic> json) => _$AchievementProgressFromJson(json);
+  factory AchievementProgress.fromJson(Map<String, dynamic> json) =>
+      _$AchievementProgressFromJson(json);
   Map<String, dynamic> toJson() => _$AchievementProgressToJson(this);
 }
 
@@ -211,6 +214,7 @@ class AchievementStats {
     required this.typeCounts,
   });
 
-  factory AchievementStats.fromJson(Map<String, dynamic> json) => _$AchievementStatsFromJson(json);
+  factory AchievementStats.fromJson(Map<String, dynamic> json) =>
+      _$AchievementStatsFromJson(json);
   Map<String, dynamic> toJson() => _$AchievementStatsToJson(this);
 }

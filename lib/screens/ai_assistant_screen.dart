@@ -15,7 +15,8 @@ class AIAssistantScreen extends StatefulWidget {
   State<AIAssistantScreen> createState() => _AIAssistantScreenState();
 }
 
-class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProviderStateMixin {
+class _AIAssistantScreenState extends State<AIAssistantScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _questionController = TextEditingController();
   final List<AIConversation> _conversations = [];
   bool _isLoading = false;
@@ -45,11 +46,13 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
     try {
       final isAvailable = await AIService.isServerAvailable();
       final isMozgach = await AIService.isMozgachAvailable();
-      
+
       if (mounted) {
         setState(() {
-          _aiStatus = isAvailable 
-              ? (isMozgach ? 'mozgach:latest доступен' : 'AI доступен, но mozgach:latest не найден')
+          _aiStatus = isAvailable
+              ? (isMozgach
+                    ? 'mozgach:latest доступен'
+                    : 'AI доступен, но mozgach:latest не найден')
               : 'AI сервер недоступен';
           _isMozgachAvailable = isMozgach;
           _isLoading = false;
@@ -70,9 +73,9 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
     try {
       final prefs = await SharedPreferences.getInstance();
       final conversationsJson = prefs.getStringList('ai_conversations') ?? [];
-      
+
       final conversations = <AIConversation>[];
-      
+
       for (final jsonString in conversationsJson) {
         try {
           final json = jsonDecode(jsonString) as Map<String, dynamic>;
@@ -82,16 +85,15 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
           // silent
         }
       }
-      
+
       // Сортируем по времени (новые сверху)
       conversations.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      
+
       if (mounted) {
         setState(() {
           _conversations.addAll(conversations);
         });
       }
-      
     } catch (e) {
       // silent
     }
@@ -119,7 +121,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
           timestamp: DateTime.now(),
           category: _selectedCategory ?? 'spiritual',
         );
-        
+
         if (mounted) {
           setState(() {
             _conversations.insert(0, conversation);
@@ -132,7 +134,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
         await _saveConversation(conversation);
       }
     } catch (e) {
-      if(mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Ошибка при отправке вопроса: $e'),
@@ -141,7 +143,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
         );
       }
     } finally {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
@@ -153,27 +155,23 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
   Future<void> _saveConversation(AIConversation conversation) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Получаем существующие разговоры
       final conversationsJson = prefs.getStringList('ai_conversations') ?? [];
-      
+
       // Добавляем новый разговор
       conversationsJson.add(jsonEncode(conversation.toJson()));
-      
+
       // Ограничиваем количество сохраненных разговоров (последние 100)
       if (conversationsJson.length > 100) {
         conversationsJson.removeRange(0, conversationsJson.length - 100);
       }
-      
+
       // Сохраняем обратно
       await prefs.setStringList('ai_conversations', conversationsJson);
-      
+
       // Обновляем статистику
-      await AIService.updateUsageStats(
-        isSuccessful: true,
-        isLocal: false,
-      );
-      
+      await AIService.updateUsageStats(isSuccessful: true, isLocal: false);
     } catch (e) {
       // silent
     }
@@ -182,7 +180,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -203,14 +201,12 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
           children: [
             // Статус AI
             _buildAIStatusCard(l10n),
-            
+
             // Форма вопроса
             _buildQuestionForm(l10n),
-            
+
             // История разговоров
-            Expanded(
-              child: _buildConversationsList(l10n),
-            ),
+            Expanded(child: _buildConversationsList(l10n)),
           ],
         ),
       ),
@@ -281,7 +277,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
               ),
             ),
             const SizedBox(height: AppConstants.smallPadding),
-            
+
             // Категория
             DropdownButtonFormField<String>(
               value: _selectedCategory,
@@ -301,9 +297,9 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
                 });
               },
             ),
-            
+
             const SizedBox(height: AppConstants.smallPadding),
-            
+
             // Поле вопроса
             TextField(
               controller: _questionController,
@@ -314,9 +310,9 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
                 border: const OutlineInputBorder(),
               ),
             ),
-            
+
             const SizedBox(height: AppConstants.smallPadding),
-            
+
             // Кнопка отправки
             SizedBox(
               width: double.infinity,
@@ -340,26 +336,16 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey[400]),
             const SizedBox(height: AppConstants.smallPadding),
             Text(
               'Начните разговор с AI',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
             ),
             const SizedBox(height: AppConstants.smallPadding),
             Text(
               'Задайте духовный вопрос выше',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
             ),
           ],
         ),
@@ -394,9 +380,9 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: AppConstants.smallPadding),
-                
+
                 // Ответ
                 Row(
                   children: [
@@ -410,16 +396,13 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: AppConstants.smallPadding),
-                
+
                 // Время
                 Text(
                   _formatTimestamp(conversation.timestamp),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -433,7 +416,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> with TickerProvid
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    
+
     if (difference.inMinutes < 1) {
       return 'Только что';
     } else if (difference.inHours < 1) {

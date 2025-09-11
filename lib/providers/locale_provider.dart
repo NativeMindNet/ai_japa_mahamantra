@@ -5,14 +5,14 @@ import '../themes/app_themes.dart';
 class LocaleProvider extends ChangeNotifier {
   static const String _localeKey = 'selected_locale';
   static const String _themeKey = 'selected_theme';
-  
+
   Locale _currentLocale = const Locale('ru');
   ThemeType _currentTheme = ThemeType.light;
-  
+
   Locale get currentLocale => _currentLocale;
   ThemeType get currentTheme => _currentTheme;
   bool get isDarkTheme => _currentTheme == ThemeType.dark;
-  
+
   // Доступные языки
   static const List<Map<String, String>> availableLocales = [
     {
@@ -20,42 +20,42 @@ class LocaleProvider extends ChangeNotifier {
       'name': 'Русский',
       'nativeName': 'Русский',
       'description': 'Русский язык - духовный и традиционный',
-      'flag': '🇷🇺'
+      'flag': '🇷🇺',
     },
     {
       'code': 'en',
       'name': 'English',
       'nativeName': 'English',
       'description': 'English language - international and modern',
-      'flag': '🇺🇸'
+      'flag': '🇺🇸',
     },
     {
       'code': 'de',
       'name': 'Deutsch',
       'nativeName': 'Deutsch',
       'description': 'Deutsche Sprache - präzise und strukturiert',
-      'flag': '🇩🇪'
+      'flag': '🇩🇪',
     },
     {
       'code': 'harkonnen',
       'name': 'Harkonnen',
       'nativeName': 'ХАРКОННЕН',
       'description': 'Язык Дома Харконнен - суровый и прямолинейный',
-      'flag': '⚔️'
+      'flag': '⚔️',
     },
   ];
-  
+
   LocaleProvider() {
     _loadSavedLocale();
     _loadSavedTheme();
   }
-  
+
   /// Загружает сохраненную локаль
   Future<void> _loadSavedLocale() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedLocaleCode = prefs.getString(_localeKey);
-      
+
       if (savedLocaleCode != null) {
         _currentLocale = Locale(savedLocaleCode);
         notifyListeners();
@@ -65,7 +65,7 @@ class LocaleProvider extends ChangeNotifier {
       _currentLocale = const Locale('ru');
     }
   }
-  
+
   /// Загружает сохраненную тему
   Future<void> _loadSavedTheme() async {
     try {
@@ -78,53 +78,55 @@ class LocaleProvider extends ChangeNotifier {
       _currentTheme = ThemeType.light;
     }
   }
-  
+
   /// Устанавливает новую локаль
   Future<void> setLocale(String localeCode) async {
     if (_currentLocale.languageCode == localeCode) return;
-    
+
     _currentLocale = Locale(localeCode);
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_localeKey, localeCode);
     } catch (e) {
       // Игнорируем ошибки сохранения
     }
-    
+
     notifyListeners();
   }
-  
+
   /// Переключает тему
   Future<void> toggleTheme() async {
-    _currentTheme = _currentTheme == ThemeType.light ? ThemeType.dark : ThemeType.light;
-    
+    _currentTheme = _currentTheme == ThemeType.light
+        ? ThemeType.dark
+        : ThemeType.light;
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_themeKey, _currentTheme.index);
     } catch (e) {
       // Игнорируем ошибки сохранения
     }
-    
+
     notifyListeners();
   }
-  
+
   /// Устанавливает конкретную тему
   Future<void> setTheme(ThemeType theme) async {
     if (_currentTheme == theme) return;
-    
+
     _currentTheme = theme;
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_themeKey, _currentTheme.index);
     } catch (e) {
       // Игнорируем ошибки сохранения
     }
-    
+
     notifyListeners();
   }
-  
+
   /// Получает информацию о языке по коду
   Map<String, String>? getLocaleInfo(String localeCode) {
     try {
@@ -135,21 +137,21 @@ class LocaleProvider extends ChangeNotifier {
       return null;
     }
   }
-  
+
   /// Получает текущую информацию о языке
   Map<String, String>? getCurrentLocaleInfo() {
     return getLocaleInfo(_currentLocale.languageCode);
   }
-  
+
   /// Проверяет, является ли текущий язык русским
   bool get isRussian => _currentLocale.languageCode == 'ru';
-  
+
   /// Проверяет, является ли текущий язык английским
   bool get isEnglish => _currentLocale.languageCode == 'en';
-  
+
   /// Проверяет, является ли текущий язык харконненским
   bool get isHarkonnen => _currentLocale.languageCode == 'harkonnen';
-  
+
   /// Получает стиль для текущего языка
   TextStyle getLanguageStyle() {
     if (isHarkonnen) {
@@ -166,13 +168,10 @@ class LocaleProvider extends ChangeNotifier {
       );
     } else {
       // Русский язык
-      return const TextStyle(
-        fontWeight: FontWeight.normal,
-        fontSize: 16,
-      );
+      return const TextStyle(fontWeight: FontWeight.normal, fontSize: 16);
     }
   }
-  
+
   /// Получает цветовую схему для текущей темы
   ColorScheme getThemeColorScheme() {
     if (isDarkTheme) {

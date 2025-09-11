@@ -31,13 +31,12 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
       duration: AppConstants.shortAnimation,
       vsync: this,
     );
-    _beadScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _beadAnimationController,
-      curve: Curves.elasticOut,
-    ));
+    _beadScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(
+        parent: _beadAnimationController,
+        curve: Curves.elasticOut,
+      ),
+    );
   }
 
   @override
@@ -76,17 +75,17 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width < size.height ? size.width / 2 : size.height / 2;
-    
+
     // Вычисляем расстояние от центра
     final distance = (localPosition - center).distance;
-    
+
     if (distance <= radius * 0.8 && distance >= radius * 0.3) {
       // Вычисляем угол
       final angle = (localPosition - center).direction;
-      
+
       // Определяем номер бусины
       final beadIndex = _getBeadIndexFromAngle(angle);
-      
+
       if (beadIndex >= 0 && beadIndex <= widget.totalBeads) {
         widget.onBeadTap(beadIndex);
         _beadAnimationController.forward().then((_) {
@@ -98,11 +97,13 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
 
   int _getBeadIndexFromAngle(double angle) {
     // Нормализуем угол (0 = верх, π/2 = право, π = низ, -π/2 = лево)
-    double normalizedAngle = angle + (3 * 3.14159 / 2); // Поворачиваем на 270 градусов
+    double normalizedAngle =
+        angle + (3 * 3.14159 / 2); // Поворачиваем на 270 градусов
     if (normalizedAngle < 0) normalizedAngle += 2 * 3.14159;
-    
+
     // Вычисляем номер бусины
-    final beadIndex = ((normalizedAngle / (2 * 3.14159)) * widget.totalBeads).round();
+    final beadIndex = ((normalizedAngle / (2 * 3.14159)) * widget.totalBeads)
+        .round();
     return beadIndex == 0 ? widget.totalBeads : beadIndex;
   }
 }
@@ -111,22 +112,19 @@ class JapaMalaPainter extends CustomPainter {
   final int currentBead;
   final int totalBeads;
 
-  JapaMalaPainter({
-    required this.currentBead,
-    required this.totalBeads,
-  });
+  JapaMalaPainter({required this.currentBead, required this.totalBeads});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width < size.height ? size.width / 2 : size.height / 2;
-    
+
     // Рисуем основную малу
     _drawMala(canvas, center, radius);
-    
+
     // Рисуем нулевую бусину (большую)
     _drawZeroBead(canvas, center, radius);
-    
+
     // Рисуем текущую бусину с подсветкой
     if (currentBead > 0) {
       _drawCurrentBead(canvas, center, radius);
@@ -151,7 +149,7 @@ class JapaMalaPainter extends CustomPainter {
       );
 
       final beadPaint = Paint()
-        ..color = i == currentBead 
+        ..color = i == currentBead
             ? const Color(AppConstants.accentColor)
             : const Color(AppConstants.primaryColor)
         ..style = PaintingStyle.fill;
@@ -180,21 +178,21 @@ class JapaMalaPainter extends CustomPainter {
   void _drawZeroBead(Canvas canvas, Offset center, double radius) {
     // Нулевая бусина (большая) внизу
     final zeroBeadCenter = Offset(center.dx, center.dy + radius * 0.6);
-    
+
     final zeroBeadPaint = Paint()
       ..color = const Color(AppConstants.successColor)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawCircle(zeroBeadCenter, 20.0, zeroBeadPaint);
-    
+
     // Обводка нулевой бусины
     final zeroBeadBorderPaint = Paint()
       ..color = const Color(AppConstants.primaryColor)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
-    
+
     canvas.drawCircle(zeroBeadCenter, 20.0, zeroBeadBorderPaint);
-    
+
     // Текст "0" в нулевой бусине
     final textPainter = TextPainter(
       text: const TextSpan(
@@ -207,7 +205,7 @@ class JapaMalaPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     );
-    
+
     textPainter.layout();
     textPainter.paint(
       canvas,
@@ -220,7 +218,7 @@ class JapaMalaPainter extends CustomPainter {
 
   void _drawCurrentBead(Canvas canvas, Offset center, double radius) {
     if (currentBead <= 0 || currentBead > totalBeads) return;
-    
+
     final angle = (2 * 3.14159 * currentBead) / totalBeads - (3 * 3.14159 / 2);
     final beadCenter = Offset(
       center.dx + (radius * 0.6) * cos(angle),
@@ -231,13 +229,13 @@ class JapaMalaPainter extends CustomPainter {
     final highlightPaint = Paint()
       ..color = const Color(AppConstants.accentColor).withOpacity(0.3)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawCircle(beadCenter, 15.0, highlightPaint);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return oldDelegate is JapaMalaPainter && 
-           oldDelegate.currentBead != currentBead;
+    return oldDelegate is JapaMalaPainter &&
+        oldDelegate.currentBead != currentBead;
   }
 }

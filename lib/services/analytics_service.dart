@@ -147,7 +147,7 @@ class AnalyticsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final sessionsJson = prefs.getString(_sessionsKey);
-      
+
       if (sessionsJson != null) {
         final List<dynamic> sessionsList = json.decode(sessionsJson);
         _sessions = sessionsList
@@ -164,7 +164,7 @@ class AnalyticsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final analyticsJson = prefs.getString(_analyticsKey);
-      
+
       if (analyticsJson != null) {
         final List<dynamic> analyticsList = json.decode(analyticsJson);
         _analyticsData = analyticsList
@@ -215,7 +215,7 @@ class AnalyticsService {
 
     // Группируем сессии по дням
     final Map<String, List<JapaSession>> sessionsByDay = {};
-    
+
     for (final session in _sessions) {
       final dayKey = _getDayKey(session.startTime);
       sessionsByDay.putIfAbsent(dayKey, () => []).add(session);
@@ -223,15 +223,23 @@ class AnalyticsService {
 
     // Создаем данные аналитики для каждого дня
     _analyticsData.clear();
-    
+
     for (final entry in sessionsByDay.entries) {
       final daySessions = entry.value;
       final date = DateTime.parse(entry.key);
-      
-      final totalRounds = daySessions.fold(0, (sum, session) => sum + session.completedRounds);
-      final totalTime = daySessions.fold(0, (sum, session) => sum + session.duration.inSeconds);
-      final averageSessionTime = daySessions.isNotEmpty ? totalTime / daySessions.length : 0.0;
-      
+
+      final totalRounds = daySessions.fold(
+        0,
+        (sum, session) => sum + session.completedRounds,
+      );
+      final totalTime = daySessions.fold(
+        0,
+        (sum, session) => sum + session.duration.inSeconds,
+      );
+      final averageSessionTime = daySessions.isNotEmpty
+          ? totalTime / daySessions.length
+          : 0.0;
+
       // Распределение по времени дня
       final timeDistribution = <String, int>{};
       for (final session in daySessions) {
@@ -239,12 +247,12 @@ class AnalyticsService {
         final timeSlot = _getTimeSlot(hour);
         timeDistribution[timeSlot] = (timeDistribution[timeSlot] ?? 0) + 1;
       }
-      
+
       // Распределение по дням недели
       final dayDistribution = <String, int>{};
       final dayName = _getDayName(date.weekday);
       dayDistribution[dayName] = daySessions.length;
-      
+
       final analyticsData = AnalyticsData(
         date: date,
         sessions: daySessions.length,
@@ -255,13 +263,13 @@ class AnalyticsService {
         timeDistribution: timeDistribution,
         dayDistribution: dayDistribution,
       );
-      
+
       _analyticsData.add(analyticsData);
     }
-    
+
     // Сортируем по дате
     _analyticsData.sort((a, b) => a.date.compareTo(b.date));
-    
+
     await _saveAnalyticsData();
   }
 
@@ -281,24 +289,36 @@ class AnalyticsService {
 
   /// Получает название дня недели
   String _getDayName(int weekday) {
-    const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+    const days = [
+      'Понедельник',
+      'Вторник',
+      'Среда',
+      'Четверг',
+      'Пятница',
+      'Суббота',
+      'Воскресенье',
+    ];
     return days[weekday - 1];
   }
 
   /// Вычисляет самую длинную серию
   int _calculateLongestStreak() {
     if (_sessions.isEmpty) return 0;
-    
+
     final sortedSessions = List<JapaSession>.from(_sessions)
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
-    
+
     int longestStreak = 0;
     int currentStreak = 0;
     DateTime? lastDate;
-    
+
     for (final session in sortedSessions) {
-      final sessionDate = DateTime(session.startTime.year, session.startTime.month, session.startTime.day);
-      
+      final sessionDate = DateTime(
+        session.startTime.year,
+        session.startTime.month,
+        session.startTime.day,
+      );
+
       if (lastDate == null) {
         currentStreak = 1;
       } else {
@@ -306,61 +326,85 @@ class AnalyticsService {
         if (daysDifference == 1) {
           currentStreak++;
         } else if (daysDifference > 1) {
-          longestStreak = longestStreak > currentStreak ? longestStreak : currentStreak;
+          longestStreak = longestStreak > currentStreak
+              ? longestStreak
+              : currentStreak;
           currentStreak = 1;
         }
       }
-      
+
       lastDate = sessionDate;
     }
-    
+
     return longestStreak > currentStreak ? longestStreak : currentStreak;
   }
 
   /// Получает статистику за период
-  Future<PeriodStats> getPeriodStats(DateTime startDate, DateTime endDate) async {
+  Future<PeriodStats> getPeriodStats(
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
     final filteredSessions = _sessions.where((session) {
-      final sessionDate = DateTime(session.startTime.year, session.startTime.month, session.startTime.day);
+      final sessionDate = DateTime(
+        session.startTime.year,
+        session.startTime.month,
+        session.startTime.day,
+      );
       final start = DateTime(startDate.year, startDate.month, startDate.day);
       final end = DateTime(endDate.year, endDate.month, endDate.day);
-      return sessionDate.isAtSameMomentAs(start) || 
-             sessionDate.isAtSameMomentAs(end) ||
-             (sessionDate.isAfter(start) && sessionDate.isBefore(end));
+      return sessionDate.isAtSameMomentAs(start) ||
+          sessionDate.isAtSameMomentAs(end) ||
+          (sessionDate.isAfter(start) && sessionDate.isBefore(end));
     }).toList();
 
     final totalSessions = filteredSessions.length;
-    final totalRounds = filteredSessions.fold(0, (sum, session) => sum + session.completedRounds);
-    final totalTime = filteredSessions.fold(0, (sum, session) => sum + session.duration.inSeconds);
-    final averageSessionTime = totalSessions > 0 ? totalTime / totalSessions : 0.0;
-    final averageRoundsPerSession = totalSessions > 0 ? totalRounds / totalSessions : 0.0;
-    
+    final totalRounds = filteredSessions.fold(
+      0,
+      (sum, session) => sum + session.completedRounds,
+    );
+    final totalTime = filteredSessions.fold(
+      0,
+      (sum, session) => sum + session.duration.inSeconds,
+    );
+    final averageSessionTime = totalSessions > 0
+        ? totalTime / totalSessions
+        : 0.0;
+    final averageRoundsPerSession = totalSessions > 0
+        ? totalRounds / totalSessions
+        : 0.0;
+
     final longestStreak = _calculateLongestStreak();
     final currentStreak = _calculateCurrentStreak();
-    
+
     // Данные по дням
     final dailyData = _analyticsData.where((data) {
       return data.date.isAtSameMomentAs(startDate) ||
-             data.date.isAtSameMomentAs(endDate) ||
-             (data.date.isAfter(startDate) && data.date.isBefore(endDate));
+          data.date.isAtSameMomentAs(endDate) ||
+          (data.date.isAfter(startDate) && data.date.isBefore(endDate));
     }).toList();
-    
+
     // Распределение по неделям
     final weeklyDistribution = <String, int>{};
     for (final session in filteredSessions) {
       final weekKey = 'Неделя ${_getWeekNumber(session.startTime)}';
       weeklyDistribution[weekKey] = (weeklyDistribution[weekKey] ?? 0) + 1;
     }
-    
+
     // Распределение по месяцам
     final monthlyDistribution = <String, int>{};
     for (final session in filteredSessions) {
       final monthKey = '${session.startTime.month}/${session.startTime.year}';
       monthlyDistribution[monthKey] = (monthlyDistribution[monthKey] ?? 0) + 1;
     }
-    
+
     // Генерируем инсайты
-    final insights = _generateInsights(filteredSessions, totalSessions, totalRounds, totalTime);
-    
+    final insights = _generateInsights(
+      filteredSessions,
+      totalSessions,
+      totalRounds,
+      totalTime,
+    );
+
     return PeriodStats(
       startDate: startDate,
       endDate: endDate,
@@ -381,17 +425,21 @@ class AnalyticsService {
   /// Вычисляет текущую серию
   int _calculateCurrentStreak() {
     if (_sessions.isEmpty) return 0;
-    
+
     final sortedSessions = List<JapaSession>.from(_sessions)
       ..sort((a, b) => b.startTime.compareTo(a.startTime));
-    
+
     int currentStreak = 0;
     DateTime? lastDate;
     final today = DateTime.now();
-    
+
     for (final session in sortedSessions) {
-      final sessionDate = DateTime(session.startTime.year, session.startTime.month, session.startTime.day);
-      
+      final sessionDate = DateTime(
+        session.startTime.year,
+        session.startTime.month,
+        session.startTime.day,
+      );
+
       if (lastDate == null) {
         final daysDifference = today.difference(sessionDate).inDays;
         if (daysDifference <= 1) {
@@ -410,7 +458,7 @@ class AnalyticsService {
         }
       }
     }
-    
+
     return currentStreak;
   }
 
@@ -422,53 +470,78 @@ class AnalyticsService {
   }
 
   /// Генерирует инсайты на основе данных
-  List<String> _generateInsights(List<JapaSession> sessions, int totalSessions, int totalRounds, int totalTime) {
+  List<String> _generateInsights(
+    List<JapaSession> sessions,
+    int totalSessions,
+    int totalRounds,
+    int totalTime,
+  ) {
     final insights = <String>[];
-    
+
     if (totalSessions == 0) {
       insights.add('Начните практику джапы для получения статистики');
       return insights;
     }
-    
+
     // Анализ времени практики
-    final morningSessions = sessions.where((s) => s.startTime.hour >= 5 && s.startTime.hour < 12).length;
-    final eveningSessions = sessions.where((s) => s.startTime.hour >= 17 && s.startTime.hour < 22).length;
-    
+    final morningSessions = sessions
+        .where((s) => s.startTime.hour >= 5 && s.startTime.hour < 12)
+        .length;
+    final eveningSessions = sessions
+        .where((s) => s.startTime.hour >= 17 && s.startTime.hour < 22)
+        .length;
+
     if (morningSessions > eveningSessions) {
       insights.add('Вы предпочитаете практиковать утром - отличная привычка!');
     } else if (eveningSessions > morningSessions) {
-      insights.add('Вы предпочитаете практиковать вечером - хороший способ завершить день');
+      insights.add(
+        'Вы предпочитаете практиковать вечером - хороший способ завершить день',
+      );
     }
-    
+
     // Анализ продолжительности сессий
     final averageDuration = totalTime / totalSessions;
-    if (averageDuration > 1800) { // больше 30 минут
-      insights.add('Ваши сессии довольно продолжительные - это показывает глубокую преданность');
-    } else if (averageDuration < 600) { // меньше 10 минут
-      insights.add('Попробуйте увеличить продолжительность сессий для лучших результатов');
+    if (averageDuration > 1800) {
+      // больше 30 минут
+      insights.add(
+        'Ваши сессии довольно продолжительные - это показывает глубокую преданность',
+      );
+    } else if (averageDuration < 600) {
+      // меньше 10 минут
+      insights.add(
+        'Попробуйте увеличить продолжительность сессий для лучших результатов',
+      );
     }
-    
+
     // Анализ серий
     final currentStreak = _calculateCurrentStreak();
     if (currentStreak >= 7) {
-      insights.add('Отличная серия! Вы практикуете уже $currentStreak дней подряд');
+      insights.add(
+        'Отличная серия! Вы практикуете уже $currentStreak дней подряд',
+      );
     } else if (currentStreak >= 3) {
       insights.add('Хорошая серия! Продолжайте в том же духе');
     }
-    
+
     // Анализ прогресса
     if (sessions.length >= 10) {
       final recentSessions = sessions.take(5).toList();
       final olderSessions = sessions.skip(sessions.length - 5).take(5).toList();
-      
-      final recentAvg = recentSessions.fold(0, (sum, s) => sum + s.completedRounds) / recentSessions.length;
-      final olderAvg = olderSessions.fold(0, (sum, s) => sum + s.completedRounds) / olderSessions.length;
-      
+
+      final recentAvg =
+          recentSessions.fold(0, (sum, s) => sum + s.completedRounds) /
+          recentSessions.length;
+      final olderAvg =
+          olderSessions.fold(0, (sum, s) => sum + s.completedRounds) /
+          olderSessions.length;
+
       if (recentAvg > olderAvg) {
-        insights.add('Вы показываете отличный прогресс! Количество кругов увеличивается');
+        insights.add(
+          'Вы показываете отличный прогресс! Количество кругов увеличивается',
+        );
       }
     }
-    
+
     return insights;
   }
 
@@ -503,7 +576,7 @@ class AnalyticsService {
   Future<void> resetData() async {
     _sessions.clear();
     _analyticsData.clear();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionsKey);
     await prefs.remove(_analyticsKey);

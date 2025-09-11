@@ -12,10 +12,10 @@ class AudioService {
   bool _soundEnabled = true;
   double _volume = 0.7;
   String _currentSoundType = 'mantra_bell';
-  
+
   // Кэш для аудио файлов
   final Map<String, AudioPlayer> _soundCache = {};
-  
+
   // Доступные звуки
   static const Map<String, String> availableSounds = {
     'mantra_bell': 'assets/audio/mantra_bell.mp3',
@@ -28,7 +28,7 @@ class AudioService {
     'rain_drops': 'assets/audio/rain_drops.mp3',
     'silent': '', // Без звука
   };
-  
+
   // Типы звуков для разных событий
   static const Map<String, String> eventSounds = {
     'bead_click': 'bead_click',
@@ -41,7 +41,7 @@ class AudioService {
   /// Инициализация сервиса
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
       await _loadSettings();
       await _preloadSounds();
@@ -81,7 +81,9 @@ class AudioService {
       for (final entry in availableSounds.entries) {
         if (entry.value.isNotEmpty) {
           final player = AudioPlayer();
-          await player.setSource(AssetSource(entry.value.replaceFirst('assets/', '')));
+          await player.setSource(
+            AssetSource(entry.value.replaceFirst('assets/', '')),
+          );
           _soundCache[entry.key] = player;
         }
       }
@@ -93,10 +95,10 @@ class AudioService {
   /// Воспроизводит звук для события
   Future<void> playEventSound(String eventType) async {
     if (!_soundEnabled || !_isInitialized) return;
-    
+
     try {
       String soundType = _currentSoundType;
-      
+
       // Специальные звуки для разных событий
       switch (eventType) {
         case 'bead_click':
@@ -115,7 +117,7 @@ class AudioService {
           soundType = 'mantra_bell';
           break;
       }
-      
+
       await _playSound(soundType);
     } catch (e) {
       // silent
@@ -124,20 +126,23 @@ class AudioService {
 
   /// Воспроизводит звук по типу
   Future<void> _playSound(String soundType) async {
-    if (soundType == 'silent' || !availableSounds.containsKey(soundType)) return;
-    
+    if (soundType == 'silent' || !availableSounds.containsKey(soundType))
+      return;
+
     try {
       final soundPath = availableSounds[soundType];
       if (soundPath == null || soundPath.isEmpty) return;
-      
+
       // Используем кэшированный плеер или создаем новый
       AudioPlayer? player = _soundCache[soundType];
       if (player == null) {
         player = AudioPlayer();
-        await player.setSource(AssetSource(soundPath.replaceFirst('assets/', '')));
+        await player.setSource(
+          AssetSource(soundPath.replaceFirst('assets/', '')),
+        );
         _soundCache[soundType] = player;
       }
-      
+
       await player.setVolume(_volume);
       await player.resume();
     } catch (e) {
@@ -148,7 +153,7 @@ class AudioService {
   /// Воспроизводит тестовый звук
   void playTestSound(String soundType) {
     if (!_isInitialized) return;
-    
+
     try {
       _playSound(soundType);
     } catch (e) {
@@ -204,7 +209,7 @@ class AudioService {
       'rain_drops': 'Капли дождя',
       'silent': 'Без звука',
     };
-    
+
     return soundNames[soundType] ?? soundType;
   }
 

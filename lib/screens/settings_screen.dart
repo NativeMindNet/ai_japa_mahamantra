@@ -28,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -64,7 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                
+
                 // Настройки темы
                 SettingsSection(
                   title: l10n.theme,
@@ -80,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                
+
                 // Основные настройки джапы
                 SettingsSection(
                   title: l10n.basicSettings,
@@ -106,13 +106,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SettingsTile(
                       title: l10n.timePerRound,
-                      subtitle: '${AppConstants.minutesPerRound} ${l10n.minutes}',
+                      subtitle:
+                          '${AppConstants.minutesPerRound} ${l10n.minutes}',
                       leading: const Icon(Icons.timer),
                       trailing: const Text('Примерно'),
                     ),
                     SettingsTile(
                       title: l10n.maxRoundsPerDay,
-                      subtitle: '${AppConstants.maxRoundsPerDay} ${l10n.rounds}',
+                      subtitle:
+                          '${AppConstants.maxRoundsPerDay} ${l10n.rounds}',
                       leading: const Icon(Icons.warning),
                       trailing: Text(l10n.notRecommendedToExceed),
                     ),
@@ -312,53 +314,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
     AnimatedNavigation.showAnimatedDialog(
       context,
       child: AlertDialog(
-          title: Text(AppLocalizations.of(context).selectLanguage),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: LocaleProvider.availableLocales.length,
-              itemBuilder: (context, index) {
-                final locale = LocaleProvider.availableLocales[index];
-                final isSelected = localeProvider.currentLocale.languageCode == locale['code'];
-                
-                return ListTile(
-                  leading: Text(
-                    locale['flag']!,
-                    style: const TextStyle(fontSize: 24),
+        title: Text(AppLocalizations.of(context).selectLanguage),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: LocaleProvider.availableLocales.length,
+            itemBuilder: (context, index) {
+              final locale = LocaleProvider.availableLocales[index];
+              final isSelected =
+                  localeProvider.currentLocale.languageCode == locale['code'];
+
+              return ListTile(
+                leading: Text(
+                  locale['flag']!,
+                  style: const TextStyle(fontSize: 24),
+                ),
+                title: Text(
+                  locale['name']!,
+                  style: TextStyle(
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
-                  title: Text(
-                    locale['name']!,
-                    style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  subtitle: Text(locale['description']!),
-                  trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
-                  onTap: () {
-                    localeProvider.setLocale(locale['code']!);
-                    Navigator.of(context).pop();
-                  },
-                );
-              },
-            ),
+                ),
+                subtitle: Text(locale['description']!),
+                trailing: isSelected
+                    ? const Icon(Icons.check, color: Colors.green)
+                    : null,
+                onTap: () {
+                  localeProvider.setLocale(locale['code']!);
+                  Navigator.of(context).pop();
+                },
+              );
+            },
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(AppLocalizations.of(context).close),
-            ),
-          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(AppLocalizations.of(context).close),
+          ),
+        ],
+      ),
     );
   }
 
   /// Показывает диалог ежедневного напоминания
   void _showDailyReminderDialog(AppLocalizations l10n) {
     TimeOfDay selectedTime = const TimeOfDay(hour: 6, minute: 0);
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -373,7 +380,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 16),
                   ListTile(
                     leading: const Icon(Icons.access_time),
-                    title: Text('Выбранное время: ${selectedTime.format(context)}'),
+                    title: Text(
+                      'Выбранное время: ${selectedTime.format(context)}',
+                    ),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () async {
                       final TimeOfDay? picked = await showTimePicker(
@@ -419,10 +428,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Время для джапы! 🕉️',
         body: 'Начните свою духовную практику',
       );
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Ежедневное напоминание установлено на ${time.format(context)}'),
+          content: Text(
+            'Ежедневное напоминание установлено на ${time.format(context)}',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -439,7 +450,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Показывает диалог расписания
   void _showScheduleDialog(AppLocalizations l10n) {
     List<TimeOfDay> scheduledTimes = [];
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -486,8 +497,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (picked != null) {
                           setState(() {
                             scheduledTimes.add(picked);
-                            scheduledTimes.sort((a, b) => 
-                              (a.hour * 60 + a.minute).compareTo(b.hour * 60 + b.minute));
+                            scheduledTimes.sort(
+                              (a, b) => (a.hour * 60 + a.minute).compareTo(
+                                b.hour * 60 + b.minute,
+                              ),
+                            );
                           });
                         }
                       },
@@ -520,13 +534,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Устанавливает расписание джапы
-  Future<void> _setSchedule(List<TimeOfDay> times, AppLocalizations l10n) async {
+  Future<void> _setSchedule(
+    List<TimeOfDay> times,
+    AppLocalizations l10n,
+  ) async {
     try {
       // Сохраняем расписание в SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      final timesJson = times.map((time) => '${time.hour}:${time.minute}').toList();
+      final timesJson = times
+          .map((time) => '${time.hour}:${time.minute}')
+          .toList();
       await prefs.setStringList('japa_schedule', timesJson);
-      
+
       // Планируем уведомления для каждого времени
       for (int i = 0; i < times.length; i++) {
         await NotificationService.scheduleDailyReminder(
@@ -535,7 +554,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           body: 'Начните свою духовную практику (${i + 1}/${times.length})',
         );
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Расписание установлено: ${times.length} напоминаний'),
@@ -556,18 +575,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showSoundSettingsDialog(AppLocalizations l10n) {
     final audioService = AudioService();
     final settings = audioService.getSettings();
-    
+
     String selectedSound = settings['currentSoundType'] as String;
     double volume = settings['volume'] as double;
     bool enableSound = settings['soundEnabled'] as bool;
-    
+
     final availableSounds = audioService.getAvailableSounds();
     final soundOptions = <String, String>{};
-    
+
     for (final sound in availableSounds) {
       soundOptions[sound] = audioService.getSoundName(sound);
     }
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -582,7 +601,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     Text(l10n.configureSounds),
                     const SizedBox(height: 16),
-                    
+
                     // Включение/выключение звука
                     SwitchListTile(
                       title: const Text('Включить звуки'),
@@ -594,10 +613,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         });
                       },
                     ),
-                    
+
                     if (enableSound) ...[
                       const SizedBox(height: 16),
-                      
+
                       // Выбор звука
                       DropdownButtonFormField<String>(
                         initialValue: selectedSound,
@@ -619,9 +638,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           }
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Громкость
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,9 +659,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Кнопка прослушивания
                       ElevatedButton.icon(
                         onPressed: () {
@@ -665,7 +684,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    await _saveSoundSettings(selectedSound, volume, enableSound, l10n);
+                    await _saveSoundSettings(
+                      selectedSound,
+                      volume,
+                      enableSound,
+                      l10n,
+                    );
                   },
                   child: Text(l10n.configure),
                 ),
@@ -683,7 +707,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       AudioService().playTestSound(soundType);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Воспроизводится: ${AudioService().getSoundName(soundType)} (громкость: ${(volume * 100).round()}%)'),
+          content: Text(
+            'Воспроизводится: ${AudioService().getSoundName(soundType)} (громкость: ${(volume * 100).round()}%)',
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -698,13 +724,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Сохраняет настройки звука
-  Future<void> _saveSoundSettings(String soundType, double volume, bool enableSound, AppLocalizations l10n) async {
+  Future<void> _saveSoundSettings(
+    String soundType,
+    double volume,
+    bool enableSound,
+    AppLocalizations l10n,
+  ) async {
     try {
       final audioService = AudioService();
       await audioService.setSoundType(soundType);
       await audioService.setVolume(volume);
       await audioService.setSoundEnabled(enableSound);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Настройки звука сохранены'),
@@ -732,21 +763,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final isMozgachAvailable = await AIService.isMozgachAvailable();
       final availableModels = await AIService.getAvailableModels();
       final modelInfo = await AIService.getModelInfo();
-      
+
       String statusMessage;
       Color statusColor;
-      
+
       if (isServerAvailable && isMozgachAvailable) {
-        statusMessage = 'AI сервер доступен\nМодель mozgach:latest готова к работе\nДоступно моделей: ${availableModels.length}';
+        statusMessage =
+            'AI сервер доступен\nМодель mozgach:latest готова к работе\nДоступно моделей: ${availableModels.length}';
         statusColor = Colors.green;
       } else if (isServerAvailable) {
-        statusMessage = 'AI сервер доступен, но mozgach:latest не найден\nДоступные модели: ${availableModels.join(', ')}';
+        statusMessage =
+            'AI сервер доступен, но mozgach:latest не найден\nДоступные модели: ${availableModels.join(', ')}';
         statusColor = Colors.orange;
       } else {
-        statusMessage = 'AI сервер недоступен\nПроверьте подключение к localhost:11434';
+        statusMessage =
+            'AI сервер недоступен\nПроверьте подключение к localhost:11434';
         statusColor = Colors.red;
       }
-      
+
       if (mounted) {
         showDialog(
           context: context,
@@ -755,7 +789,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: Row(
                 children: [
                   Icon(
-                    isServerAvailable && isMozgachAvailable ? Icons.check_circle : Icons.error,
+                    isServerAvailable && isMozgachAvailable
+                        ? Icons.check_circle
+                        : Icons.error,
                     color: statusColor,
                   ),
                   const SizedBox(width: 8),
@@ -766,16 +802,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    statusMessage,
-                    style: TextStyle(color: statusColor),
-                  ),
+                  Text(statusMessage, style: TextStyle(color: statusColor)),
                   if (modelInfo != null) ...[
                     const SizedBox(height: 16),
-                    const Text('Информация о модели:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Информация о модели:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text('Размер: ${modelInfo['size'] ?? 'Неизвестно'}'),
                     Text('Семейство: ${modelInfo['family'] ?? 'Неизвестно'}'),
-                    Text('Параметры: ${modelInfo['parameter_size'] ?? 'Неизвестно'}'),
+                    Text(
+                      'Параметры: ${modelInfo['parameter_size'] ?? 'Неизвестно'}',
+                    ),
                   ],
                 ],
               ),
@@ -837,7 +875,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(height: 16),
                 Text('Команды для установки:'),
                 SizedBox(height: 8),
-                Text('ollama pull mozgach:latest', style: TextStyle(fontFamily: 'monospace')),
+                Text(
+                  'ollama pull mozgach:latest',
+                  style: TextStyle(fontFamily: 'monospace'),
+                ),
                 SizedBox(height: 8),
                 Text('ollama serve', style: TextStyle(fontFamily: 'monospace')),
                 SizedBox(height: 16),
@@ -865,7 +906,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     int maxTokens = 500;
     bool useLocalResponses = true;
     bool enableCache = true;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -881,7 +922,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Text(l10n.aiAssistantParameters),
                       const SizedBox(height: 16),
-                      
+
                       // Выбор модели
                       DropdownButtonFormField<String>(
                         initialValue: selectedModel,
@@ -911,14 +952,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           }
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Температура
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Температура: ${temperature.toStringAsFixed(1)}'),
+                          Text(
+                            'Температура: ${temperature.toStringAsFixed(1)}',
+                          ),
                           Slider(
                             value: temperature,
                             min: 0.0,
@@ -936,9 +979,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Максимальное количество токенов
                       TextFormField(
                         initialValue: maxTokens.toString(),
@@ -957,13 +1000,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           }
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Дополнительные настройки
                       SwitchListTile(
                         title: const Text('Использовать локальные ответы'),
-                        subtitle: const Text('Показывать предустановленные ответы когда AI недоступен'),
+                        subtitle: const Text(
+                          'Показывать предустановленные ответы когда AI недоступен',
+                        ),
                         value: useLocalResponses,
                         onChanged: (value) {
                           setState(() {
@@ -971,10 +1016,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           });
                         },
                       ),
-                      
+
                       SwitchListTile(
                         title: const Text('Кэшировать ответы'),
-                        subtitle: const Text('Сохранять ответы для быстрого доступа'),
+                        subtitle: const Text(
+                          'Сохранять ответы для быстрого доступа',
+                        ),
                         value: enableCache,
                         onChanged: (value) {
                           setState(() {
@@ -996,7 +1043,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    await _saveAISettings(selectedModel, temperature, maxTokens, useLocalResponses, enableCache, l10n);
+                    await _saveAISettings(
+                      selectedModel,
+                      temperature,
+                      maxTokens,
+                      useLocalResponses,
+                      enableCache,
+                      l10n,
+                    );
                   },
                   child: Text(l10n.configure),
                 ),
@@ -1009,7 +1063,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Сохраняет настройки AI
-  Future<void> _saveAISettings(String model, double temperature, int maxTokens, bool useLocalResponses, bool enableCache, AppLocalizations l10n) async {
+  Future<void> _saveAISettings(
+    String model,
+    double temperature,
+    int maxTokens,
+    bool useLocalResponses,
+    bool enableCache,
+    AppLocalizations l10n,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('ai_model', model);
@@ -1017,7 +1078,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await prefs.setInt('ai_max_tokens', maxTokens);
       await prefs.setBool('ai_use_local_responses', useLocalResponses);
       await prefs.setBool('ai_enable_cache', enableCache);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Настройки AI сохранены'),
@@ -1071,9 +1132,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text('${l10n.totalSessions}: ${stats['totalSessions']}'),
                   Text('${l10n.totalRounds}: ${stats['totalRounds']}'),
-                  Text('${l10n.totalTime}: ${stats['totalTime'].inHours}${l10n.hours} ${stats['totalTime'].inMinutes % 60}${l10n.minutesShort}'),
-                  Text('${l10n.averageRoundsPerSession}: ${stats['averageRoundsPerSession']}'),
-                  Text('${l10n.averageTimePerSession}: ${stats['averageTimePerSession']} ${l10n.minutes}'),
+                  Text(
+                    '${l10n.totalTime}: ${stats['totalTime'].inHours}${l10n.hours} ${stats['totalTime'].inMinutes % 60}${l10n.minutesShort}',
+                  ),
+                  Text(
+                    '${l10n.averageRoundsPerSession}: ${stats['averageRoundsPerSession']}',
+                  ),
+                  Text(
+                    '${l10n.averageTimePerSession}: ${stats['averageTimePerSession']} ${l10n.minutes}',
+                  ),
                 ],
               );
             },
@@ -1101,26 +1168,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Получаем все данные из SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final allKeys = prefs.getKeys();
-      
+
       final exportData = <String, dynamic>{};
-      
+
       for (final key in allKeys) {
         final value = prefs.get(key);
         if (value != null) {
           exportData[key] = value;
         }
       }
-      
+
       // Добавляем метаданные экспорта
       exportData['export_metadata'] = {
         'export_date': DateTime.now().toIso8601String(),
         'app_version': '1.0.0',
         'total_keys': allKeys.length,
       };
-      
+
       // Конвертируем в JSON
       final jsonString = const JsonEncoder.withIndent('  ').convert(exportData);
-      
+
       // Здесь можно добавить логику сохранения файла
       // Пока просто показываем данные в диалоге
       if (mounted) {
@@ -1140,7 +1207,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: SingleChildScrollView(
                         child: SelectableText(
                           jsonString,
-                          style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -1172,7 +1242,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
         );
       }
-      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1212,7 +1281,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(height: 8),
               Text(
                 'Это действие нельзя отменить!',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
               ),
             ],
           ),
@@ -1252,7 +1324,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Финальное подтверждение'),
-            content: const Text('Вы действительно хотите удалить ВСЕ данные? Это действие необратимо!'),
+            content: const Text(
+              'Вы действительно хотите удалить ВСЕ данные? Это действие необратимо!',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -1266,7 +1340,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 child: const Text(
                   'УДАЛИТЬ ВСЕ',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -1278,13 +1355,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Очищаем SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
-        
+
         // Отменяем все уведомления
         await NotificationService.cancelAll();
-        
+
         // Очищаем кэш AI
         AIService.clearCache();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -1292,13 +1369,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Перезагружаем приложение
           // В реальном приложении можно использовать restart_app пакет
           // Restart.restartApp();
         }
       }
-      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1324,7 +1400,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(l10n.license),
-          content: const Text('Это приложение распространяется под лицензией MIT. Исходный код доступен на GitHub.'),
+          content: const Text(
+            'Это приложение распространяется под лицензией MIT. Исходный код доступен на GitHub.',
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -1345,7 +1423,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(l10n.developers),
-          content: const Text('AI Джапа Махамантра разработана командой энтузиастов для духовного развития.'),
+          content: const Text(
+            'AI Джапа Махамантра разработана командой энтузиастов для духовного развития.',
+          ),
           actions: [
             TextButton(
               onPressed: () {

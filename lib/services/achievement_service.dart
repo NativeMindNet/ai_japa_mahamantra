@@ -23,7 +23,7 @@ class AchievementService {
     await _loadAchievements();
     await _loadProgress();
     await _loadStats();
-    
+
     // Создаем базовые достижения, если их нет
     if (_achievements.isEmpty) {
       await _createDefaultAchievements();
@@ -35,7 +35,7 @@ class AchievementService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final achievementsJson = prefs.getString(_achievementsKey);
-      
+
       if (achievementsJson != null) {
         final List<dynamic> achievementsList = json.decode(achievementsJson);
         _achievements = achievementsList
@@ -52,7 +52,7 @@ class AchievementService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final progressJson = prefs.getString(_progressKey);
-      
+
       if (progressJson != null) {
         final Map<String, dynamic> progressMap = json.decode(progressJson);
         _progress = progressMap.map(
@@ -69,7 +69,7 @@ class AchievementService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final statsJson = prefs.getString(_statsKey);
-      
+
       if (statsJson != null) {
         _stats = AchievementStats.fromJson(json.decode(statsJson));
       }
@@ -134,7 +134,7 @@ class AchievementService {
         rewards: ['badge_first_session'],
         metadata: {'category': 'beginner'},
       ),
-      
+
       const Achievement(
         id: 'dedicated_practitioner',
         title: 'Преданный практик',
@@ -148,7 +148,7 @@ class AchievementService {
         rewards: ['badge_dedicated', 'title_practitioner'],
         metadata: {'category': 'dedication'},
       ),
-      
+
       const Achievement(
         id: 'japa_master',
         title: 'Мастер джапы',
@@ -162,7 +162,7 @@ class AchievementService {
         rewards: ['badge_master', 'title_master', 'unlock_special_sounds'],
         metadata: {'category': 'mastery'},
       ),
-      
+
       // Достижения по количеству кругов
       const Achievement(
         id: 'first_round',
@@ -177,7 +177,7 @@ class AchievementService {
         rewards: ['badge_first_round'],
         metadata: {'category': 'beginner'},
       ),
-      
+
       const Achievement(
         id: 'hundred_rounds',
         title: 'Сотня кругов',
@@ -191,7 +191,7 @@ class AchievementService {
         rewards: ['badge_hundred', 'title_centurion'],
         metadata: {'category': 'milestone'},
       ),
-      
+
       const Achievement(
         id: 'thousand_rounds',
         title: 'Тысяча кругов',
@@ -205,7 +205,7 @@ class AchievementService {
         rewards: ['badge_thousand', 'title_legend', 'unlock_golden_theme'],
         metadata: {'category': 'legendary'},
       ),
-      
+
       // Достижения по времени
       const Achievement(
         id: 'one_hour',
@@ -220,7 +220,7 @@ class AchievementService {
         rewards: ['badge_one_hour'],
         metadata: {'category': 'time'},
       ),
-      
+
       const Achievement(
         id: 'ten_hours',
         title: 'Десять часов',
@@ -234,7 +234,7 @@ class AchievementService {
         rewards: ['badge_ten_hours', 'title_time_keeper'],
         metadata: {'category': 'time'},
       ),
-      
+
       const Achievement(
         id: 'hundred_hours',
         title: 'Сто часов',
@@ -245,10 +245,14 @@ class AchievementService {
         targetValue: 360000, // 100 часов в секундах
         currentValue: 0,
         isUnlocked: false,
-        rewards: ['badge_hundred_hours', 'title_time_master', 'unlock_meditation_timer'],
+        rewards: [
+          'badge_hundred_hours',
+          'title_time_master',
+          'unlock_meditation_timer',
+        ],
         metadata: {'category': 'time'},
       ),
-      
+
       // Достижения по сериям
       const Achievement(
         id: 'three_day_streak',
@@ -263,7 +267,7 @@ class AchievementService {
         rewards: ['badge_three_day'],
         metadata: {'category': 'streak'},
       ),
-      
+
       const Achievement(
         id: 'week_streak',
         title: 'Недельная серия',
@@ -277,7 +281,7 @@ class AchievementService {
         rewards: ['badge_week', 'title_consistent'],
         metadata: {'category': 'streak'},
       ),
-      
+
       const Achievement(
         id: 'month_streak',
         title: 'Месячная серия',
@@ -291,7 +295,7 @@ class AchievementService {
         rewards: ['badge_month', 'title_unstoppable', 'unlock_daily_reminder'],
         metadata: {'category': 'streak'},
       ),
-      
+
       // Специальные достижения
       const Achievement(
         id: 'early_bird',
@@ -306,7 +310,7 @@ class AchievementService {
         rewards: ['badge_early_bird', 'title_morning_practitioner'],
         metadata: {'category': 'special', 'time_requirement': 'before_6am'},
       ),
-      
+
       const Achievement(
         id: 'night_owl',
         title: 'Ночная сова',
@@ -320,7 +324,7 @@ class AchievementService {
         rewards: ['badge_night_owl', 'title_evening_practitioner'],
         metadata: {'category': 'special', 'time_requirement': 'after_10pm'},
       ),
-      
+
       const Achievement(
         id: 'perfect_session',
         title: 'Идеальная сессия',
@@ -335,20 +339,22 @@ class AchievementService {
         metadata: {'category': 'special', 'requirement': 'no_pauses'},
       ),
     ];
-    
+
     await _saveAchievements();
   }
 
   /// Обновляет прогресс достижений на основе сессии джапы
-  Future<List<Achievement>> updateProgressFromSession(JapaSession session) async {
+  Future<List<Achievement>> updateProgressFromSession(
+    JapaSession session,
+  ) async {
     final List<Achievement> newlyUnlocked = [];
-    
+
     for (final achievement in _achievements) {
       if (achievement.isUnlocked) continue;
-      
+
       int newValue = achievement.currentValue;
       bool shouldUnlock = false;
-      
+
       switch (achievement.type) {
         case AchievementType.sessionCount:
           newValue++;
@@ -357,8 +363,10 @@ class AchievementService {
           newValue += session.completedRounds;
           break;
         case AchievementType.timeSpent:
-          if(session.endTime != null) {
-            newValue += session.endTime!.difference(session.startTime).inSeconds;
+          if (session.endTime != null) {
+            newValue += session.endTime!
+                .difference(session.startTime)
+                .inSeconds;
           }
           break;
         case AchievementType.streak:
@@ -366,10 +374,12 @@ class AchievementService {
           break;
         case AchievementType.special:
           // Специальная логика для каждого достижения
-          if (achievement.id == 'early_bird' && _isEarlyMorning(session.startTime)) {
+          if (achievement.id == 'early_bird' &&
+              _isEarlyMorning(session.startTime)) {
             newValue = 1;
             shouldUnlock = true;
-          } else if (achievement.id == 'night_owl' && _isLateEvening(session.startTime)) {
+          } else if (achievement.id == 'night_owl' &&
+              _isLateEvening(session.startTime)) {
             newValue = 1;
             shouldUnlock = true;
           } else if (achievement.id == 'perfect_session' && !session.isPaused) {
@@ -378,7 +388,7 @@ class AchievementService {
           }
           break;
       }
-      
+
       // Проверяем, достигнуто ли достижение
       if (newValue >= achievement.targetValue || shouldUnlock) {
         final updatedAchievement = achievement.copyWith(
@@ -386,10 +396,11 @@ class AchievementService {
           isUnlocked: true,
           unlockedAt: DateTime.now(),
         );
-        
-        _achievements[_achievements.indexWhere((a) => a.id == achievement.id)] = updatedAchievement;
+
+        _achievements[_achievements.indexWhere((a) => a.id == achievement.id)] =
+            updatedAchievement;
         newlyUnlocked.add(updatedAchievement);
-        
+
         // Обновляем прогресс
         _progress[achievement.id] = AchievementProgress(
           achievementId: achievement.id,
@@ -400,9 +411,9 @@ class AchievementService {
         );
       } else {
         // Обновляем только прогресс
-        _achievements[_achievements.indexWhere((a) => a.id == achievement.id)] = 
+        _achievements[_achievements.indexWhere((a) => a.id == achievement.id)] =
             achievement.copyWith(currentValue: newValue);
-        
+
         _progress[achievement.id] = AchievementProgress(
           achievementId: achievement.id,
           currentValue: newValue,
@@ -411,11 +422,11 @@ class AchievementService {
         );
       }
     }
-    
+
     await _saveAchievements();
     await _saveProgress();
     await _updateStats();
-    
+
     return newlyUnlocked;
   }
 
@@ -431,31 +442,39 @@ class AchievementService {
 
   /// Обновляет статистику достижений
   Future<void> _updateStats() async {
-    final unlockedAchievements = _achievements.where((a) => a.isUnlocked).toList();
-    
+    final unlockedAchievements = _achievements
+        .where((a) => a.isUnlocked)
+        .toList();
+
     _stats = AchievementStats(
       totalAchievements: _achievements.length,
       unlockedAchievements: unlockedAchievements.length,
-      commonCount: unlockedAchievements.where((a) => a.rarity == AchievementRarity.common).length,
-      rareCount: unlockedAchievements.where((a) => a.rarity == AchievementRarity.rare).length,
-      epicCount: unlockedAchievements.where((a) => a.rarity == AchievementRarity.epic).length,
-      legendaryCount: unlockedAchievements.where((a) => a.rarity == AchievementRarity.legendary).length,
-      completionPercentage: _achievements.isNotEmpty 
-          ? (unlockedAchievements.length / _achievements.length) * 100 
+      commonCount: unlockedAchievements
+          .where((a) => a.rarity == AchievementRarity.common)
+          .length,
+      rareCount: unlockedAchievements
+          .where((a) => a.rarity == AchievementRarity.rare)
+          .length,
+      epicCount: unlockedAchievements
+          .where((a) => a.rarity == AchievementRarity.epic)
+          .length,
+      legendaryCount: unlockedAchievements
+          .where((a) => a.rarity == AchievementRarity.legendary)
+          .length,
+      completionPercentage: _achievements.isNotEmpty
+          ? (unlockedAchievements.length / _achievements.length) * 100
           : 0.0,
-      recentUnlocks: unlockedAchievements
-          .where((a) => a.unlockedAt != null)
-          .toList()
-          ..sort((a, b) => b.unlockedAt!.compareTo(a.unlockedAt!))
-          .take(5)
-          .map((a) => a.id)
-          .toList(),
+      recentUnlocks:
+          unlockedAchievements.where((a) => a.unlockedAt != null).toList()
+            ..sort(
+              (a, b) => b.unlockedAt!.compareTo(a.unlockedAt!),
+            ).take(5).map((a) => a.id).toList(),
       typeCounts: {
         for (final type in AchievementType.values)
           type: unlockedAchievements.where((a) => a.type == type).length,
       },
     );
-    
+
     await _saveStats();
   }
 
@@ -463,11 +482,11 @@ class AchievementService {
   List<Achievement> get achievements => List.unmodifiable(_achievements);
 
   /// Получает разблокированные достижения
-  List<Achievement> get unlockedAchievements => 
+  List<Achievement> get unlockedAchievements =>
       _achievements.where((a) => a.isUnlocked).toList();
 
   /// Получает заблокированные достижения
-  List<Achievement> get lockedAchievements => 
+  List<Achievement> get lockedAchievements =>
       _achievements.where((a) => !a.isUnlocked).toList();
 
   /// Получает достижения по типу
@@ -487,24 +506,24 @@ class AchievementService {
     }
   }
 
-
   /// Получает статистику достижений
   AchievementStats? get stats => _stats;
 
   /// Получает прогресс достижения
-  AchievementProgress? getProgress(String achievementId) => _progress[achievementId];
+  AchievementProgress? getProgress(String achievementId) =>
+      _progress[achievementId];
 
   /// Сбрасывает все достижения (для тестирования)
   Future<void> resetAchievements() async {
     _achievements.clear();
     _progress.clear();
     _stats = null;
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_achievementsKey);
     await prefs.remove(_progressKey);
     await prefs.remove(_statsKey);
-    
+
     await _createDefaultAchievements();
   }
 }

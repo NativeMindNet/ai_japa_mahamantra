@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
+
 import 'providers/japa_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/japa_screen.dart';
@@ -9,34 +12,22 @@ import 'constants/app_constants.dart';
 import 'services/notification_service.dart';
 import 'services/background_service.dart';
 import 'services/audio_service.dart';
-import 'l10n/app_localizations_delegate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Инициализируем уведомления
+
+  // Инициализируем временные зоны
+  tz_data.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Europe/Moscow'));
+
+  // Инициализируем сервисы
   await NotificationService.initialize();
-  
-  // Инициализируем аудио сервис
   await AudioService().initialize();
-  
-  // Инициализируем фоновые задачи
-  await Workmanager().initialize(callbackDispatcher);
-  
-  // Регистрируем периодическую задачу для проверки времени джапы
-  await Workmanager().registerPeriodicTask(
-    'japa_reminder',
-    'japa_reminder_task',
-    frequency: const Duration(hours: 1),
-    constraints: Constraints(
-      networkType: NetworkType.connected,
-      requiresBatteryNotLow: false,
-      requiresCharging: false,
-      requiresDeviceIdle: false,
-      requiresStorageNotLow: false,
-    ),
-  );
-  
+
+  // Инициализируем и регистрируем фоновые задачи
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  BackgroundService.registerJapaReminder();
+
   runApp(const AIJapaMahamantraApp());
 }
 
@@ -62,19 +53,19 @@ class AIJapaMahamantraApp extends StatelessWidget {
               Locale('harkonnen'),
             ],
             localizationsDelegates: const [
-              AppLocalizationsDelegate(),
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
             localeResolutionCallback: (locale, supportedLocales) {
-              // Если локаль не поддерживается, возвращаем русский
-              if (locale == null || !supportedLocales.contains(locale)) {
-                return const Locale('ru');
+              for (var supportedLocale in supportedLocales) {
+                if (supportedLocale.languageCode == locale?.languageCode) {
+                  return supportedLocale;
+                }
               }
-              return locale;
+              return const Locale('ru');
             },
-            theme: _buildTheme(localeProvider),
+            theme: _buildTheme(context, localeProvider),
             home: const JapaScreen(),
             debugShowCheckedModeBanner: false,
           );
@@ -82,14 +73,12 @@ class AIJapaMahamantraApp extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Строит тему в зависимости от выбранной темы
-  ThemeData _buildTheme(LocaleProvider localeProvider) {
+  ThemeData _buildTheme(BuildContext context, LocaleProvider localeProvider) {
     final colorScheme = localeProvider.getThemeColorScheme();
-    
+
     return ThemeData(
-      primarySwatch: Colors.purple,
-      primaryColor: colorScheme.primary,
       colorScheme: colorScheme,
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.primary,
@@ -115,7 +104,7 @@ class AIJapaMahamantraApp extends StatelessWidget {
           ),
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
@@ -128,10 +117,7 @@ class AIJapaMahamantraApp extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-          borderSide: BorderSide(
-            color: colorScheme.primary,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
       ),
       useMaterial3: true,

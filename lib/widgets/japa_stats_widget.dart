@@ -32,9 +32,9 @@ class JapaStatsWidget extends StatelessWidget {
             title: 'Прогресс сессии',
             subtitle: 'Отслеживайте свой духовный прогресс',
           ),
-          
+
           const SizedBox(height: AppConstants.defaultPadding),
-          
+
           // Основная статистика
           Row(
             children: [
@@ -48,9 +48,9 @@ class JapaStatsWidget extends StatelessWidget {
                   color: const Color(AppConstants.primaryColor),
                 ),
               ),
-              
+
               const SizedBox(width: AppConstants.smallPadding),
-              
+
               // Прогресс бусин
               Expanded(
                 child: _buildProgressCard(
@@ -63,9 +63,9 @@ class JapaStatsWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: AppConstants.smallPadding),
-          
+
           // Время сессии
           Container(
             width: double.infinity,
@@ -94,9 +94,9 @@ class JapaStatsWidget extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: AppConstants.smallPadding),
-          
+
           // Прогресс-бар общего прогресса
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,10 +119,7 @@ class JapaStatsWidget extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '${_calculateOverallProgressPercentage()}%',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),
@@ -139,12 +136,9 @@ class JapaStatsWidget extends StatelessWidget {
     required Color color,
   }) {
     final progress = total > 0 ? current / total : 0.0;
-    
+
     return ModernUIComponents.gradientCard(
-      gradientColors: [
-        color.withOpacity(0.1),
-        color.withOpacity(0.05),
-      ],
+      gradientColors: [color.withOpacity(0.1), color.withOpacity(0.05)],
       child: Column(
         children: [
           Icon(icon, color: color, size: 24),
@@ -183,7 +177,7 @@ class JapaStatsWidget extends StatelessWidget {
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
     final seconds = duration.inSeconds % 60;
-    
+
     if (hours > 0) {
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
     } else {
@@ -194,10 +188,10 @@ class JapaStatsWidget extends StatelessWidget {
   /// Вычисляет общий прогресс сессии
   double _calculateOverallProgress() {
     if (totalRounds == 0) return 0.0;
-    
+
     final roundProgress = currentRound / totalRounds;
     final beadProgress = currentBead / totalBeads;
-    
+
     // Общий прогресс учитывает и круги, и бусины
     return (roundProgress + beadProgress) / 2;
   }

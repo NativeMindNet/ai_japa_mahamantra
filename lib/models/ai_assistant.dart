@@ -20,7 +20,7 @@ class AIConversation {
     this.metadata,
   });
 
-  factory AIConversation.fromJson(Map<String, dynamic> json) => 
+  factory AIConversation.fromJson(Map<String, dynamic> json) =>
       _$AIConversationFromJson(json);
 
   Map<String, dynamic> toJson() => _$AIConversationToJson(this);
@@ -60,7 +60,7 @@ class AIQuestion {
     this.answerId,
   });
 
-  factory AIQuestion.fromJson(Map<String, dynamic> json) => 
+  factory AIQuestion.fromJson(Map<String, dynamic> json) =>
       _$AIQuestionFromJson(json);
 
   Map<String, dynamic> toJson() => _$AIQuestionToJson(this);
@@ -102,7 +102,7 @@ class AIAnswer {
     this.metadata,
   });
 
-  factory AIAnswer.fromJson(Map<String, dynamic> json) => 
+  factory AIAnswer.fromJson(Map<String, dynamic> json) =>
       _$AIAnswerFromJson(json);
 
   Map<String, dynamic> toJson() => _$AIAnswerToJson(this);
@@ -146,7 +146,7 @@ class AISession {
     this.context,
   });
 
-  factory AISession.fromJson(Map<String, dynamic> json) => 
+  factory AISession.fromJson(Map<String, dynamic> json) =>
       _$AISessionFromJson(json);
 
   Map<String, dynamic> toJson() => _$AISessionToJson(this);
@@ -190,7 +190,7 @@ class AIUsageStats {
     required this.lastUpdated,
   });
 
-  factory AIUsageStats.fromJson(Map<String, dynamic> json) => 
+  factory AIUsageStats.fromJson(Map<String, dynamic> json) =>
       _$AIUsageStatsFromJson(json);
 
   Map<String, dynamic> toJson() => _$AIUsageStatsToJson(this);

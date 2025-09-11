@@ -37,7 +37,7 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  
+
   bool _isInitialized = false;
   bool _isPlaying = false;
   bool _showOverlay = true;
@@ -55,23 +55,26 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
       'assets/animations/_nnado_a_chyotki_nnada_ochki_nado_yapfiles.ru.mp4',
     );
 
-    _controller.initialize().then((_) {
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
+    _controller
+        .initialize()
+        .then((_) {
+          if (mounted) {
+            setState(() {
+              _isInitialized = true;
+            });
+
+            if (widget.autoPlay) {
+              _playVideo();
+            }
+          }
+        })
+        .catchError((Object error) {
+          if (mounted) {
+            setState(() {
+              _hasError = true;
+            });
+          }
         });
-        
-        if (widget.autoPlay) {
-          _playVideo();
-        }
-      }
-    }).catchError((Object error) {
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-        });
-      }
-    });
 
     _controller.addListener(() {
       if (_controller.value.position >= _controller.value.duration) {
@@ -93,21 +96,13 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.elasticOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
+    );
 
     _fadeController.forward();
     _scaleController.forward();
@@ -207,8 +202,7 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
                 ),
 
                 // Оверлей с контролами
-                if (_showOverlay || widget.showControls)
-                  _buildVideoOverlay(),
+                if (_showOverlay || widget.showControls) _buildVideoOverlay(),
 
                 // Заголовок и подзаголовок
                 if (widget.title != null || widget.subtitle != null)
@@ -345,10 +339,7 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
             SizedBox(height: 16),
             Text(
               'Загрузка видео с Чудным...',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -369,11 +360,7 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Colors.red[600],
-            ),
+            Icon(Icons.error_outline, size: 48, color: Colors.red[600]),
             const SizedBox(height: 16),
             Text(
               'Ошибка загрузки видео',
@@ -386,10 +373,7 @@ class _ChudnyVideoWidgetState extends State<ChudnyVideoWidget>
             const SizedBox(height: 8),
             Text(
               'Проверьте наличие файла в ассетах',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.red[500],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.red[500]),
             ),
           ],
         ),
@@ -403,11 +387,7 @@ class ChudnyMotivationWidget extends StatelessWidget {
   final VoidCallback? onStartJapa;
   final VoidCallback? onSkip;
 
-  const ChudnyMotivationWidget({
-    super.key,
-    this.onStartJapa,
-    this.onSkip,
-  });
+  const ChudnyMotivationWidget({super.key, this.onStartJapa, this.onSkip});
 
   @override
   Widget build(BuildContext context) {
@@ -424,9 +404,9 @@ class ChudnyMotivationWidget extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          
+
           const SizedBox(height: AppConstants.defaultPadding),
-          
+
           // Видео
           ChudnyVideoWidget(
             height: 250,
@@ -436,9 +416,9 @@ class ChudnyMotivationWidget extends StatelessWidget {
               // Показываем кнопки после окончания видео
             },
           ),
-          
+
           const SizedBox(height: AppConstants.defaultPadding),
-          
+
           // Кнопки действий
           Row(
             children: [

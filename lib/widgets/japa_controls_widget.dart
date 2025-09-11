@@ -47,12 +47,12 @@ class JapaControlsWidget extends StatelessWidget {
               _buildControlButton(
                 icon: isSessionActive ? Icons.pause : Icons.play_arrow,
                 label: isSessionActive ? 'Пауза' : 'Старт',
-                color: isSessionActive 
+                color: isSessionActive
                     ? const Color(AppConstants.errorColor)
                     : const Color(AppConstants.successColor),
                 onPressed: isSessionActive ? onPauseSession : onStartSession,
               ),
-              
+
               // Кнопка завершения круга
               _buildControlButton(
                 icon: Icons.refresh,
@@ -60,7 +60,7 @@ class JapaControlsWidget extends StatelessWidget {
                 color: const Color(AppConstants.accentColor),
                 onPressed: isSessionActive ? onCompleteRound : null,
               ),
-              
+
               // Кнопка завершения сессии
               _buildControlButton(
                 icon: Icons.stop,
@@ -70,9 +70,9 @@ class JapaControlsWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: AppConstants.smallPadding),
-          
+
           // Кнопка возобновления (если сессия на паузе)
           if (isSessionActive)
             ModernUIComponents.animatedButton(
@@ -81,9 +81,9 @@ class JapaControlsWidget extends StatelessWidget {
               onPressed: onResumeSession,
               backgroundColor: const Color(AppConstants.successColor),
             ),
-          
+
           const SizedBox(height: AppConstants.smallPadding),
-          
+
           // Информация о сессии
           Container(
             padding: const EdgeInsets.all(AppConstants.smallPadding),
@@ -151,7 +151,7 @@ class JapaControlsWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: onPressed != null 
+            color: onPressed != null
                 ? const Color(AppConstants.primaryColor)
                 : Colors.grey,
           ),
@@ -176,19 +176,9 @@ class _buildInfoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: const Color(AppConstants.primaryColor),
-          size: 20,
-        ),
+        Icon(icon, color: const Color(AppConstants.primaryColor), size: 20),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
         const SizedBox(height: 2),
         Text(
           value,

@@ -68,9 +68,11 @@ class JapaSession {
       completedRounds: json['completedRounds'] ?? 0,
       currentBead: json['currentBead'] ?? 0,
       isActive: json['isActive'] ?? true,
-      rounds: (json['rounds'] as List?)
-          ?.map((r) => JapaRound.fromJson(r))
-          .toList() ?? [],
+      rounds:
+          (json['rounds'] as List?)
+              ?.map((r) => JapaRound.fromJson(r))
+              .toList() ??
+          [],
       notes: json['notes'],
     );
   }

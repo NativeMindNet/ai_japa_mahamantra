@@ -3,7 +3,6 @@ import '../constants/app_constants.dart';
 
 /// Современные UI компоненты в стиле Material Design 3
 class ModernUIComponents {
-  
   /// Создает современную карточку с градиентом
   static Widget gradientCard({
     required BuildContext context,
@@ -18,12 +17,15 @@ class ModernUIComponents {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: gradientColors ?? [
-            Theme.of(context).colorScheme.surface,
-            Theme.of(context).colorScheme.surface.withOpacity(0.8),
-          ],
+          colors:
+              gradientColors ??
+              [
+                Theme.of(context).colorScheme.surface,
+                Theme.of(context).colorScheme.surface.withOpacity(0.8),
+              ],
         ),
-        borderRadius: borderRadius ?? BorderRadius.circular(AppConstants.borderRadius),
+        borderRadius:
+            borderRadius ?? BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -38,7 +40,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современную кнопку с анимацией
   static Widget animatedButton({
     required BuildContext context,
@@ -56,7 +58,7 @@ class ModernUIComponents {
       height: height ?? 56,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: backgroundColor != null 
+          colors: backgroundColor != null
               ? [backgroundColor, backgroundColor.withOpacity(0.8)]
               : [
                   Theme.of(context).colorScheme.primary,
@@ -66,7 +68,8 @@ class ModernUIComponents {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: (backgroundColor ?? Theme.of(context).colorScheme.primary).withOpacity(0.3),
+            color: (backgroundColor ?? Theme.of(context).colorScheme.primary)
+                .withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -91,11 +94,7 @@ class ModernUIComponents {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (icon != null) ...[
-                        Icon(
-                          icon,
-                          color: textColor ?? Colors.white,
-                          size: 20,
-                        ),
+                        Icon(icon, color: textColor ?? Colors.white, size: 20),
                         const SizedBox(width: 8),
                       ],
                       Text(
@@ -113,7 +112,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современный индикатор прогресса
   static Widget modernProgressIndicator({
     required BuildContext context,
@@ -129,16 +128,18 @@ class ModernUIComponents {
         if (label != null) ...[
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
         ],
         Container(
           height: height ?? 8,
           decoration: BoxDecoration(
-            color: backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+            color:
+                backgroundColor ??
+                Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(4),
           ),
           child: ClipRRect(
@@ -155,7 +156,7 @@ class ModernUIComponents {
       ],
     );
   }
-  
+
   /// Создает современный чип
   static Widget modernChip({
     required BuildContext context,
@@ -170,10 +171,7 @@ class ModernUIComponents {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? (backgroundColor ?? Theme.of(context).colorScheme.primary)
@@ -214,7 +212,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современный список
   static Widget modernListTile({
     required BuildContext context,
@@ -245,7 +243,8 @@ class ModernUIComponents {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
           child: Padding(
-            padding: padding ?? const EdgeInsets.all(AppConstants.defaultPadding),
+            padding:
+                padding ?? const EdgeInsets.all(AppConstants.defaultPadding),
             child: Row(
               children: [
                 if (leadingIcon != null) ...[
@@ -269,26 +268,25 @@ class ModernUIComponents {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ],
                   ),
                 ),
-                if (trailing != null) ...[
-                  const SizedBox(width: 16),
-                  trailing,
-                ],
+                if (trailing != null) ...[const SizedBox(width: 16), trailing],
               ],
             ),
           ),
@@ -296,7 +294,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современный переключатель
   static Widget modernSwitch({
     required BuildContext context,
@@ -352,7 +350,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современный слайдер
   static Widget modernSlider({
     required BuildContext context,
@@ -383,9 +381,9 @@ class ModernUIComponents {
           if (label != null) ...[
             Text(
               label,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
           ],
@@ -405,13 +403,15 @@ class ModernUIComponents {
             max: max,
             divisions: divisions,
             activeColor: Theme.of(context).colorScheme.primary,
-            inactiveColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            inactiveColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
           ),
         ],
       ),
     );
   }
-  
+
   /// Создает современный индикатор загрузки
   static Widget modernLoadingIndicator({
     required BuildContext context,
@@ -445,7 +445,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современный разделитель
   static Widget modernDivider({
     required BuildContext context,
@@ -462,7 +462,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современный заголовок секции
   static Widget modernSectionHeader({
     required BuildContext context,
@@ -483,9 +483,9 @@ class ModernUIComponents {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
@@ -504,7 +504,7 @@ class ModernUIComponents {
       ),
     );
   }
-  
+
   /// Создает современный бейдж
   static Widget modernBadge({
     required BuildContext context,
@@ -535,16 +535,16 @@ class ModernUIComponents {
 extension BuildContextExtension on BuildContext {
   /// Получает цветовую схему
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
-  
+
   /// Получает текстовую тему
   TextTheme get textTheme => Theme.of(this).textTheme;
-  
+
   /// Получает размеры экрана
   Size get screenSize => MediaQuery.of(this).size;
-  
+
   /// Проверяет, является ли экран маленьким
   bool get isSmallScreen => screenSize.width < 600;
-  
+
   /// Проверяет, является ли экран большим
   bool get isLargeScreen => screenSize.width > 1200;
 }

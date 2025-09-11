@@ -6,10 +6,10 @@ import 'package:dio/dio.dart';
 class AIService {
   static const String _baseUrl = 'http://localhost:11434';
   static const String _model = 'mozgach:latest';
-  
+
   // Кэш для ответов
   static final Map<String, String> _responseCache = {};
-  
+
   // Локальные ответы для офлайн режима
   static final Map<String, String> _localResponses = {
     'japa_how_to': '''
@@ -24,7 +24,7 @@ class AIService {
 
 Помните: качество важнее количества. Лучше прочитать 1 круг с концентрацией, чем 16 без внимания.
 ''',
-    
+
     'mantra_meaning': '''
 Махамантра "Харе Кришна Харе Рама":
 
@@ -34,7 +34,7 @@ class AIService {
 
 Эта мантра очищает сердце от материальных желаний и пробуждает любовь к Богу. Она является звуковым воплощением трансцендентного звука и способна даровать освобождение.
 ''',
-    
+
     'bhakti_development': '''
 Развитие бхакти (преданности):
 
@@ -47,7 +47,7 @@ class AIService {
 
 Бхакти развивается постепенно, через регулярную практику и милость духовного учителя.
 ''',
-    
+
     'karma_liberation': '''
 Карма и освобождение:
 
@@ -60,7 +60,7 @@ class AIService {
 
 Через бхакти можно выйти за пределы кармы и достичь духовного мира, где нет страданий и смерти.
 ''',
-    
+
     'krishna_meditation': '''
 Медитация на Кришну:
 
@@ -72,7 +72,7 @@ class AIService {
 
 Медитация должна быть регулярной и искренней. Кришна находится в сердце каждого живого существа.
 ''',
-    
+
     'maya_understanding': '''
 Майя - иллюзорная энергия:
 
@@ -89,7 +89,7 @@ class AIService {
 
 Майя сильна, но преданность к Кришне сильнее.
 ''',
-    
+
     'self_realization': '''
 Самоосознание (атма-джняна):
 
@@ -108,7 +108,7 @@ class AIService {
 
 Самоосознание приходит через бхакти, а не через материальные усилия.
 ''',
-    
+
     'guru_parampara': '''
 Гуру-парампара - цепь духовных учителей:
 
@@ -128,7 +128,7 @@ class AIService {
 - Общаться с преданными
 - Следовать принципам бхакти
 ''',
-    
+
     'bhagavad_gita': '''
 Бхагавад-гита - песнь Бога:
 
@@ -146,7 +146,7 @@ class AIService {
 
 Изучайте Гиту с преданным настроением, и Кришна откроет вам её тайны.
 ''',
-    
+
     'prema_love': '''
 Према - чистая любовь к Богу:
 
@@ -170,23 +170,26 @@ class AIService {
 Према - это дар Кришны, который нельзя заслужить, но можно получить через преданное служение.
 ''',
   };
-  
+
   /// Отправляет вопрос к AI модели
-  static Future<String?> askQuestion(String question, {String category = 'spiritual'}) async {
+  static Future<String?> askQuestion(
+    String question, {
+    String category = 'spiritual',
+  }) async {
     final dio = Dio();
     try {
       // Проверяем кэш
       if (_responseCache.containsKey(question)) {
         return _responseCache[question];
       }
-      
+
       // Сначала пытаемся использовать локальные ответы
       final localAnswer = _getLocalAnswer(question, category);
       if (localAnswer != null) {
         _responseCache[question] = localAnswer;
         return localAnswer;
       }
-      
+
       // Проверяем доступность AI сервера
       if (await isServerAvailable()) {
         final response = await dio.post(
@@ -195,19 +198,18 @@ class AIService {
             'model': _model,
             'prompt': _buildPrompt(question, category),
             'stream': false,
-            'options': {
-              'temperature': 0.7,
-              'top_p': 0.9,
-              'max_tokens': 500,
-            }
+            'options': {'temperature': 0.7, 'top_p': 0.9, 'max_tokens': 500},
           },
-          options: Options(sendTimeout: const Duration(seconds: 30), receiveTimeout: const Duration(seconds: 30)),
+          options: Options(
+            sendTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+          ),
         );
-        
+
         if (response.statusCode == 200) {
           final data = response.data as Map<String, dynamic>;
           final answer = data['response'] as String?;
-          
+
           if (answer != null && answer.isNotEmpty) {
             // Кэшируем ответ
             _responseCache[question] = answer;
@@ -216,33 +218,40 @@ class AIService {
           }
         }
       }
-      
+
       // Если AI недоступен, используем локальные ответы
       return _getFallbackAnswer(question, category);
-      
     } catch (e) {
       return _getFallbackAnswer(question, category);
     }
   }
-  
+
   /// Получает локальный ответ на вопрос
   static String? _getLocalAnswer(String question, String category) {
     final lowerQuestion = question.toLowerCase();
-    
+
     // Ищем ключевые слова в вопросе
-    if (lowerQuestion.contains('как') && lowerQuestion.contains('читать') && lowerQuestion.contains('джапу')) {
+    if (lowerQuestion.contains('как') &&
+        lowerQuestion.contains('читать') &&
+        lowerQuestion.contains('джапу')) {
       return _localResponses['japa_how_to'];
     }
-    if (lowerQuestion.contains('что') && lowerQuestion.contains('означает') && lowerQuestion.contains('мантра')) {
+    if (lowerQuestion.contains('что') &&
+        lowerQuestion.contains('означает') &&
+        lowerQuestion.contains('мантра')) {
       return _localResponses['mantra_meaning'];
     }
-    if (lowerQuestion.contains('как') && lowerQuestion.contains('развить') && lowerQuestion.contains('бхакти')) {
+    if (lowerQuestion.contains('как') &&
+        lowerQuestion.contains('развить') &&
+        lowerQuestion.contains('бхакти')) {
       return _localResponses['bhakti_development'];
     }
-    if (lowerQuestion.contains('карма') && lowerQuestion.contains('освобождение')) {
+    if (lowerQuestion.contains('карма') &&
+        lowerQuestion.contains('освобождение')) {
       return _localResponses['karma_liberation'];
     }
-    if (lowerQuestion.contains('медитировать') && lowerQuestion.contains('кришна')) {
+    if (lowerQuestion.contains('медитировать') &&
+        lowerQuestion.contains('кришна')) {
       return _localResponses['krishna_meditation'];
     }
     if (lowerQuestion.contains('майя')) {
@@ -260,10 +269,10 @@ class AIService {
     if (lowerQuestion.contains('према') || lowerQuestion.contains('любовь')) {
       return _localResponses['prema_love'];
     }
-    
+
     return null;
   }
-  
+
   /// Получает запасной ответ
   static String _getFallbackAnswer(String question, String category) {
     return '''
@@ -281,7 +290,7 @@ class AIService {
 Харе Кришна! 🕉️
 ''';
   }
-  
+
   /// Строит промпт для AI с учетом контекста
   static String _buildPrompt(String question, String category) {
     return '''
@@ -305,16 +314,22 @@ class AIService {
 
 Ответ:''';
   }
-  
+
   /// Сохраняет ответ в локальное хранилище
-  static Future<void> _saveToLocalStorage(String question, String answer) async {
+  static Future<void> _saveToLocalStorage(
+    String question,
+    String answer,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = 'ai_response_${question.hashCode}';
       await prefs.setString(key, answer);
-      
+
       // Ограничиваем количество сохраненных ответов
-      final keys = prefs.getKeys().where((k) => k.startsWith('ai_response_')).toList();
+      final keys = prefs
+          .getKeys()
+          .where((k) => k.startsWith('ai_response_'))
+          .toList();
       if (keys.length > 100) {
         // Удаляем старые ответы
         for (int i = 0; i < keys.length - 100; i++) {
@@ -325,51 +340,57 @@ class AIService {
       // silent
     }
   }
-  
+
   /// Получает подсказки для духовных вопросов
   static List<String> getSpiritualQuestionHints() {
     return AppConstants.spiritualQuestionHints;
   }
-  
+
   /// Проверяет доступность AI сервера
   static Future<bool> isServerAvailable() async {
     final dio = Dio();
     try {
       final response = await dio.get(
         '$_baseUrl/api/tags',
-        options: Options(sendTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 5)),
+        options: Options(
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
       );
-      
+
       return response.statusCode == 200;
     } catch (e) {
       return false;
     }
   }
-  
+
   /// Получает информацию о доступных моделях
   static Future<List<String>> getAvailableModels() async {
     final dio = Dio();
     try {
       final response = await dio.get(
         '$_baseUrl/api/tags',
-        options: Options(sendTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10)),
+        options: Options(
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
       );
-      
+
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         final models = data['models'] as List?;
-        
+
         if (models != null) {
           return models.map((m) => m['name'] as String).toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       return [];
     }
   }
-  
+
   /// Проверяет, доступна ли модель mozgach:latest
   static Future<bool> isMozgachAvailable() async {
     try {
@@ -379,7 +400,7 @@ class AIService {
       return false;
     }
   }
-  
+
   /// Получает информацию о модели
   static Future<Map<String, dynamic>?> getModelInfo() async {
     final dio = Dio();
@@ -387,29 +408,32 @@ class AIService {
       final response = await dio.post(
         '$_baseUrl/api/show',
         data: {'name': _model},
-        options: Options(sendTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10)),
+        options: Options(
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
       );
-      
+
       if (response.statusCode == 200) {
         return response.data as Map<String, dynamic>;
       }
-      
+
       return null;
     } catch (e) {
       return null;
     }
   }
-  
+
   /// Очищает кэш ответов
   static void clearCache() {
     _responseCache.clear();
   }
-  
+
   /// Получает размер кэша
   static int getCacheSize() {
     return _responseCache.length;
   }
-  
+
   /// Получает статистику использования AI
   static Future<Map<String, dynamic>> getUsageStats() async {
     try {
@@ -417,19 +441,21 @@ class AIService {
       final totalQuestions = prefs.getInt('ai_total_questions') ?? 0;
       final successfulResponses = prefs.getInt('ai_successful_responses') ?? 0;
       final localResponses = prefs.getInt('ai_local_responses') ?? 0;
-      
+
       return {
         'total_questions': totalQuestions,
         'successful_responses': successfulResponses,
         'local_responses': localResponses,
-        'success_rate': totalQuestions > 0 ? (successfulResponses / totalQuestions * 100).round() : 0,
+        'success_rate': totalQuestions > 0
+            ? (successfulResponses / totalQuestions * 100).round()
+            : 0,
         'cache_size': _responseCache.length,
       };
     } catch (e) {
       return {};
     }
   }
-  
+
   /// Обновляет статистику использования
   static Future<void> updateUsageStats({
     required bool isSuccessful,
@@ -437,15 +463,16 @@ class AIService {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       final totalQuestions = (prefs.getInt('ai_total_questions') ?? 0) + 1;
       await prefs.setInt('ai_total_questions', totalQuestions);
-      
+
       if (isSuccessful) {
-        final successfulResponses = (prefs.getInt('ai_successful_responses') ?? 0) + 1;
+        final successfulResponses =
+            (prefs.getInt('ai_successful_responses') ?? 0) + 1;
         await prefs.setInt('ai_successful_responses', successfulResponses);
       }
-      
+
       if (isLocal) {
         final localResponses = (prefs.getInt('ai_local_responses') ?? 0) + 1;
         await prefs.setInt('ai_local_responses', localResponses);

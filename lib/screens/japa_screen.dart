@@ -25,25 +25,24 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
+
     _malaAnimationController = AnimationController(
       duration: AppConstants.mediumAnimation,
       vsync: this,
     );
-    
+
     _mantraAnimationController = AnimationController(
       duration: AppConstants.longAnimation,
       vsync: this,
     );
-    
-    _mantraFadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _mantraAnimationController,
-      curve: Curves.easeInOut,
-    ));
-    
+
+    _mantraFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _mantraAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
     // Запускаем анимации
     _malaAnimationController.forward();
     _mantraAnimationController.forward();
@@ -60,7 +59,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -82,7 +81,9 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             onPressed: () {
               localeProvider.toggleTheme();
             },
-            tooltip: localeProvider.isDarkTheme ? 'Светлая тема' : 'Темная тема',
+            tooltip: localeProvider.isDarkTheme
+                ? 'Светлая тема'
+                : 'Темная тема',
           ),
           IconButton(
             icon: const Icon(Icons.smart_toy),
@@ -125,7 +126,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                   flex: 2,
                   child: _buildMantraSection(l10n, localeProvider),
                 ),
-                
+
                 // Мала
                 Expanded(
                   flex: 3,
@@ -137,7 +138,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                     },
                   ),
                 ),
-                
+
                 // Управление
                 Expanded(
                   flex: 2,
@@ -156,7 +157,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                     },
                   ),
                 ),
-                
+
                 // Статистика
                 Expanded(
                   flex: 1,
@@ -177,7 +178,10 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   }
 
   /// Строит секцию с мантрой
-  Widget _buildMantraSection(AppLocalizations l10n, LocaleProvider localeProvider) {
+  Widget _buildMantraSection(
+    AppLocalizations l10n,
+    LocaleProvider localeProvider,
+  ) {
     return Container(
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
       child: Column(
@@ -193,9 +197,9 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                 textAlign: TextAlign.center,
               ),
             ),
-          
+
           const SizedBox(height: AppConstants.smallPadding),
-          
+
           // Основная мантра
           FadeTransition(
             opacity: _mantraFadeAnimation,
@@ -213,7 +217,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   /// Получает стиль для мантры в зависимости от языка
   TextStyle _getMantraStyle(LocaleProvider localeProvider) {
     final baseStyle = localeProvider.getLanguageStyle();
-    
+
     if (localeProvider.isHarkonnen) {
       return baseStyle.copyWith(
         fontSize: 18,
@@ -313,7 +317,10 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
               onStartJapa: () {
                 Navigator.of(context).pop();
                 // Автоматически начинаем джапу после мотивации
-                Provider.of<JapaProvider>(context, listen: false).startSession();
+                Provider.of<JapaProvider>(
+                  context,
+                  listen: false,
+                ).startSession();
                 _malaAnimationController.forward();
               },
               onSkip: () {
@@ -336,10 +343,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
           title: const Text(
             'Сессия завершена! 🎉',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
           ),
           content: Consumer<JapaProvider>(
             builder: (context, japaProvider, child) {

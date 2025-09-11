@@ -15,7 +15,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   final AchievementService _achievementService = AchievementService();
-  
+
   List<Achievement> _achievements = [];
   AchievementStats? _stats;
   bool _isLoading = true;
@@ -99,8 +99,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 
   Widget _buildUnlockedAchievementsTab() {
-    final unlockedAchievements = _achievements.where((a) => a.isUnlocked).toList();
-    
+    final unlockedAchievements = _achievements
+        .where((a) => a.isUnlocked)
+        .toList();
+
     if (unlockedAchievements.isEmpty) {
       return Center(
         child: Column(
@@ -145,8 +147,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 
   Widget _buildLockedAchievementsTab() {
-    final lockedAchievements = _achievements.where((a) => !a.isUnlocked).toList();
-    
+    final lockedAchievements = _achievements
+        .where((a) => !a.isUnlocked)
+        .toList();
+
     if (lockedAchievements.isEmpty) {
       return Center(
         child: Column(
@@ -239,14 +243,15 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 const SizedBox(height: 16),
                 ModernUIComponents.modernProgressIndicator(
                   value: _stats!.completionPercentage / 100,
-                  label: 'Прогресс: ${_stats!.completionPercentage.toStringAsFixed(1)}%',
+                  label:
+                      'Прогресс: ${_stats!.completionPercentage.toStringAsFixed(1)}%',
                 ),
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Статистика по редкости
           ModernUIComponents.gradientCard(
             child: Column(
@@ -299,9 +304,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Статистика по типам
           ModernUIComponents.gradientCard(
             child: Column(
@@ -319,9 +324,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Недавние разблокировки
           if (_stats!.recentUnlocks.isNotEmpty)
             ModernUIComponents.gradientCard(
@@ -352,12 +357,18 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     return ModernUIComponents.gradientCard(
       gradientColors: achievement.isUnlocked
           ? [
-              Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))),
-              Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withAlpha(204),
+              Color(
+                int.parse(achievement.rarityColor.replaceFirst('#', '0xFF')),
+              ),
+              Color(
+                int.parse(achievement.rarityColor.replaceFirst('#', '0xFF')),
+              ).withAlpha(204),
             ]
           : [
               Theme.of(context).colorScheme.surfaceContainerHighest,
-              Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(204),
+              Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withAlpha(204),
             ],
       child: Row(
         children: [
@@ -368,7 +379,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             decoration: BoxDecoration(
               color: achievement.isUnlocked
                   ? Colors.white.withAlpha(51)
-                  : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(25),
+                  : Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withAlpha(25),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Center(
@@ -378,9 +391,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ),
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Информация о достижении
           Expanded(
             child: Column(
@@ -411,13 +424,16 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       text: achievement.rarityName,
                       backgroundColor: achievement.isUnlocked
                           ? Colors.white.withAlpha(51)
-                          : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(25),
+                          : Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withAlpha(25),
                       textColor: achievement.isUnlocked
                           ? Colors.white
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
-                    if (achievement.isUnlocked && achievement.unlockedAt != null)
+                    if (achievement.isUnlocked &&
+                        achievement.unlockedAt != null)
                       ModernUIComponents.modernBadge(
                         text: 'Разблокировано',
                         backgroundColor: Colors.green.withAlpha(51),
@@ -428,7 +444,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ],
             ),
           ),
-          
+
           // Прогресс
           Column(
             children: [
@@ -449,7 +465,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   height: 4,
                   backgroundColor: achievement.isUnlocked
                       ? Colors.white.withAlpha(76)
-                      : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(76),
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withAlpha(76),
                   progressColor: achievement.isUnlocked
                       ? Colors.white
                       : Theme.of(context).colorScheme.primary,
@@ -462,7 +480,12 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -494,7 +517,11 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     );
   }
 
-  Widget _buildRarityStatCard(String title, String value, AchievementRarity rarity) {
+  Widget _buildRarityStatCard(
+    String title,
+    String value,
+    AchievementRarity rarity,
+  ) {
     final achievement = Achievement(
       id: '',
       title: '',
@@ -508,14 +535,18 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       rewards: [],
       metadata: {},
     );
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withAlpha(25),
+        color: Color(
+          int.parse(achievement.rarityColor.replaceFirst('#', '0xFF')),
+        ).withAlpha(25),
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         border: Border.all(
-          color: Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))).withAlpha(76),
+          color: Color(
+            int.parse(achievement.rarityColor.replaceFirst('#', '0xFF')),
+          ).withAlpha(76),
         ),
       ),
       child: Column(
@@ -524,7 +555,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Color(int.parse(achievement.rarityColor.replaceFirst('#', '0xFF'))),
+              color: Color(
+                int.parse(achievement.rarityColor.replaceFirst('#', '0xFF')),
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -543,7 +576,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   Widget _buildTypeStatCard(AchievementType type, int count) {
     String typeName;
     IconData icon;
-    
+
     switch (type) {
       case AchievementType.sessionCount:
         typeName = 'Сессии';
@@ -566,7 +599,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         icon = Icons.star;
         break;
     }
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -596,10 +629,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Text(
-            achievement.icon,
-            style: const TextStyle(fontSize: 20),
-          ),
+          Text(achievement.icon, style: const TextStyle(fontSize: 20)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -607,9 +637,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               children: [
                 Text(
                   achievement.title,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 if (achievement.unlockedAt != null)
                   Text(
@@ -629,7 +659,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays} дн. назад';
     } else if (difference.inHours > 0) {
