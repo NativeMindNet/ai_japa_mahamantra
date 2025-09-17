@@ -1,0 +1,117 @@
+# The Deliverfile allows you to store various App Store Connect metadata
+# For more information, check out the docs
+# https://docs.fastlane.tools/actions/deliver/
+
+# App Store Connect API Key (recommended for CI/CD)
+# api_key_path("path/to/your/AuthKey_XXXXXXXXXX.p8")
+
+# App Store Connect API Key ID
+# api_key_id("XXXXXXXXXX")
+
+# App Store Connect API Issuer ID
+# api_key_issuer_id("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+
+# Force overwrite existing metadata
+force(true)
+
+# Skip binary upload (if you only want to update metadata)
+# skip_binary_upload(true)
+
+# Skip screenshots upload
+# skip_screenshots(true)
+
+# Submit for review after upload
+# submit_for_review(true)
+
+# Automatic release (if approved)
+# automatic_release(true)
+
+# App Store Connect team ID
+# itc_team_id("120374799")
+
+# App Store Connect team name
+# itc_team_name("Your Team Name")
+
+# App Store Connect username
+# username("anton.v.dodonov@gmail.com")
+
+# App Store Connect app identifier
+# app_identifier("net.nativemind.ai.japa")
+
+# App Store Connect app version
+# app_version("1.0.0")
+
+# App Store Connect build number
+# build_number("2")
+
+# App Store Connect app name
+# app_name("AI Japa Mahamantra")
+
+# App Store Connect app description
+# description("AI-powered Japa Mahamantra mobile application for spiritual practice")
+
+# App Store Connect app keywords
+# keywords("meditation,japa,mantra,spiritual,AI,108,mala,beads,Hindu,Vaishnavism,Krishna,Chaitanya,meditation app,spiritual practice,meditation timer,spiritual guidance,offline meditation,privacy focused")
+
+# App Store Connect app support URL
+# support_url("https://github.com/nativemind/ai_japa_mahamantra/issues")
+
+# App Store Connect app marketing URL
+# marketing_url("https://github.com/nativemind/ai_japa_mahamantra")
+
+# App Store Connect app privacy URL
+# privacy_url("https://github.com/nativemind/ai_japa_mahamantra/blob/main/PRIVACY.md")
+
+# App Store Connect app primary category
+# primary_category("LIFESTYLE")
+
+# App Store Connect app secondary category
+# secondary_category("HEALTH_AND_FITNESS")
+
+# App Store Connect app copyright
+# copyright("© 2024 NativeMind. All rights reserved.")
+
+# App Store Connect app first name
+# first_name("Anton")
+
+# App Store Connect app last name
+# last_name("Dodonov")
+
+# App Store Connect app phone number
+# phone_number("+7 (XXX) XXX-XX-XX")
+
+# App Store Connect app email address
+# email_address("anton.v.dodonov@gmail.com")
+
+# App Store Connect app demo user
+# demo_user("demo@example.com")
+
+# App Store Connect app demo password
+# demo_password("demo123")
+
+# App Store Connect app notes
+# notes("This is a spiritual meditation app for japa practice with AI assistance. The app includes traditional 108-bead mala counting, AI-powered spiritual guidance, progress tracking, and offline functionality. All data is stored locally on the device for privacy.")
+
+# App Store Connect app promotional text
+# promotional_text("🕉️ Transform your spiritual practice with AI-powered japa meditation! Experience traditional 108-bead mala counting enhanced with intelligent guidance. Get personalized spiritual insights, track your progress, and maintain consistent practice with smart reminders. Perfect for both beginners and experienced practitioners seeking to deepen their meditation journey.")
+
+# App Store Connect app subtitle
+# subtitle("AI-Powered Japa Meditation")
+
+# App Store Connect app release notes
+# release_notes("🕉️ Welcome to AI Japa Mahamantra - your spiritual companion for traditional meditation practice! ✨ What's New in Version 1.0.0: • Traditional 108-bead mala counting with proper technique • AI-powered spiritual guidance and insights • Smart reminders and auto-start functionality • Progress tracking and detailed statistics • Customizable notifications and sound effects • Complete offline mode with local data storage • Privacy-focused design - all data stays on your device 🎯 Perfect for: • Practitioners of Vaishnavism and Hindu meditation • Anyone interested in traditional japa practice • Users seeking AI-enhanced spiritual guidance • Those who value privacy and offline functionality Start your spiritual journey today with this unique combination of ancient wisdom and modern technology!")
+
+# App Store Connect app Apple TV privacy policy
+# apple_tv_privacy_policy("This app does not collect any personal data. All data is stored locally on your device. No information is transmitted to external servers or third parties.")
+
+# App Store Connect app primary first sub category
+# primary_first_sub_category("LIFESTYLE")
+
+# App Store Connect app primary second sub category
+# primary_second_sub_category("LIFESTYLE")
+
+# App Store Connect app secondary first sub category
+# secondary_first_sub_category("HEALTH_AND_FITNESS")
+
+# App Store Connect app secondary second sub category
+# secondary_second_sub_category("HEALTH_AND_FITNESS")

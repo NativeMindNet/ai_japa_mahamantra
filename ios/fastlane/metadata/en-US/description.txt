@@ -1,0 +1,35 @@
+AI Japa Mahamantra is a spiritual practice app that combines traditional Hindu japa meditation with modern AI technology. 
+
+🕉️ **Traditional Japa Practice**
+• 108-bead mala structure with proper counting technique
+• Special mantras for the first 4 beads
+• Recommended practice: 16 rounds without interruption
+• Minimum: 2-4 rounds, Intensive: up to 64 rounds
+
+🤖 **AI Spiritual Assistant**
+• Built-in AI model for spiritual guidance
+• Ask questions about your practice after completing rounds
+• Spiritual topic suggestions and checkboxes
+• Offline mode with local spiritual responses
+
+⏰ **Smart Reminders & Auto-start**
+• Background tasks for sleep mode operation
+• Customizable notification reminders
+• Schedule multiple practice times
+• Auto-reminder every 24 hours
+
+📊 **Progress Tracking**
+• Session statistics and progress monitoring
+• Daily/weekly/monthly progress reports
+• Average performance metrics
+• Data export capabilities
+
+🎵 **Customizable Experience**
+• Adjustable vibration and sound effects
+• Personalized notification settings
+• Intuitive design for comfortable practice
+• Local data storage for privacy
+
+Perfect for practitioners of Vaishnavism and anyone interested in traditional japa meditation enhanced with modern technology. All data stays on your device for complete privacy.
+
+Start your spiritual journey with AI-powered guidance today!

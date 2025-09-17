@@ -1,0 +1,17 @@
+log/*
+log
+#config
+#config/*
+
+/config.host
+/config.host/*
+/config.host/config.sh
+/config.host/config.sh
+/config.host/config_client.sh
+/config.host/config_google.sh
+
+/config.gdfuse
+
+actions/delay.sh
+#/actions.host
+/actions.host/*

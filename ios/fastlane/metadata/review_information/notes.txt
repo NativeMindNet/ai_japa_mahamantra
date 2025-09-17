@@ -1,0 +1,11 @@
+This is a spiritual meditation app for japa practice with AI assistance. The app includes:
+
+1. Traditional 108-bead mala counting
+2. AI-powered spiritual guidance (requires local Ollama setup)
+3. Progress tracking and statistics
+4. Customizable notifications and reminders
+5. Offline mode with local data storage
+
+The app is designed for practitioners of Vaishnavism and traditional Hindu meditation. All data is stored locally on the device for privacy.
+
+For testing the AI features, you may need to set up Ollama locally with the mozgach:latest model, but the app works fully offline without AI as well.

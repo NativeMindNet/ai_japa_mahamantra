@@ -1,0 +1,12 @@
+{
+    "instances":[
+	{
+	    "process_count":"8",
+	    "type":"rugptsmall"
+	},
+	{
+	    "process_count":"10",
+	    "type":"gptj"
+	},    
+    ]
+}
