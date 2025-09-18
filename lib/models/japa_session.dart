@@ -6,6 +6,7 @@ class JapaSession {
   final int completedRounds;
   final int currentBead;
   final bool isActive;
+  final bool isPaused;
   final List<JapaRound> rounds;
   final String? notes;
 
@@ -17,6 +18,7 @@ class JapaSession {
     this.completedRounds = 0,
     this.currentBead = 0,
     this.isActive = true,
+    this.isPaused = false,
     this.rounds = const [],
     this.notes,
   });
@@ -29,6 +31,7 @@ class JapaSession {
     int? completedRounds,
     int? currentBead,
     bool? isActive,
+    bool? isPaused,
     List<JapaRound>? rounds,
     String? notes,
   }) {
@@ -40,6 +43,7 @@ class JapaSession {
       completedRounds: completedRounds ?? this.completedRounds,
       currentBead: currentBead ?? this.currentBead,
       isActive: isActive ?? this.isActive,
+      isPaused: isPaused ?? this.isPaused,
       rounds: rounds ?? this.rounds,
       notes: notes ?? this.notes,
     );
@@ -54,6 +58,7 @@ class JapaSession {
       'completedRounds': completedRounds,
       'currentBead': currentBead,
       'isActive': isActive,
+      'isPaused': isPaused,
       'rounds': rounds.map((r) => r.toJson()).toList(),
       'notes': notes,
     };
@@ -68,6 +73,7 @@ class JapaSession {
       completedRounds: json['completedRounds'] ?? 0,
       currentBead: json['currentBead'] ?? 0,
       isActive: json['isActive'] ?? true,
+      isPaused: json['isPaused'] ?? false,
       rounds:
           (json['rounds'] as List?)
               ?.map((r) => JapaRound.fromJson(r))

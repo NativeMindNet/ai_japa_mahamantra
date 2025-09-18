@@ -9,6 +9,8 @@ import '../services/background_service.dart';
 import '../services/calendar_service.dart';
 import '../services/audio_service.dart';
 import '../services/achievement_service.dart';
+import '../services/magento_service.dart';
+import '../services/connectivity_service.dart';
 import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
@@ -43,6 +45,10 @@ class JapaProvider with ChangeNotifier {
   int _totalRounds = 0;
   Duration _totalTime = Duration.zero;
 
+  // Облачные сервисы
+  final MagentoService _magentoService = MagentoService();
+  final ConnectivityService _connectivityService = ConnectivityService();
+
   // Геттеры
   JapaSession? get currentSession => _currentSession;
   bool get isSessionActive => _isSessionActive;
@@ -65,12 +71,47 @@ class JapaProvider with ChangeNotifier {
     _loadStatistics();
     _checkAutoStart();
     _initializeAudioService();
+    _initializeCloudServices();
   }
 
   /// Инициализирует аудио сервис
   Future<void> _initializeAudioService() async {
     try {
       await AudioService().initialize();
+    } catch (e) {
+      // silent
+    }
+  }
+
+  /// Инициализирует облачные сервисы
+  Future<void> _initializeCloudServices() async {
+    try {
+      await _connectivityService.initialize();
+
+      // Загружаем настройки Magento и инициализируем, если включены облачные функции
+      final prefs = await SharedPreferences.getInstance();
+      final cloudEnabled = prefs.getBool('cloud_features_enabled') ?? false;
+
+      if (cloudEnabled) {
+        final baseUrl = prefs.getString('magento_base_url') ?? '';
+        final consumerKey = prefs.getString('magento_consumer_key') ?? '';
+        final consumerSecret = prefs.getString('magento_consumer_secret') ?? '';
+        final accessToken = prefs.getString('magento_access_token') ?? '';
+        final accessTokenSecret =
+            prefs.getString('magento_access_token_secret') ?? '';
+
+        if (baseUrl.isNotEmpty) {
+          await _magentoService.initialize(
+            baseUrl: baseUrl,
+            consumerKey: consumerKey.isEmpty ? null : consumerKey,
+            consumerSecret: consumerSecret.isEmpty ? null : consumerSecret,
+            accessToken: accessToken.isEmpty ? null : accessToken,
+            accessTokenSecret: accessTokenSecret.isEmpty
+                ? null
+                : accessTokenSecret,
+          );
+        }
+      }
     } catch (e) {
       // silent
     }
@@ -447,6 +488,10 @@ class JapaProvider with ChangeNotifier {
 
     // Проверяем достижения
     await _checkAchievements();
+
+    // Синхронизируем с облаком
+    await _syncWithCloud();
+
     notifyListeners();
   }
 
@@ -678,9 +723,217 @@ class JapaProvider with ChangeNotifier {
     }
   }
 
+  /// Синхронизирует данные с облаком
+  Future<void> _syncWithCloud() async {
+    try {
+      if (!_magentoService.isCloudAvailable) {
+        return; // Облачные функции недоступны
+      }
+
+      // Получаем ID пользователя (создаем если нет)
+      final prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('user_id');
+
+      if (userId == null) {
+        userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+        await prefs.setString('user_id', userId);
+      }
+
+      // Создаем объект данных для синхронизации
+      final cloudData = JapaCloudData(
+        userId: userId,
+        totalCount: _totalRounds,
+        todayCount: await _getTodayRounds(),
+        lastUpdate: DateTime.now(),
+        achievements: await _getAchievementsData(),
+        statistics: _getStatisticsData(),
+      );
+
+      // Автоматическая синхронизация (не чаще раз в 5 минут)
+      await _magentoService.autoSync(cloudData);
+    } catch (e) {
+      // Молча игнорируем ошибки синхронизации
+      debugPrint('Ошибка синхронизации с облаком: $e');
+    }
+  }
+
+  /// Получает количество кругов за сегодня
+  Future<int> _getTodayRounds() async {
+    try {
+      final today = DateTime.now();
+      final dailyStats = await getDailyStats(today);
+      return dailyStats['totalRounds'] ?? 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Получает данные достижений для синхронизации
+  Future<Map<String, dynamic>> _getAchievementsData() async {
+    try {
+      final achievementService = AchievementService();
+      final achievements = await achievementService.getAllAchievements();
+
+      final achievementsData = <String, dynamic>{};
+      for (final achievement in achievements) {
+        achievementsData[achievement['id']] = {
+          'unlocked': achievement['unlocked'],
+          'progress': achievement['progress'],
+          'unlockedAt': achievement['unlockedAt'],
+        };
+      }
+
+      return achievementsData;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /// Получает статистические данные для синхронизации
+  Map<String, dynamic> _getStatisticsData() {
+    return {
+      'totalSessions': _totalSessions,
+      'totalRounds': _totalRounds,
+      'totalTimeMinutes': _totalTime.inMinutes,
+      'averageRoundsPerSession': _totalSessions > 0
+          ? (_totalRounds / _totalSessions).round()
+          : 0,
+      'averageTimePerSession': _totalSessions > 0
+          ? _totalTime.inMinutes ~/ _totalSessions
+          : 0,
+      'lastSessionDate': DateTime.now().toIso8601String(),
+    };
+  }
+
+  /// Принудительная синхронизация с облаком
+  Future<bool> forceSyncWithCloud() async {
+    try {
+      if (!_magentoService.isCloudAvailable) {
+        return false;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('user_id');
+
+      if (userId == null) {
+        userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+        await prefs.setString('user_id', userId);
+      }
+
+      final cloudData = JapaCloudData(
+        userId: userId,
+        totalCount: _totalRounds,
+        todayCount: await _getTodayRounds(),
+        lastUpdate: DateTime.now(),
+        achievements: await _getAchievementsData(),
+        statistics: _getStatisticsData(),
+      );
+
+      final success = await _magentoService.syncJapaData(cloudData);
+
+      if (success) {
+        // Отправляем уведомление о достижениях в облако
+        if (_currentSession != null && _currentSession!.completedRounds > 0) {
+          await _magentoService.reportAchievement(userId, 'session_completed', {
+            'rounds': _currentSession!.completedRounds,
+            'duration': _sessionDuration.inMinutes,
+            'date': DateTime.now().toIso8601String(),
+          });
+        }
+      }
+
+      return success;
+    } catch (e) {
+      debugPrint('Ошибка принудительной синхронизации: $e');
+      return false;
+    }
+  }
+
+  /// Загружает данные из облака
+  Future<bool> loadFromCloud() async {
+    try {
+      if (!_magentoService.isCloudAvailable) {
+        return false;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+
+      if (userId == null) {
+        return false;
+      }
+
+      final cloudData = await _magentoService.loadJapaData(userId);
+
+      if (cloudData != null) {
+        // Обновляем локальные данные из облака (только если они новее)
+        final lastLocalUpdate = prefs.getString('last_cloud_sync_date');
+        final localUpdateTime = lastLocalUpdate != null
+            ? DateTime.tryParse(lastLocalUpdate)
+            : DateTime(2000);
+
+        if (localUpdateTime == null ||
+            cloudData.lastUpdate.isAfter(localUpdateTime)) {
+          // Обновляем статистику
+          _totalRounds = cloudData.totalCount;
+          _totalSessions =
+              cloudData.statistics['totalSessions'] ?? _totalSessions;
+          _totalTime = Duration(
+            minutes: cloudData.statistics['totalTimeMinutes'] ?? 0,
+          );
+
+          // Сохраняем обновленные данные
+          await _saveStatistics();
+          await prefs.setString(
+            'last_cloud_sync_date',
+            cloudData.lastUpdate.toIso8601String(),
+          );
+
+          notifyListeners();
+          return true;
+        }
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint('Ошибка загрузки из облака: $e');
+      return false;
+    }
+  }
+
+  /// Получает персональные рекомендации из облака
+  Future<List<Map<String, dynamic>>> getCloudRecommendations() async {
+    try {
+      if (!_magentoService.isCloudAvailable) {
+        return [];
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+
+      if (userId == null) {
+        return [];
+      }
+
+      final recommendations = await _magentoService
+          .getPersonalizedRecommendations(userId);
+      return recommendations ?? [];
+    } catch (e) {
+      debugPrint('Ошибка получения рекомендаций: $e');
+      return [];
+    }
+  }
+
+  /// Проверяет доступность облачных функций
+  bool get isCloudAvailable => _magentoService.isCloudAvailable;
+
+  /// Проверяет подключение к интернету
+  bool get isOnline => _connectivityService.isOnline;
+
   @override
   void dispose() {
     _sessionTimer?.cancel();
+    _connectivityService.dispose();
     super.dispose();
   }
 }

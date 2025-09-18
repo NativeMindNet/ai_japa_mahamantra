@@ -464,11 +464,12 @@ class AchievementService {
       completionPercentage: _achievements.isNotEmpty
           ? (unlockedAchievements.length / _achievements.length) * 100
           : 0.0,
-      recentUnlocks:
-          unlockedAchievements.where((a) => a.unlockedAt != null).toList()
-            ..sort(
-              (a, b) => b.unlockedAt!.compareTo(a.unlockedAt!),
-            ).take(5).map((a) => a.id).toList(),
+      recentUnlocks: (() {
+        final recent =
+            unlockedAchievements.where((a) => a.unlockedAt != null).toList()
+              ..sort((a, b) => b.unlockedAt!.compareTo(a.unlockedAt!));
+        return recent.take(5).map((a) => a.id).toList();
+      })(),
       typeCounts: {
         for (final type in AchievementType.values)
           type: unlockedAchievements.where((a) => a.type == type).length,
@@ -512,6 +513,25 @@ class AchievementService {
   /// Получает прогресс достижения
   AchievementProgress? getProgress(String achievementId) =>
       _progress[achievementId];
+
+  /// Получает все достижения в формате Map для синхронизации с облаком
+  Future<List<Map<String, dynamic>>> getAllAchievements() async {
+    return _achievements
+        .map(
+          (achievement) => {
+            'id': achievement.id,
+            'unlocked': achievement.isUnlocked,
+            'progress': achievement.currentValue,
+            'unlockedAt': achievement.unlockedAt?.toIso8601String(),
+            'title': achievement.title,
+            'description': achievement.description,
+            'type': achievement.type.toString(),
+            'rarity': achievement.rarity.toString(),
+            'targetValue': achievement.targetValue,
+          },
+        )
+        .toList();
+  }
 
   /// Сбрасывает все достижения (для тестирования)
   Future<void> resetAchievements() async {

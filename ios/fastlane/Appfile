@@ -1,4 +1,4 @@
-app_identifier("net.nativemind.ai.japa") # The bundle identifier of your app
+app_identifier("net.nativemind.mahamantra") # The bundle identifier of your app
 apple_id("anton.v.dodonov@gmail.com") # Your Apple Developer Portal username
 
 itc_team_id("120374799") # App Store Connect Team ID

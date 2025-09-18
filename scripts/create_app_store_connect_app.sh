@@ -29,7 +29,7 @@ fi
 
 # Параметры приложения
 APP_NAME="Ai Japa Mahamantra"
-BUNDLE_ID="net.nativemind.ai.japa"
+BUNDLE_ID="net.nativemind.mahamantra"
 SKU="aijapamahamantra2024"
 PRIMARY_LANGUAGE="en"
 

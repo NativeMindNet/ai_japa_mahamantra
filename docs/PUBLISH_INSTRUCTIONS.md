@@ -1,7 +1,7 @@
 # 🚀 Инструкции по публикации в Apple App Store
 
 ## ✅ Что уже выполнено:
-- Bundle ID изменен на: `net.nativemind.ai.japa`
+- Bundle ID изменен на: `net.nativemind.mahamantra`
 - Приложение собрано для iOS (Release)
 - Архив создан: `ios/build/Runner.xcarchive`
 - Xcode Organizer открыт с архивом
@@ -19,7 +19,7 @@
 ### 2. Настройка подписи
 1. Выберите **"Automatically manage signing"**
 2. Выберите ваш Apple Developer Team
-3. Xcode автоматически создаст профиль для Bundle ID `net.nativemind.ai.japa`
+3. Xcode автоматически создаст профиль для Bundle ID `net.nativemind.mahamantra`
 4. Нажмите **"Next"**
 
 ### 3. Настройки загрузки
@@ -43,7 +43,7 @@
    - **Platforms**: iOS
    - **Name**: Ai Japa Mahamantra
    - **Primary language**: English
-   - **Bundle ID**: `net.nativemind.ai.japa`
+   - **Bundle ID**: `net.nativemind.mahamantra`
    - **SKU**: `aijapamahamantra2024`
 
 ### 2. Заполнение метаданных

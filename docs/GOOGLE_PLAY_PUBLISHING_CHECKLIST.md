@@ -5,7 +5,7 @@
 ### 📦 Готовые файлы:
 - **AAB файл**: `build/app/outputs/bundle/release/app-release.aab` (44.3MB)
 - **Keystore**: `android/upload-keystore.jks`
-- **Application ID**: `com.aijapamahamantra.app`
+- **Application ID**: `net.nativemind.mahamantra`
 - **Версия**: 1.0.0 (2)
 
 ---

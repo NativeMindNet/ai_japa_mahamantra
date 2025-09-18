@@ -78,4 +78,4 @@
 -keepattributes SourceFile,LineNumberTable
 
 # Keep all classes in the main package
--keep class com.aijapamahamantra.app.** { *; }
+-keep class net.nativemind.mahamantra.** { *; }

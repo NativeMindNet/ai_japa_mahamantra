@@ -1,4 +1,4 @@
-package com.example.ai_japa_mahamantra
+package net.nativemind.mahamantra
 
 import io.flutter.embedding.android.FlutterActivity
 

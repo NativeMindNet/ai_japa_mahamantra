@@ -30,7 +30,7 @@ version: 1.0.0+2  # формат: major.minor.patch+build
 ### Проверка Application ID
 В `android/app/build.gradle.kts` убедитесь, что Application ID уникален:
 ```
-applicationId = "com.aijapamahamantra.app"
+applicationId = "net.nativemind.mahamantra"
 ```
 
 ### Сборка приложения

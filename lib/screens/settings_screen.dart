@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/japa_provider.dart';
 import '../providers/locale_provider.dart';
-import '../services/background_service.dart';
 import '../services/ai_service.dart';
 import '../services/notification_service.dart';
 import '../services/audio_service.dart';
+import '../services/magento_service.dart';
+import '../services/connectivity_service.dart';
 import '../constants/app_constants.dart';
 import '../l10n/app_localizations_delegate.dart';
 import '../animations/custom_page_transitions.dart';
@@ -23,6 +23,49 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = false;
+  bool _cloudFeaturesEnabled = false;
+  bool _isOnline = false;
+
+  final MagentoService _magentoService = MagentoService();
+  final ConnectivityService _connectivityService = ConnectivityService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCloudSettings();
+    _initConnectivity();
+  }
+
+  /// Загружает настройки облачных функций
+  Future<void> _loadCloudSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _cloudFeaturesEnabled = prefs.getBool('cloud_features_enabled') ?? false;
+    });
+  }
+
+  /// Инициализирует проверку подключения
+  Future<void> _initConnectivity() async {
+    await _connectivityService.initialize();
+    setState(() {
+      _isOnline = _connectivityService.isOnline;
+    });
+
+    // Слушаем изменения подключения
+    _connectivityService.connectivityStream.listen((isOnline) {
+      if (mounted) {
+        setState(() {
+          _isOnline = isOnline;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivityService.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,258 +88,337 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Consumer<JapaProvider>(
         builder: (context, japaProvider, child) {
-          return Container(
-            color: Theme.of(context).colorScheme.surface,
-            child: SettingsList(
-              sections: [
-                // Выбор языка
-                SettingsSection(
-                  title: l10n.language,
-                  tiles: [
-                    SettingsTile(
-                      title: l10n.selectLanguage,
-                      subtitle: _getCurrentLanguageName(localeProvider),
-                      leading: const Icon(Icons.language),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showLanguageSelectionDialog(localeProvider);
-                      },
+          return Stack(
+            children: [
+              Container(
+                color: Theme.of(context).colorScheme.surface,
+                child: SettingsList(
+                  sections: [
+                    // Выбор языка
+                    SettingsSection(
+                      title: l10n.language,
+                      tiles: [
+                        SettingsTile(
+                          title: l10n.selectLanguage,
+                          subtitle: _getCurrentLanguageName(localeProvider),
+                          leading: const Icon(Icons.language),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showLanguageSelectionDialog(localeProvider);
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
 
-                // Настройки темы
-                SettingsSection(
-                  title: l10n.theme,
-                  tiles: [
-                    SettingsTile.switchTile(
-                      title: l10n.darkTheme,
-                      subtitle: l10n.themeDescription,
-                      leading: const Icon(Icons.dark_mode),
-                      switchValue: localeProvider.isDarkTheme,
-                      onToggle: (value) {
-                        localeProvider.setTheme(value);
-                      },
+                    // Настройки темы
+                    SettingsSection(
+                      title: l10n.theme,
+                      tiles: [
+                        SettingsTile.switchTile(
+                          title: l10n.darkTheme,
+                          subtitle: l10n.themeDescription,
+                          leading: const Icon(Icons.dark_mode),
+                          switchValue: localeProvider.isDarkTheme,
+                          onToggle: (value) {
+                            localeProvider.toggleTheme();
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
 
-                // Основные настройки джапы
-                SettingsSection(
-                  title: l10n.basicSettings,
-                  tiles: [
-                    SettingsTile(
-                      title: l10n.targetRounds,
-                      subtitle: '${japaProvider.targetRounds} ${l10n.rounds}',
-                      leading: const Icon(Icons.track_changes),
-                      trailing: DropdownButton<int>(
-                        value: japaProvider.targetRounds,
-                        items: AppConstants.recommendedRounds.map((rounds) {
-                          return DropdownMenuItem(
-                            value: rounds,
-                            child: Text('$rounds'),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            japaProvider.setTargetRounds(value);
-                          }
-                        },
-                      ),
+                    // Основные настройки джапы
+                    SettingsSection(
+                      title: l10n.basicSettings,
+                      tiles: [
+                        SettingsTile(
+                          title: l10n.targetRounds,
+                          subtitle:
+                              '${japaProvider.targetRounds} ${l10n.rounds}',
+                          leading: const Icon(Icons.track_changes),
+                          trailing: DropdownButton<int>(
+                            value: japaProvider.targetRounds,
+                            items: AppConstants.recommendedRounds.map((rounds) {
+                              return DropdownMenuItem(
+                                value: rounds,
+                                child: Text('$rounds'),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                japaProvider.setTargetRounds(value);
+                              }
+                            },
+                          ),
+                        ),
+                        SettingsTile(
+                          title: l10n.timePerRound,
+                          subtitle:
+                              '${AppConstants.minutesPerRound} ${l10n.minutes}',
+                          leading: const Icon(Icons.timer),
+                          trailing: const Text('Примерно'),
+                        ),
+                        SettingsTile(
+                          title: l10n.maxRoundsPerDay,
+                          subtitle:
+                              '${AppConstants.maxRoundsPerDay} ${l10n.rounds}',
+                          leading: const Icon(Icons.warning),
+                          trailing: Text(l10n.notRecommendedToExceed),
+                        ),
+                      ],
                     ),
-                    SettingsTile(
-                      title: l10n.timePerRound,
-                      subtitle:
-                          '${AppConstants.minutesPerRound} ${l10n.minutes}',
-                      leading: const Icon(Icons.timer),
-                      trailing: const Text('Примерно'),
-                    ),
-                    SettingsTile(
-                      title: l10n.maxRoundsPerDay,
-                      subtitle:
-                          '${AppConstants.maxRoundsPerDay} ${l10n.rounds}',
-                      leading: const Icon(Icons.warning),
-                      trailing: Text(l10n.notRecommendedToExceed),
-                    ),
-                  ],
-                ),
 
-                // Уведомления и напоминания
-                SettingsSection(
-                  title: l10n.notificationsAndReminders,
-                  tiles: [
-                    SettingsTile.switchTile(
-                      title: l10n.notifications,
-                      subtitle: l10n.japaProgressNotifications,
-                      leading: const Icon(Icons.notifications),
-                      switchValue: japaProvider.notificationsEnabled,
-                      onToggle: (value) {
-                        japaProvider.setNotificationsEnabled(value);
-                      },
+                    // Уведомления и напоминания
+                    SettingsSection(
+                      title: l10n.notificationsAndReminders,
+                      tiles: [
+                        SettingsTile.switchTile(
+                          title: l10n.notifications,
+                          subtitle: l10n.japaProgressNotifications,
+                          leading: const Icon(Icons.notifications),
+                          switchValue: japaProvider.notificationsEnabled,
+                          onToggle: (value) {
+                            japaProvider.setNotificationsEnabled(value);
+                          },
+                        ),
+                        SettingsTile.switchTile(
+                          title: l10n.autoStart,
+                          subtitle: l10n.japaTimeReminders,
+                          leading: const Icon(Icons.schedule),
+                          switchValue: japaProvider.autoStartEnabled,
+                          onToggle: (value) {
+                            japaProvider.setAutoStartEnabled(value);
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.dailyReminder,
+                          subtitle: l10n.setJapaTime,
+                          leading: const Icon(Icons.access_time),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showDailyReminderDialog(l10n);
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.japaSchedule,
+                          subtitle: l10n.setMultipleTimes,
+                          leading: const Icon(Icons.calendar_today),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showScheduleDialog(l10n);
+                          },
+                        ),
+                      ],
                     ),
-                    SettingsTile.switchTile(
-                      title: l10n.autoStart,
-                      subtitle: l10n.japaTimeReminders,
-                      leading: const Icon(Icons.schedule),
-                      switchValue: japaProvider.autoStartEnabled,
-                      onToggle: (value) {
-                        japaProvider.setAutoStartEnabled(value);
-                      },
-                    ),
-                    SettingsTile(
-                      title: l10n.dailyReminder,
-                      subtitle: l10n.setJapaTime,
-                      leading: const Icon(Icons.access_time),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showDailyReminderDialog(l10n);
-                      },
-                    ),
-                    SettingsTile(
-                      title: l10n.japaSchedule,
-                      subtitle: l10n.setMultipleTimes,
-                      leading: const Icon(Icons.calendar_today),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showScheduleDialog(l10n);
-                      },
-                    ),
-                  ],
-                ),
 
-                // Звук и вибрация
-                SettingsSection(
-                  title: l10n.soundAndVibration,
-                  tiles: [
-                    SettingsTile.switchTile(
-                      title: l10n.vibration,
-                      subtitle: l10n.beadClickVibration,
-                      leading: const Icon(Icons.vibration),
-                      switchValue: japaProvider.vibrationEnabled,
-                      onToggle: (value) {
-                        japaProvider.setVibrationEnabled(value);
-                      },
+                    // Звук и вибрация
+                    SettingsSection(
+                      title: l10n.soundAndVibration,
+                      tiles: [
+                        SettingsTile.switchTile(
+                          title: l10n.vibration,
+                          subtitle: l10n.beadClickVibration,
+                          leading: const Icon(Icons.vibration),
+                          switchValue: japaProvider.vibrationEnabled,
+                          onToggle: (value) {
+                            japaProvider.setVibrationEnabled(value);
+                          },
+                        ),
+                        SettingsTile.switchTile(
+                          title: l10n.sound,
+                          subtitle: l10n.soundEffects,
+                          leading: const Icon(Icons.volume_up),
+                          switchValue: japaProvider.soundEnabled,
+                          onToggle: (value) {
+                            japaProvider.setSoundEnabled(value);
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.japaSounds,
+                          subtitle: l10n.configureSounds,
+                          leading: const Icon(Icons.music_note),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showSoundSettingsDialog(l10n);
+                          },
+                        ),
+                      ],
                     ),
-                    SettingsTile.switchTile(
-                      title: l10n.sound,
-                      subtitle: l10n.soundEffects,
-                      leading: const Icon(Icons.volume_up),
-                      switchValue: japaProvider.soundEnabled,
-                      onToggle: (value) {
-                        japaProvider.setSoundEnabled(value);
-                      },
-                    ),
-                    SettingsTile(
-                      title: l10n.japaSounds,
-                      subtitle: l10n.configureSounds,
-                      leading: const Icon(Icons.music_note),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showSoundSettingsDialog(l10n);
-                      },
-                    ),
-                  ],
-                ),
 
-                // AI помощник
-                SettingsSection(
-                  title: l10n.aiAssistantSection,
-                  tiles: [
-                    SettingsTile(
-                      title: l10n.aiStatus,
-                      subtitle: l10n.checkMozgachAvailability,
-                      leading: const Icon(Icons.smart_toy),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _checkAIStatus();
-                      },
+                    // AI помощник
+                    SettingsSection(
+                      title: l10n.aiAssistantSection,
+                      tiles: [
+                        SettingsTile(
+                          title: l10n.aiStatus,
+                          subtitle: l10n.checkMozgachAvailability,
+                          leading: const Icon(Icons.smart_toy),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _checkAIStatus();
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.aiSettings,
+                          subtitle: l10n.aiAssistantParameters,
+                          leading: const Icon(Icons.settings),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showAISettingsDialog(l10n);
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.aiStatistics,
+                          subtitle: l10n.aiAssistantUsage,
+                          leading: const Icon(Icons.analytics),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showAIStatsDialog(l10n);
+                          },
+                        ),
+                      ],
                     ),
-                    SettingsTile(
-                      title: l10n.aiSettings,
-                      subtitle: l10n.aiAssistantParameters,
-                      leading: const Icon(Icons.settings),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showAISettingsDialog(l10n);
-                      },
-                    ),
-                    SettingsTile(
-                      title: l10n.aiStatistics,
-                      subtitle: l10n.aiAssistantUsage,
-                      leading: const Icon(Icons.analytics),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showAIStatsDialog(l10n);
-                      },
-                    ),
-                  ],
-                ),
 
-                // Статистика и данные
-                SettingsSection(
-                  title: l10n.statisticsAndData,
-                  tiles: [
-                    SettingsTile(
-                      title: l10n.overallStatistics,
-                      subtitle: l10n.viewAllAchievements,
-                      leading: const Icon(Icons.bar_chart),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showOverallStatsDialog(l10n);
-                      },
+                    // Облачные функции
+                    SettingsSection(
+                      title: 'Облачные функции',
+                      tiles: [
+                        SettingsTile.switchTile(
+                          title: 'Облачная синхронизация',
+                          subtitle: _isOnline
+                              ? (_cloudFeaturesEnabled
+                                    ? 'Включена • Онлайн'
+                                    : 'Выключена • Онлайн')
+                              : 'Нет подключения к интернету',
+                          leading: Icon(
+                            _isOnline ? Icons.cloud : Icons.cloud_off,
+                            color: _isOnline
+                                ? (_cloudFeaturesEnabled
+                                      ? Colors.green
+                                      : Colors.grey)
+                                : Colors.red,
+                          ),
+                          switchValue: _cloudFeaturesEnabled,
+                          onToggle: _isOnline
+                              ? (value) async {
+                                  await _toggleCloudFeatures(value);
+                                }
+                              : null,
+                        ),
+                        if (_cloudFeaturesEnabled && _isOnline) ...[
+                          SettingsTile(
+                            title: 'Глобальная статистика',
+                            subtitle:
+                                'Посмотреть общую статистику пользователей',
+                            leading: const Icon(Icons.public),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onPressed: (context) {
+                              _showGlobalStatsDialog();
+                            },
+                          ),
+                          SettingsTile(
+                            title: 'Рейтинг пользователей',
+                            subtitle: 'Топ практикующих джапу',
+                            leading: const Icon(Icons.leaderboard),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onPressed: (context) {
+                              _showLeaderboardDialog();
+                            },
+                          ),
+                          SettingsTile(
+                            title: 'Персональные рекомендации',
+                            subtitle:
+                                'AI-рекомендации на основе вашей практики',
+                            leading: const Icon(Icons.recommend),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onPressed: (context) {
+                              _showRecommendationsDialog();
+                            },
+                          ),
+                          SettingsTile(
+                            title: 'Настройки облака',
+                            subtitle: 'Конфигурация Magento бэкенда',
+                            leading: const Icon(Icons.cloud_sync),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onPressed: (context) {
+                              _showCloudSettingsDialog();
+                            },
+                          ),
+                        ],
+                      ],
                     ),
-                    SettingsTile(
-                      title: l10n.dataExport,
-                      subtitle: l10n.saveDataToDevice,
-                      leading: const Icon(Icons.download),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _exportData(l10n);
-                      },
-                    ),
-                    SettingsTile(
-                      title: l10n.clearData,
-                      subtitle: l10n.deleteAllSavedData,
-                      leading: const Icon(Icons.delete_forever),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showClearDataDialog(l10n);
-                      },
-                    ),
-                  ],
-                ),
 
-                // О приложении
-                SettingsSection(
-                  title: l10n.aboutApp,
-                  tiles: [
-                    SettingsTile(
-                      title: l10n.version,
-                      subtitle: '1.0.0',
-                      leading: const Icon(Icons.info),
+                    // Статистика и данные
+                    SettingsSection(
+                      title: l10n.statisticsAndData,
+                      tiles: [
+                        SettingsTile(
+                          title: l10n.overallStatistics,
+                          subtitle: l10n.viewAllAchievements,
+                          leading: const Icon(Icons.bar_chart),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showOverallStatsDialog(l10n);
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.dataExport,
+                          subtitle: l10n.saveDataToDevice,
+                          leading: const Icon(Icons.download),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _exportData(l10n);
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.clearData,
+                          subtitle: l10n.deleteAllSavedData,
+                          leading: const Icon(Icons.delete_forever),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showClearDataDialog(l10n);
+                          },
+                        ),
+                      ],
                     ),
-                    SettingsTile(
-                      title: l10n.license,
-                      subtitle: l10n.openSource,
-                      leading: const Icon(Icons.description),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showLicenseDialog(l10n);
-                      },
-                    ),
-                    SettingsTile(
-                      title: l10n.developers,
-                      subtitle: l10n.aiJapaTeam,
-                      leading: const Icon(Icons.people),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onPressed: (context) {
-                        _showDevelopersDialog(l10n);
-                      },
+
+                    // О приложении
+                    SettingsSection(
+                      title: l10n.aboutApp,
+                      tiles: [
+                        SettingsTile(
+                          title: l10n.version,
+                          subtitle: '1.0.0',
+                          leading: const Icon(Icons.info),
+                        ),
+                        SettingsTile(
+                          title: l10n.license,
+                          subtitle: l10n.openSource,
+                          leading: const Icon(Icons.description),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showLicenseDialog(l10n);
+                          },
+                        ),
+                        SettingsTile(
+                          title: l10n.developers,
+                          subtitle: l10n.aiJapaTeam,
+                          leading: const Icon(Icons.people),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showDevelopersDialog(l10n);
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              if (_isLoading)
+                Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
           );
         },
       ),
@@ -1437,5 +1559,415 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       },
     );
+  }
+
+  /// Переключает облачные функции
+  Future<void> _toggleCloudFeatures(bool enabled) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _magentoService.setCloudFeaturesEnabled(enabled);
+
+      if (enabled) {
+        // Инициализируем Magento сервис с базовыми настройками
+        await _magentoService.initialize(
+          baseUrl: 'https://your-magento-backend.com', // TODO: Настроить URL
+          // TODO: Добавить токены авторизации
+        );
+      }
+
+      setState(() {
+        _cloudFeaturesEnabled = enabled;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            enabled
+                ? 'Облачные функции включены'
+                : 'Облачные функции выключены',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка при переключении облачных функций: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Показывает диалог глобальной статистики
+  Future<void> _showGlobalStatsDialog() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final stats = await _magentoService.getGlobalStatistics();
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Глобальная статистика'),
+              content: stats != null
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Всего пользователей: ${stats['totalUsers'] ?? 'Неизвестно'}',
+                        ),
+                        Text(
+                          'Всего кругов джапы: ${stats['totalRounds'] ?? 'Неизвестно'}',
+                        ),
+                        Text(
+                          'Активных сегодня: ${stats['activeToday'] ?? 'Неизвестно'}',
+                        ),
+                        Text(
+                          'Средний прогресс: ${stats['averageProgress'] ?? 'Неизвестно'}',
+                        ),
+                      ],
+                    )
+                  : const Text('Не удалось загрузить статистику'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Закрыть'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка при загрузке статистики: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Показывает диалог рейтинга
+  Future<void> _showLeaderboardDialog() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final leaderboard = await _magentoService.getLeaderboard(limit: 20);
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Рейтинг пользователей'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 400,
+                child: leaderboard != null && leaderboard.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: leaderboard.length,
+                        itemBuilder: (context, index) {
+                          final user = leaderboard[index];
+                          return ListTile(
+                            leading: CircleAvatar(child: Text('${index + 1}')),
+                            title: Text(
+                              user['name'] ?? 'Анонимный пользователь',
+                            ),
+                            subtitle: Text(
+                              '${user['totalRounds'] ?? 0} кругов',
+                            ),
+                            trailing: Text(
+                              '${user['streak'] ?? 0} дней подряд',
+                            ),
+                          );
+                        },
+                      )
+                    : const Center(child: Text('Не удалось загрузить рейтинг')),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Закрыть'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка при загрузке рейтинга: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Показывает диалог рекомендаций
+  Future<void> _showRecommendationsDialog() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Получаем ID пользователя из настроек
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id') ?? 'anonymous';
+
+      final recommendations = await _magentoService
+          .getPersonalizedRecommendations(userId);
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Персональные рекомендации'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 300,
+                child: recommendations != null && recommendations.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: recommendations.length,
+                        itemBuilder: (context, index) {
+                          final recommendation = recommendations[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    recommendation['title'] ?? 'Рекомендация',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(recommendation['description'] ?? ''),
+                                  if (recommendation['priority'] != null)
+                                    Chip(
+                                      label: Text(
+                                        'Приоритет: ${recommendation['priority']}',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : const Center(child: Text('Рекомендации пока недоступны')),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Закрыть'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка при загрузке рекомендаций: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Показывает диалог настроек облака
+  void _showCloudSettingsDialog() {
+    String baseUrl = 'https://your-magento-backend.com';
+    String consumerKey = '';
+    String consumerSecret = '';
+    String accessToken = '';
+    String accessTokenSecret = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Настройки облака'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Настройки подключения к Magento бэкенду'),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        initialValue: baseUrl,
+                        decoration: const InputDecoration(
+                          labelText: 'URL бэкенда',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => baseUrl = value,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        initialValue: consumerKey,
+                        decoration: const InputDecoration(
+                          labelText: 'Consumer Key',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => consumerKey = value,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        initialValue: consumerSecret,
+                        decoration: const InputDecoration(
+                          labelText: 'Consumer Secret',
+                          border: OutlineInputBorder(),
+                        ),
+                        obscureText: true,
+                        onChanged: (value) => consumerSecret = value,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        initialValue: accessToken,
+                        decoration: const InputDecoration(
+                          labelText: 'Access Token',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => accessToken = value,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        initialValue: accessTokenSecret,
+                        decoration: const InputDecoration(
+                          labelText: 'Access Token Secret',
+                          border: OutlineInputBorder(),
+                        ),
+                        obscureText: true,
+                        onChanged: (value) => accessTokenSecret = value,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Отмена'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await _saveCloudSettings(
+                      baseUrl,
+                      consumerKey,
+                      consumerSecret,
+                      accessToken,
+                      accessTokenSecret,
+                    );
+                  },
+                  child: const Text('Сохранить'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Сохраняет настройки облака
+  Future<void> _saveCloudSettings(
+    String baseUrl,
+    String consumerKey,
+    String consumerSecret,
+    String accessToken,
+    String accessTokenSecret,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('magento_base_url', baseUrl);
+      await prefs.setString('magento_consumer_key', consumerKey);
+      await prefs.setString('magento_consumer_secret', consumerSecret);
+      await prefs.setString('magento_access_token', accessToken);
+      await prefs.setString('magento_access_token_secret', accessTokenSecret);
+
+      // Переинициализируем Magento сервис с новыми настройками
+      if (_cloudFeaturesEnabled) {
+        await _magentoService.initialize(
+          baseUrl: baseUrl,
+          consumerKey: consumerKey,
+          consumerSecret: consumerSecret,
+          accessToken: accessToken,
+          accessTokenSecret: accessTokenSecret,
+        );
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Настройки облака сохранены'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка при сохранении настроек: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

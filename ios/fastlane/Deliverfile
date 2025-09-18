@@ -36,7 +36,7 @@ force(true)
 # username("anton.v.dodonov@gmail.com")
 
 # App Store Connect app identifier
-# app_identifier("net.nativemind.ai.japa")
+# app_identifier("net.nativemind.mahamantra")
 
 # App Store Connect app version
 # app_version("1.0.0")

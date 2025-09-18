@@ -41,6 +41,7 @@ dependencies:
   
   # HTTP клиент для AI
   http: ^1.1.0
+  dio: ^5.4.0
   
   # Локальные уведомления
   flutter_local_notifications: ^19.4.1
@@ -80,6 +81,12 @@ dependencies:
   
   # Видео плеер
   video_player: ^2.8.2
+  
+  # Magento интеграция через HTTP клиент
+  # Используем dio для работы с REST API
+  
+  # Проверка подключения к интернету
+  connectivity_plus: ^6.0.3
 
 dev_dependencies:
   flutter_test:

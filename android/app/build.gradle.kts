@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.aijapamahamantra.app"
+    namespace = "net.nativemind.mahamantra"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -30,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.aijapamahamantra.app"
+        applicationId = "net.nativemind.mahamantra"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

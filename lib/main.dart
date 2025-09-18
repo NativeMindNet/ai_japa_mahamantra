@@ -12,6 +12,8 @@ import 'constants/app_constants.dart';
 import 'services/notification_service.dart';
 import 'services/background_service.dart';
 import 'services/audio_service.dart';
+import 'services/connectivity_service.dart';
+import 'services/magento_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,9 @@ void main() async {
   // Инициализируем сервисы
   await NotificationService.initialize();
   await AudioService().initialize();
+
+  // Инициализируем сервисы подключения (они инициализируются автоматически в провайдерах)
+  // ConnectivityService и MagentoService инициализируются в JapaProvider
 
   // Инициализируем и регистрируем фоновые задачи
   await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
