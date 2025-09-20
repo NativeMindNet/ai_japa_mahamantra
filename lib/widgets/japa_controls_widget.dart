@@ -76,6 +76,7 @@ class JapaControlsWidget extends StatelessWidget {
           // Кнопка возобновления (если сессия на паузе)
           if (isSessionActive)
             ModernUIComponents.animatedButton(
+              context: context,
               text: 'Возобновить сессию',
               icon: Icons.play_arrow,
               onPressed: onResumeSession,

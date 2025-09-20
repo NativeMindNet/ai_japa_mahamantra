@@ -12,20 +12,22 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   }
 
   @override
-  Future<AppLocalizations> load(Locale locale) async {
+  Future<AppLocalizations> load(Locale locale) {
     switch (locale.languageCode) {
       case 'ru':
         // Загрузка русской локализации
         break;
       case 'en':
-        return AppLocalizationsEn();
+        return Future.value(AppLocalizationsEn());
       case 'de':
-        return AppLocalizationsDe();
+        return Future.value(AppLocalizationsDe());
       case 'petrosyan':
         // Загрузка локализации Петросяна
         break;
     }
-    return AppLocalizationsEn(); // Возвращаем английскую по умолчанию
+    return Future.value(
+      AppLocalizationsEn(),
+    ); // Возвращаем английскую по умолчанию
   }
 
   @override

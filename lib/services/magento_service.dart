@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_magento/flutter_magento.dart';
 import 'connectivity_service.dart';
 
 /// Модель для синхронизации данных джапа медитации
@@ -54,6 +55,9 @@ class MagentoService {
   String? _accessToken;
   final ConnectivityService _connectivityService = ConnectivityService();
 
+  // Flutter Magento plugin instance for e-commerce functionality
+  FlutterMagento? _flutterMagento;
+
   bool _isCloudEnabled = false;
   bool get isCloudEnabled => _isCloudEnabled;
 
@@ -76,6 +80,7 @@ class MagentoService {
         _baseUrl = baseUrl;
         _accessToken = accessToken;
 
+        // Инициализируем основной Dio клиент для кастомных Japa API
         _dio = Dio(
           BaseOptions(
             baseUrl: baseUrl,
@@ -87,6 +92,17 @@ class MagentoService {
               if (accessToken != null) 'Authorization': 'Bearer $accessToken',
             },
           ),
+        );
+
+        // Инициализируем Flutter Magento plugin для e-commerce функций
+        _flutterMagento = FlutterMagento();
+        await _flutterMagento!.initialize(
+          baseUrl: baseUrl,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+          },
         );
 
         _isInitialized = true;
@@ -117,6 +133,9 @@ class MagentoService {
         _connectivityService.isOnline &&
         _dio != null;
   }
+
+  /// Получить экземпляр FlutterMagento для e-commerce операций
+  FlutterMagento? get magento => _flutterMagento;
 
   /// Синхронизация данных джапа медитации с облаком
   Future<bool> syncJapaData(JapaCloudData data) async {
@@ -288,10 +307,120 @@ class MagentoService {
     }
   }
 
+  // ===== E-COMMERCE CONVENIENCE METHODS =====
+
+  /// Аутентификация пользователя через Magento
+  Future<bool> authenticateCustomer(String email, String password) async {
+    if (!isCloudAvailable || _flutterMagento == null) {
+      print('E-commerce функции недоступны для аутентификации');
+      return false;
+    }
+
+    try {
+      final authResponse = await _flutterMagento!.authenticateCustomer(
+        email: email,
+        password: password,
+      );
+      return authResponse != null;
+    } catch (e) {
+      print('Ошибка аутентификации пользователя: $e');
+      return false;
+    }
+  }
+
+  /// Получение продуктов с фильтрами
+  Future<dynamic> getProducts({
+    int page = 1,
+    int pageSize = 20,
+    String? searchQuery,
+    String? categoryId,
+    Map<String, dynamic>? filters,
+  }) async {
+    if (!isCloudAvailable || _flutterMagento == null) {
+      print('E-commerce функции недоступны для получения продуктов');
+      return null;
+    }
+
+    try {
+      final products = await _flutterMagento!.getProducts(
+        page: page,
+        pageSize: pageSize,
+        searchQuery: searchQuery,
+        categoryId: categoryId,
+        filters: filters,
+      );
+      return products;
+    } catch (e) {
+      print('Ошибка получения продуктов: $e');
+      return null;
+    }
+  }
+
+  /// Поиск продуктов
+  Future<dynamic> searchProducts(
+    String query, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    if (!isCloudAvailable || _flutterMagento == null) {
+      print('E-commerce функции недоступны для поиска');
+      return null;
+    }
+
+    try {
+      final results = await _flutterMagento!.searchProducts(
+        query,
+        page: page,
+        pageSize: pageSize,
+      );
+      return results;
+    } catch (e) {
+      print('Ошибка поиска продуктов: $e');
+      return null;
+    }
+  }
+
+  /// Создание корзины
+  Future<dynamic> createCart() async {
+    if (!isCloudAvailable || _flutterMagento == null) {
+      print('E-commerce функции недоступны для создания корзины');
+      return null;
+    }
+
+    try {
+      final cart = await _flutterMagento!.createCart();
+      return cart;
+    } catch (e) {
+      print('Ошибка создания корзины: $e');
+      return null;
+    }
+  }
+
+  /// Добавление товара в корзину
+  Future<dynamic> addToCart(String cartId, String sku, int quantity) async {
+    if (!isCloudAvailable || _flutterMagento == null) {
+      print('E-commerce функции недоступны для добавления в корзину');
+      return null;
+    }
+
+    try {
+      final cart = await _flutterMagento!.addToCart(
+        cartId: cartId,
+        sku: sku,
+        quantity: quantity,
+      );
+      return cart;
+    } catch (e) {
+      print('Ошибка добавления товара в корзину: $e');
+      return null;
+    }
+  }
+
   /// Очистка ресурсов
   void dispose() {
     _dio?.close();
     _dio = null;
+    _flutterMagento = null;
     _isInitialized = false;
   }
 }

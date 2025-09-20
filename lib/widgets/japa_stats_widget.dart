@@ -21,6 +21,7 @@ class JapaStatsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ModernUIComponents.gradientCard(
+      context: context,
       gradientColors: [
         Theme.of(context).colorScheme.surface,
         Theme.of(context).colorScheme.surface.withOpacity(0.8),
@@ -29,6 +30,7 @@ class JapaStatsWidget extends StatelessWidget {
         children: [
           // Заголовок
           ModernUIComponents.modernSectionHeader(
+            context: context,
             title: 'Прогресс сессии',
             subtitle: 'Отслеживайте свой духовный прогресс',
           ),
@@ -111,6 +113,7 @@ class JapaStatsWidget extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               ModernUIComponents.modernProgressIndicator(
+                context: context,
                 value: _calculateOverallProgress(),
                 height: 8,
                 backgroundColor: Colors.grey[300],
@@ -138,6 +141,7 @@ class JapaStatsWidget extends StatelessWidget {
     final progress = total > 0 ? current / total : 0.0;
 
     return ModernUIComponents.gradientCard(
+      context: context,
       gradientColors: [color.withOpacity(0.1), color.withOpacity(0.05)],
       child: Column(
         children: [
@@ -162,6 +166,7 @@ class JapaStatsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           ModernUIComponents.modernProgressIndicator(
+            context: context,
             value: progress,
             height: 4,
             backgroundColor: color.withOpacity(0.2),

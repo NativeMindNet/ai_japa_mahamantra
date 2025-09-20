@@ -210,11 +210,11 @@ class CalendarService {
 
       final totalRounds = events.fold<int>(
         0,
-        (sum, event) => sum + (event['rounds'] ?? 0),
+        (sum, event) => sum + (event['rounds'] as int? ?? 0),
       );
       final totalDuration = events.fold<int>(
         0,
-        (sum, event) => sum + (event['duration'] ?? 0),
+        (sum, event) => sum + (event['duration'] as int? ?? 0),
       );
 
       return {

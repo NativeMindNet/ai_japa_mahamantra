@@ -109,7 +109,7 @@ class AIJapaMahamantraApp extends StatelessWidget {
           ),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),

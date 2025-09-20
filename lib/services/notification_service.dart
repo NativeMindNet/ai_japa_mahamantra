@@ -241,9 +241,6 @@ class NotificationService {
       body,
       _nextInstanceOfTime(time),
       details,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }

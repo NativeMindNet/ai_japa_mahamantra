@@ -86,7 +86,13 @@ dependencies:
   # Используем dio для работы с REST API
   
   # Проверка подключения к интернету
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^5.0.2
+  
+  # Magento e-commerce integration
+  flutter_magento: ^2.3.4
+  
+  # FreeDome integration
+  flutter_freedome: ^1.0.0
 
 dev_dependencies:
   flutter_test:

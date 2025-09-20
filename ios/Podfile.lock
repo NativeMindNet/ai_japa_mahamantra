@@ -1,6 +1,8 @@
 PODS:
   - audioplayers_darwin (0.0.1):
     - Flutter
+  - connectivity_plus (0.0.1):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - Firebase/Analytics (10.25.0):
@@ -122,6 +124,7 @@ PODS:
 
 DEPENDENCIES:
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -149,6 +152,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   audioplayers_darwin:
     :path: ".symlinks/plugins/audioplayers_darwin/ios"
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   firebase_analytics:
@@ -174,6 +179,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   audioplayers_darwin: ccf9c770ee768abb07e26d90af093f7bab1c12ab
+  connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Firebase: 0312a2352584f782ea56f66d91606891d4607f06
   firebase_analytics: e7280be84e7ff1c1e5859bd8e48de410b07e0b73

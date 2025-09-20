@@ -48,6 +48,7 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
   @override
   Widget build(BuildContext context) {
     return ModernUIComponents.gradientCard(
+      context: context,
       gradientColors: [
         Theme.of(context).colorScheme.surface,
         Theme.of(context).colorScheme.surface.withOpacity(0.8),

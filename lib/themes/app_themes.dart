@@ -178,7 +178,7 @@ class AppThemes {
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -209,7 +209,7 @@ class AppThemes {
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -240,7 +240,7 @@ class AppThemes {
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -271,7 +271,7 @@ class AppThemes {
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -302,7 +302,7 @@ class AppThemes {
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
