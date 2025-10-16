@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../providers/locale_provider.dart';
 import '../services/ai_service.dart';
 import '../constants/app_constants.dart';
 import '../models/ai_assistant.dart';
@@ -103,6 +101,9 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
   Future<void> _askQuestion() async {
     final question = _questionController.text.trim();
     if (question.isEmpty) return;
+
+    // Скрываем клавиатуру
+    FocusScope.of(context).unfocus();
 
     setState(() {
       _isLoading = true;
@@ -304,6 +305,8 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
             TextField(
               controller: _questionController,
               maxLines: 3,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _askQuestion(),
               decoration: InputDecoration(
                 labelText: 'Ваш вопрос',
                 hintText: 'Например: ${l10n.spiritualQuestionHints.first}',

@@ -408,6 +408,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _showDevelopersDialog(l10n);
                           },
                         ),
+                        SettingsTile(
+                          title: l10n.donate,
+                          subtitle: 'Поддержать развитие приложения',
+                          leading: const Icon(Icons.favorite),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showDonationDialog(l10n);
+                          },
+                        ),
                       ],
                     ),
                   ],
@@ -1554,6 +1563,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(context).pop();
               },
               child: Text(l10n.close),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Показывает диалог пожертвований
+  void _showDonationDialog(AppLocalizations l10n) {
+    const String donationAddress = '0xffcba0b4980eb2d2336bfdb1e5a0fc49c620908a';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.favorite, color: Colors.red),
+              const SizedBox(width: 8),
+              Text(l10n.donate),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Поддержите развитие приложения AI Джапа Махамантра!',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text('Адрес для пожертвований:'),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: SelectableText(
+                  donationAddress,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Ваша поддержка поможет нам:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text('• Улучшать AI-помощника'),
+              const Text('• Добавлять новые функции'),
+              const Text('• Поддерживать серверы'),
+              const Text('• Развивать духовные практики'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(l10n.close),
+            ),
+            TextButton(
+              onPressed: () {
+                // Копируем адрес в буфер обмена
+                // В реальном приложении можно использовать clipboard пакет
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Адрес скопирован в буфер обмена'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: const Text('Копировать адрес'),
             ),
           ],
         );

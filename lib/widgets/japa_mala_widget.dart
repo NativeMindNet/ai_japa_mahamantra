@@ -22,7 +22,6 @@ class JapaMalaWidget extends StatefulWidget {
 class _JapaMalaWidgetState extends State<JapaMalaWidget>
     with TickerProviderStateMixin {
   late AnimationController _beadAnimationController;
-  late Animation<double> _beadScaleAnimation;
 
   @override
   void initState() {
@@ -30,12 +29,6 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
     _beadAnimationController = AnimationController(
       duration: AppConstants.shortAnimation,
       vsync: this,
-    );
-    _beadScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(
-        parent: _beadAnimationController,
-        curve: Curves.elasticOut,
-      ),
     );
   }
 
@@ -51,7 +44,7 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
       context: context,
       gradientColors: [
         Theme.of(context).colorScheme.surface,
-        Theme.of(context).colorScheme.surface.withOpacity(0.8),
+        Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
       ],
       child: Container(
         margin: const EdgeInsets.all(AppConstants.defaultPadding),
@@ -97,15 +90,26 @@ class _JapaMalaWidgetState extends State<JapaMalaWidget>
   }
 
   int _getBeadIndexFromAngle(double angle) {
-    // Нормализуем угол (0 = верх, π/2 = право, π = низ, -π/2 = лево)
-    double normalizedAngle =
-        angle + (3 * 3.14159 / 2); // Поворачиваем на 270 градусов
+    // Используем тот же расчет, что и в _drawMala
+    const startAngle = -3.14159 / 2; // Начинаем снизу
+    final angleStep = 2 * 3.14159 / widget.totalBeads; // Шаг между бусинами
+    const offsetAngle = 3.14159 / 18; // Небольшое смещение (10 градусов)
+
+    // Нормализуем угол к диапазону [0, 2π]
+    double normalizedAngle = angle;
     if (normalizedAngle < 0) normalizedAngle += 2 * 3.14159;
 
-    // Вычисляем номер бусины
-    final beadIndex = ((normalizedAngle / (2 * 3.14159)) * widget.totalBeads)
-        .round();
-    return beadIndex == 0 ? widget.totalBeads : beadIndex;
+    // Вычисляем номер бусины с учетом смещения
+    double adjustedAngle = normalizedAngle - offsetAngle;
+    if (adjustedAngle < 0) adjustedAngle += 2 * 3.14159;
+
+    final beadIndex = ((adjustedAngle - startAngle) / angleStep).round() + 1;
+
+    // Проверяем границы
+    if (beadIndex < 1) return 1;
+    if (beadIndex > widget.totalBeads) return widget.totalBeads;
+
+    return beadIndex;
   }
 }
 
@@ -143,7 +147,13 @@ class JapaMalaPainter extends CustomPainter {
 
     // Рисуем бусины
     for (int i = 1; i <= totalBeads; i++) {
-      final angle = (2 * 3.14159 * i) / totalBeads - (3 * 3.14159 / 2);
+      // Начинаем с угла -π/2 (внизу) и идем против часовой стрелки
+      // Смещаем на небольшой угол, чтобы избежать перекрытия с нулевой бусиной
+      const startAngle = -3.14159 / 2; // Начинаем снизу
+      final angleStep = 2 * 3.14159 / totalBeads; // Шаг между бусинами
+      const offsetAngle = 3.14159 / 18; // Небольшое смещение (10 градусов)
+      final angle = startAngle + (i - 1) * angleStep + offsetAngle;
+
       final beadCenter = Offset(
         center.dx + (radius * 0.6) * cos(angle),
         center.dy + (radius * 0.6) * sin(angle),
@@ -177,8 +187,18 @@ class JapaMalaPainter extends CustomPainter {
   }
 
   void _drawZeroBead(Canvas canvas, Offset center, double radius) {
-    // Нулевая бусина (большая) внизу
+    // Нулевая бусина (большая) зафиксирована внизу по центру
     final zeroBeadCenter = Offset(center.dx, center.dy + radius * 0.6);
+
+    // Добавляем тень для лучшей видимости
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+    canvas.drawCircle(
+      Offset(zeroBeadCenter.dx + 2, zeroBeadCenter.dy + 2),
+      22.0,
+      shadowPaint,
+    );
 
     final zeroBeadPaint = Paint()
       ..color = const Color(AppConstants.successColor)
@@ -220,7 +240,12 @@ class JapaMalaPainter extends CustomPainter {
   void _drawCurrentBead(Canvas canvas, Offset center, double radius) {
     if (currentBead <= 0 || currentBead > totalBeads) return;
 
-    final angle = (2 * 3.14159 * currentBead) / totalBeads - (3 * 3.14159 / 2);
+    // Используем тот же расчет углов, что и в _drawMala
+    const startAngle = -3.14159 / 2; // Начинаем снизу
+    final angleStep = 2 * 3.14159 / totalBeads; // Шаг между бусинами
+    const offsetAngle = 3.14159 / 18; // Небольшое смещение (10 градусов)
+    final angle = startAngle + (currentBead - 1) * angleStep + offsetAngle;
+
     final beadCenter = Offset(
       center.dx + (radius * 0.6) * cos(angle),
       center.dy + (radius * 0.6) * sin(angle),
@@ -228,7 +253,7 @@ class JapaMalaPainter extends CustomPainter {
 
     // Подсветка текущей бусины
     final highlightPaint = Paint()
-      ..color = const Color(AppConstants.accentColor).withOpacity(0.3)
+      ..color = const Color(AppConstants.accentColor).withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
     canvas.drawCircle(beadCenter, 15.0, highlightPaint);
