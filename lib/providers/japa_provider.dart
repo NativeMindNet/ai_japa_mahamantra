@@ -13,6 +13,7 @@ import '../services/achievement_service.dart';
 import '../services/magento_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/local_ai_service.dart';
+import '../services/ai_power_mode_service.dart';
 import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
@@ -53,9 +54,16 @@ class JapaProvider with ChangeNotifier {
 
   // Локальный AI сервис на устройстве
   final LocalAIService _localAIService = LocalAIService.instance;
+  
+  // Сервис управления режимами AI (High Power / Low Power)
+  final AIPowerModeService _aiPowerModeService = AIPowerModeService.instance;
 
   // Настройка отправки мантр к AI
   bool _sendMantrasToAI = true; // Включено по умолчанию
+  
+  // Easter Egg триггер - счетчик тапов на 108 бусине
+  int _easterEggTapCount = 0;
+  DateTime? _lastEasterEggTap;
 
   // Геттеры
   JapaSession? get currentSession => _currentSession;
@@ -81,6 +89,7 @@ class JapaProvider with ChangeNotifier {
     _initializeAudioService();
     _initializeCloudServices();
     _initializeLocalAI();
+    _initializeAIPowerMode();
   }
 
   /// Инициализирует аудио сервис
@@ -105,6 +114,16 @@ class JapaProvider with ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Ошибка инициализации локального AI: $e');
+    }
+  }
+  
+  /// Инициализирует сервис управления режимами AI
+  Future<void> _initializeAIPowerMode() async {
+    try {
+      await _aiPowerModeService.initialize();
+      debugPrint('AI Power Mode сервис инициализирован: ${_aiPowerModeService.currentMode}');
+    } catch (e) {
+      debugPrint('Ошибка инициализации AI Power Mode: $e');
     }
   }
 
@@ -398,15 +417,20 @@ class JapaProvider with ChangeNotifier {
       await AudioService().playEventSound('bead_click');
     }
 
-    // ОТПРАВКА МАНТРЫ К AI НА КАЖДОЙ БУСИНЕ
-    if (_sendMantrasToAI && _localAIService.isAvailable) {
+    // ОТПРАВКА МАНТРЫ К AI НА КАЖДОЙ БУСИНЕ (через AIPowerModeService)
+    if (_sendMantrasToAI) {
       await _sendCurrentMantraToAI();
+    }
+    
+    // Easter Egg: проверка на тройной тап по 108 бусине
+    if (_currentBead == 108) {
+      _checkEasterEggTrigger();
     }
 
     notifyListeners();
   }
 
-  /// Отправляет текущую мантру к AI для обработки
+  /// Отправляет текущую мантру к AI для обработки через AIPowerModeService
   Future<void> _sendCurrentMantraToAI() async {
     try {
       // Определяем какую мантру использовать
@@ -417,32 +441,91 @@ class JapaProvider with ChangeNotifier {
         mantra = AppConstants.hareKrishnaMantra;
       }
 
-      // Формируем контекст сессии
-      final sessionContext =
-          'Джапа-медитация. Сессия: $_totalSessions+1. '
-          'Цель: $_targetRounds кругов. Продолжительность: ${_sessionDuration.inMinutes} мин';
+      // Обрабатываем через AIPowerModeService (автоматически выбирается режим)
+      await _aiPowerModeService.processMantra(
+        mantra: mantra,
+        beadNumber: _currentBead,
+        roundNumber: _currentRound,
+      );
+      
+      // Если High Power режим и AI доступен - отправляем к LocalAI
+      if (_aiPowerModeService.currentMode == AIPowerMode.highPower && 
+          _localAIService.isAvailable) {
+        // Формируем контекст сессии
+        final sessionContext =
+            'Джапа-медитация. Сессия: $_totalSessions+1. '
+            'Цель: $_targetRounds кругов. Продолжительность: ${_sessionDuration.inMinutes} мин';
 
-      // Отправляем мантру к AI (асинхронно, не блокируем UI)
-      _localAIService
-          .sendMantraToAI(
-            mantra: mantra,
-            beadNumber: _currentBead,
-            roundNumber: _currentRound,
-            sessionContext: sessionContext,
-          )
-          .then((success) {
-            if (success) {
-              debugPrint(
-                '✅ Мантра #$_currentBead отправлена к AI (круг $_currentRound)',
-              );
-            }
-          })
-          .catchError((error) {
-            debugPrint('❌ Ошибка отправки мантры к AI: $error');
-          });
+        // Отправляем мантру к AI (асинхронно, не блокируем UI)
+        _localAIService
+            .sendMantraToAI(
+              mantra: mantra,
+              beadNumber: _currentBead,
+              roundNumber: _currentRound,
+              sessionContext: sessionContext,
+            )
+            .then((success) {
+              if (success) {
+                debugPrint(
+                  '✅ [High Power] Мантра #$_currentBead отправлена к AI (круг $_currentRound)',
+                );
+              }
+            })
+            .catchError((error) {
+              debugPrint('❌ Ошибка отправки мантры к AI: $error');
+            });
+      }
     } catch (e) {
-      debugPrint('Ошибка при отправке мантры: $e');
+      debugPrint('Ошибка при обработке мантры: $e');
     }
+  }
+  
+  /// Проверяет триггер Easter Egg (тройной тап на 108 бусине)
+  void _checkEasterEggTrigger() {
+    final now = DateTime.now();
+    
+    // Сбрасываем счетчик если прошло больше 2 секунд
+    if (_lastEasterEggTap != null && 
+        now.difference(_lastEasterEggTap!).inSeconds > 2) {
+      _easterEggTapCount = 0;
+    }
+    
+    _easterEggTapCount++;
+    _lastEasterEggTap = now;
+    
+    debugPrint('Easter Egg тап: $_easterEggTapCount/3');
+    
+    // Если тройной тап - активируем Easter Egg
+    if (_easterEggTapCount >= 3) {
+      _easterEggTapCount = 0;
+      _triggerEasterEgg();
+    }
+  }
+  
+  /// Активирует Easter Egg (открывает экран с логами)
+  void _triggerEasterEgg() {
+    debugPrint('🐣 Easter Egg активирован! Открываем логи...');
+    // Этот метод будет вызываться из UI
+    notifyListeners();
+  }
+  
+  /// Проверяет, был ли активирован Easter Egg
+  bool checkAndResetEasterEggTrigger() {
+    final wasTriggered = _easterEggTapCount >= 3;
+    if (wasTriggered) {
+      _easterEggTapCount = 0;
+    }
+    return wasTriggered;
+  }
+  
+  /// Получает информацию о режиме AI
+  Map<String, dynamic> getAIPowerModeInfo() {
+    return _aiPowerModeService.getStatistics();
+  }
+  
+  /// Получает статус Low Power цикла
+  Map<String, dynamic> getLowPowerStatus() {
+    return _aiPowerModeService.getLowPowerStatus();
   }
 
   /// Включает/выключает отправку мантр к AI

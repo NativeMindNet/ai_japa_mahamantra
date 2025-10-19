@@ -192,20 +192,20 @@ class BackgroundService {
   /// Миграция для старых версий - включает автоматическое расписание по умолчанию
   static Future<void> _migrateToDefaultSchedule() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Проверяем, была ли уже выполнена миграция
     final migrationDone = prefs.getBool('schedule_migration_v1') ?? false;
-    
+
     if (!migrationDone) {
       // Для всех пользователей (новых и старых) включаем расписание по умолчанию
       // Если пользователь не устанавливал настройку явно, включаем
       final hasExplicitSetting = prefs.containsKey('auto_schedule_enabled');
-      
+
       if (!hasExplicitSetting) {
         // Включаем расписание по умолчанию для всех
         await prefs.setBool('auto_schedule_enabled', true);
       }
-      
+
       // Отмечаем миграцию как выполненную
       await prefs.setBool('schedule_migration_v1', true);
     }

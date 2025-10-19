@@ -9,6 +9,7 @@ import '../widgets/japa_stats_widget.dart';
 // import '../l10n/app_localizations_delegate.dart';
 import '../animations/custom_page_transitions.dart';
 import '../widgets/chudny_video_widget.dart';
+import 'easter_egg_log_screen.dart';
 
 class JapaScreen extends StatefulWidget {
   const JapaScreen({super.key});
@@ -117,6 +118,13 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
       ),
       body: Consumer<JapaProvider>(
         builder: (context, japaProvider, child) {
+          // Проверяем активацию Easter Egg
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (japaProvider.checkAndResetEasterEggTrigger()) {
+              _openEasterEggScreen();
+            }
+          });
+          
           return Container(
             color: Theme.of(context).colorScheme.surface,
             child: Column(
@@ -235,6 +243,15 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
         color: Colors.white,
       );
     }
+  }
+
+  /// Открывает экран Easter Egg с логами AI
+  void _openEasterEggScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const EasterEggLogScreen(),
+      ),
+    );
   }
 
   /// Показывает диалог истории сессий
