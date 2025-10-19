@@ -48,9 +48,7 @@ class AIJapaMahamantraApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => JapaProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ChangeNotifierProvider(
-          create: (_) => ProfileProvider()..initialize(),
-        ),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()..initialize()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, child) {

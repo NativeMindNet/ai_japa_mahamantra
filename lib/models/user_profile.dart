@@ -239,4 +239,3 @@ class UserStatistics {
 
   Map<String, dynamic> toJson() => _$UserStatisticsToJson(this);
 }
-

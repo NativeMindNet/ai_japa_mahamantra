@@ -639,14 +639,11 @@ class MagentoService {
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        
+
         // Получаем дополнительные данные о статистике
         final stats = await _getUserStatistics(data['id'].toString());
-        
-        return UserProfile.fromJson({
-          ...data,
-          'statistics': stats?.toJson(),
-        });
+
+        return UserProfile.fromJson({...data, 'statistics': stats?.toJson()});
       } else {
         print('Ошибка получения профиля: ${response.statusCode}');
         return null;
@@ -669,14 +666,11 @@ class MagentoService {
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        
+
         // Получаем дополнительные данные о статистике
         final stats = await _getUserStatistics(customerId);
-        
-        return UserProfile.fromJson({
-          ...data,
-          'statistics': stats?.toJson(),
-        });
+
+        return UserProfile.fromJson({...data, 'statistics': stats?.toJson()});
       } else {
         print('Ошибка получения профиля: ${response.statusCode}');
         return null;
@@ -708,20 +702,11 @@ class MagentoService {
                 'value': profile.japaPreferences!.toJson().toString(),
               },
             if (profile.avatarUrl != null)
-              {
-                'attribute_code': 'avatar_url',
-                'value': profile.avatarUrl,
-              },
+              {'attribute_code': 'avatar_url', 'value': profile.avatarUrl},
             if (profile.timezone != null)
-              {
-                'attribute_code': 'timezone',
-                'value': profile.timezone,
-              },
+              {'attribute_code': 'timezone', 'value': profile.timezone},
             if (profile.language != null)
-              {
-                'attribute_code': 'language',
-                'value': profile.language,
-              },
+              {'attribute_code': 'language', 'value': profile.language},
           ],
         },
       };
@@ -819,11 +804,11 @@ class MagentoService {
 
         if (tokenResponse.statusCode == 200) {
           final token = tokenResponse.data as String;
-          
+
           // Обновляем токен в заголовках
           _accessToken = token;
           _dio!.options.headers['Authorization'] = 'Bearer $token';
-          
+
           // Сохраняем токен
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('magento_access_token', token);
@@ -856,16 +841,16 @@ class MagentoService {
 
       if (tokenResponse.statusCode == 200) {
         final token = tokenResponse.data as String;
-        
+
         // Обновляем токен в заголовках
         _accessToken = token;
         _dio!.options.headers['Authorization'] = 'Bearer $token';
-        
+
         // Сохраняем токен
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('magento_access_token', token);
         await prefs.setString('magento_user_email', email);
-        
+
         // Получаем профиль пользователя
         return await getCurrentUserProfile();
       } else {
@@ -883,11 +868,11 @@ class MagentoService {
     try {
       _accessToken = null;
       _dio?.options.headers.remove('Authorization');
-      
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('magento_access_token');
       await prefs.remove('magento_user_email');
-      
+
       print('Пользователь вышел из системы');
     } catch (e) {
       print('Ошибка при выходе: $e');
@@ -899,7 +884,7 @@ class MagentoService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('magento_access_token');
-      
+
       if (token != null && token.isNotEmpty) {
         _accessToken = token;
         _dio?.options.headers['Authorization'] = 'Bearer $token';

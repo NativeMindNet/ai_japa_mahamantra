@@ -20,11 +20,12 @@ class _ProfileScreenState extends State<ProfileScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
+
     // Загружаем профиль при инициализации
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileProvider = context.read<ProfileProvider>();
-      if (profileProvider.isLoggedIn && profileProvider.currentProfile == null) {
+      if (profileProvider.isLoggedIn &&
+          profileProvider.currentProfile == null) {
         profileProvider.loadCurrentProfile();
       }
     });
@@ -44,19 +45,16 @@ class _ProfileScreenState extends State<ProfileScreen>
           return const _LoginScreen();
         }
 
-        if (profileProvider.isLoading && profileProvider.currentProfile == null) {
+        if (profileProvider.isLoading &&
+            profileProvider.currentProfile == null) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
         if (profileProvider.currentProfile == null) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('Профиль'),
-            ),
+            appBar: AppBar(title: const Text('Профиль')),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -179,25 +177,25 @@ class _ProfileTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Имя
           Text(
             profile.fullName,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          
+
           // Email
           Text(
             profile.email,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
-          
+
           // Карточки информации
           _InfoCard(
             icon: Icons.calendar_today,
@@ -219,7 +217,7 @@ class _ProfileTab extends StatelessWidget {
             value: profile.timezone ?? 'Не указан',
           ),
           const SizedBox(height: 24),
-          
+
           // Кнопка редактирования
           SizedBox(
             width: double.infinity,
@@ -337,8 +335,8 @@ class _StatisticsTab extends StatelessWidget {
                       Text(
                         '${stats.experience} XP',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).primaryColor,
-                            ),
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
                     ],
                   ),
@@ -381,7 +379,7 @@ class _StatisticsTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -404,7 +402,7 @@ class _StatisticsTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -427,7 +425,7 @@ class _StatisticsTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          
+
           // Глобальный рейтинг
           if (stats.globalRank != null)
             Card(
@@ -437,8 +435,8 @@ class _StatisticsTab extends StatelessWidget {
                 trailing: Text(
                   '#${stats.globalRank}',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -479,7 +477,7 @@ class _SettingsTabState extends State<_SettingsTab> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
-          
+
           // Ежедневная цель
           Card(
             child: ListTile(
@@ -493,7 +491,7 @@ class _SettingsTabState extends State<_SettingsTab> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Количество кругов
           Card(
             child: ListTile(
@@ -507,7 +505,7 @@ class _SettingsTabState extends State<_SettingsTab> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Переключатели
           SwitchListTile(
             secondary: const Icon(Icons.notifications),
@@ -522,7 +520,7 @@ class _SettingsTabState extends State<_SettingsTab> {
             },
           ),
           const SizedBox(height: 12),
-          
+
           SwitchListTile(
             secondary: const Icon(Icons.volume_up),
             title: const Text('Звук бусин'),
@@ -536,7 +534,7 @@ class _SettingsTabState extends State<_SettingsTab> {
             },
           ),
           const SizedBox(height: 12),
-          
+
           SwitchListTile(
             secondary: const Icon(Icons.vibration),
             title: const Text('Вибрация'),
@@ -550,7 +548,7 @@ class _SettingsTabState extends State<_SettingsTab> {
             },
           ),
           const SizedBox(height: 12),
-          
+
           SwitchListTile(
             secondary: const Icon(Icons.cloud_sync),
             title: const Text('Автосинхронизация'),
@@ -677,9 +675,7 @@ class _LoginScreenState extends State<_LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isLogin ? 'Вход' : 'Регистрация'),
-      ),
+      appBar: AppBar(title: Text(_isLogin ? 'Вход' : 'Регистрация')),
       body: Consumer<ProfileProvider>(
         builder: (context, profileProvider, child) {
           return SingleChildScrollView(
@@ -695,7 +691,7 @@ class _LoginScreenState extends State<_LoginScreen> {
                     color: Theme.of(context).primaryColor,
                   ),
                   const SizedBox(height: 32),
-                  
+
                   if (!_isLogin) ...[
                     TextFormField(
                       controller: _firstNameController,
@@ -728,7 +724,7 @@ class _LoginScreenState extends State<_LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
+
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
@@ -748,7 +744,7 @@ class _LoginScreenState extends State<_LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   TextFormField(
                     controller: _passwordController,
                     decoration: const InputDecoration(
@@ -768,7 +764,7 @@ class _LoginScreenState extends State<_LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  
+
                   if (profileProvider.error != null) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -783,7 +779,7 @@ class _LoginScreenState extends State<_LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
+
                   ElevatedButton(
                     onPressed: profileProvider.isLoading
                         ? null
@@ -799,7 +795,7 @@ class _LoginScreenState extends State<_LoginScreen> {
                           ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -908,9 +904,9 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
@@ -924,4 +920,3 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
