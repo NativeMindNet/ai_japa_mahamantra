@@ -177,3 +177,4 @@ adb logcat | grep FlutterLocalNotifications
 - `lib/services/background_service.dart` - Реализация фоновых задач
 - `lib/services/notification_service.dart` - Реализация уведомлений
 
+

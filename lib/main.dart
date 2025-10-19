@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'providers/japa_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/profile_provider.dart';
 import 'screens/japa_screen.dart';
 import 'constants/app_constants.dart';
 import 'services/notification_service.dart';
@@ -47,6 +48,9 @@ class AIJapaMahamantraApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => JapaProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ProfileProvider()..initialize(),
+        ),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, child) {

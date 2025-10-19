@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'connectivity_service.dart';
 import '../models/japa_session_purchase.dart';
+import '../models/user_profile.dart';
 
 /// Модель для синхронизации данных джапа медитации
 class JapaCloudData {
@@ -620,6 +621,313 @@ class MagentoService {
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('Ошибка при создании/обновлении профиля: $e');
+      return false;
+    }
+  }
+
+  // ===== PROFILE MANAGEMENT METHODS =====
+
+  /// Получение профиля текущего пользователя
+  Future<UserProfile?> getCurrentUserProfile() async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для получения профиля');
+      return null;
+    }
+
+    try {
+      final response = await _dio!.get('/rest/V1/customers/me');
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        
+        // Получаем дополнительные данные о статистике
+        final stats = await _getUserStatistics(data['id'].toString());
+        
+        return UserProfile.fromJson({
+          ...data,
+          'statistics': stats?.toJson(),
+        });
+      } else {
+        print('Ошибка получения профиля: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка при получении профиля: $e');
+      return null;
+    }
+  }
+
+  /// Получение профиля пользователя по ID
+  Future<UserProfile?> getUserProfile(String customerId) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для получения профиля');
+      return null;
+    }
+
+    try {
+      final response = await _dio!.get('/rest/V1/customers/$customerId');
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        
+        // Получаем дополнительные данные о статистике
+        final stats = await _getUserStatistics(customerId);
+        
+        return UserProfile.fromJson({
+          ...data,
+          'statistics': stats?.toJson(),
+        });
+      } else {
+        print('Ошибка получения профиля: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка при получении профиля пользователя: $e');
+      return null;
+    }
+  }
+
+  /// Обновление профиля пользователя
+  Future<UserProfile?> updateUserProfile(UserProfile profile) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для обновления профиля');
+      return null;
+    }
+
+    try {
+      final customerData = {
+        'customer': {
+          'id': profile.customerId,
+          'email': profile.email,
+          'firstname': profile.firstName,
+          'lastname': profile.lastName,
+          'custom_attributes': [
+            if (profile.japaPreferences != null)
+              {
+                'attribute_code': 'japa_preferences',
+                'value': profile.japaPreferences!.toJson().toString(),
+              },
+            if (profile.avatarUrl != null)
+              {
+                'attribute_code': 'avatar_url',
+                'value': profile.avatarUrl,
+              },
+            if (profile.timezone != null)
+              {
+                'attribute_code': 'timezone',
+                'value': profile.timezone,
+              },
+            if (profile.language != null)
+              {
+                'attribute_code': 'language',
+                'value': profile.language,
+              },
+          ],
+        },
+      };
+
+      final response = await _dio!.put(
+        '/rest/V1/customers/${profile.customerId}',
+        data: customerData,
+      );
+
+      if (response.statusCode == 200) {
+        return UserProfile.fromJson(response.data);
+      } else {
+        print('Ошибка обновления профиля: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка при обновлении профиля: $e');
+      return null;
+    }
+  }
+
+  /// Обновление настроек джапы
+  Future<bool> updateJapaPreferences(
+    String customerId,
+    JapaPreferences preferences,
+  ) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для обновления настроек');
+      return false;
+    }
+
+    try {
+      final response = await _dio!.put(
+        '/rest/V1/customers/$customerId/japa-preferences',
+        data: preferences.toJson(),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Ошибка при обновлении настроек джапы: $e');
+      return false;
+    }
+  }
+
+  /// Получение статистики пользователя
+  Future<UserStatistics?> _getUserStatistics(String customerId) async {
+    try {
+      final response = await _dio!.get(
+        '/rest/V1/customers/$customerId/japa-statistics',
+      );
+
+      if (response.statusCode == 200) {
+        return UserStatistics.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      print('Ошибка при получении статистики: $e');
+      return null;
+    }
+  }
+
+  /// Регистрация нового пользователя
+  Future<UserProfile?> registerUser({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+  }) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для регистрации');
+      return null;
+    }
+
+    try {
+      final customerData = {
+        'customer': {
+          'email': email,
+          'firstname': firstName,
+          'lastname': lastName,
+        },
+        'password': password,
+      };
+
+      final response = await _dio!.post(
+        '/rest/V1/customers',
+        data: customerData,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Получаем токен для нового пользователя
+        final tokenResponse = await _dio!.post(
+          '/rest/V1/integration/customer/token',
+          data: {'username': email, 'password': password},
+        );
+
+        if (tokenResponse.statusCode == 200) {
+          final token = tokenResponse.data as String;
+          
+          // Обновляем токен в заголовках
+          _accessToken = token;
+          _dio!.options.headers['Authorization'] = 'Bearer $token';
+          
+          // Сохраняем токен
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('magento_access_token', token);
+        }
+
+        return UserProfile.fromJson(response.data);
+      } else {
+        print('Ошибка регистрации: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка при регистрации пользователя: $e');
+      return null;
+    }
+  }
+
+  /// Вход пользователя
+  Future<UserProfile?> loginUser(String email, String password) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для входа');
+      return null;
+    }
+
+    try {
+      // Получаем токен
+      final tokenResponse = await _dio!.post(
+        '/rest/V1/integration/customer/token',
+        data: {'username': email, 'password': password},
+      );
+
+      if (tokenResponse.statusCode == 200) {
+        final token = tokenResponse.data as String;
+        
+        // Обновляем токен в заголовках
+        _accessToken = token;
+        _dio!.options.headers['Authorization'] = 'Bearer $token';
+        
+        // Сохраняем токен
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('magento_access_token', token);
+        await prefs.setString('magento_user_email', email);
+        
+        // Получаем профиль пользователя
+        return await getCurrentUserProfile();
+      } else {
+        print('Ошибка входа: ${tokenResponse.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка при входе пользователя: $e');
+      return null;
+    }
+  }
+
+  /// Выход пользователя
+  Future<void> logoutUser() async {
+    try {
+      _accessToken = null;
+      _dio?.options.headers.remove('Authorization');
+      
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('magento_access_token');
+      await prefs.remove('magento_user_email');
+      
+      print('Пользователь вышел из системы');
+    } catch (e) {
+      print('Ошибка при выходе: $e');
+    }
+  }
+
+  /// Проверка авторизации пользователя
+  Future<bool> isUserLoggedIn() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('magento_access_token');
+      
+      if (token != null && token.isNotEmpty) {
+        _accessToken = token;
+        _dio?.options.headers['Authorization'] = 'Bearer $token';
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Ошибка проверки авторизации: $e');
+      return false;
+    }
+  }
+
+  /// Обновление аватара пользователя
+  Future<bool> updateAvatar(String customerId, String imageUrl) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для обновления аватара');
+      return false;
+    }
+
+    try {
+      final response = await _dio!.put(
+        '/rest/V1/customers/$customerId/avatar',
+        data: {'avatar_url': imageUrl},
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Ошибка при обновлении аватара: $e');
       return false;
     }
   }
