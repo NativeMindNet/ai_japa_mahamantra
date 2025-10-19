@@ -37,7 +37,7 @@ class JapaControlsWidget extends StatelessWidget {
         ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Основные кнопки управления
           Row(
@@ -71,23 +71,24 @@ class JapaControlsWidget extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: AppConstants.smallPadding),
+          const SizedBox(height: 8),
 
           // Кнопка возобновления (если сессия на паузе)
           if (isSessionActive)
-            ModernUIComponents.animatedButton(
-              context: context,
-              text: 'Возобновить сессию',
-              icon: Icons.play_arrow,
-              onPressed: onResumeSession,
-              backgroundColor: const Color(AppConstants.successColor),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ModernUIComponents.animatedButton(
+                context: context,
+                text: 'Возобновить сессию',
+                icon: Icons.play_arrow,
+                onPressed: onResumeSession,
+                backgroundColor: const Color(AppConstants.successColor),
+              ),
             ),
-
-          const SizedBox(height: AppConstants.smallPadding),
 
           // Информация о сессии
           Container(
-            padding: const EdgeInsets.all(AppConstants.smallPadding),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: const Color(AppConstants.backgroundColor),
               borderRadius: BorderRadius.circular(AppConstants.borderRadius),
@@ -125,32 +126,34 @@ class JapaControlsWidget extends StatelessWidget {
     required VoidCallback? onPressed,
   }) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 60,
-          height: 60,
+          width: 50,
+          height: 50,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
                 color: color.withOpacity(0.3),
-                blurRadius: 8,
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
           child: IconButton(
-            icon: Icon(icon, color: Colors.white, size: 28),
+            icon: Icon(icon, color: Colors.white, size: 24),
             onPressed: onPressed,
             tooltip: label,
+            padding: EdgeInsets.zero,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
             color: onPressed != null
                 ? const Color(AppConstants.primaryColor)
@@ -176,15 +179,16 @@ class _buildInfoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: const Color(AppConstants.primaryColor), size: 20),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+        Icon(icon, color: const Color(AppConstants.primaryColor), size: 18),
         const SizedBox(height: 2),
+        Text(label, style: TextStyle(fontSize: 9, color: Colors.grey[600])),
+        const SizedBox(height: 1),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
             color: Color(AppConstants.primaryColor),
           ),

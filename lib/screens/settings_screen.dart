@@ -5,12 +5,14 @@ import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/japa_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/profile_provider.dart';
 import '../services/ai_service.dart';
 import '../services/notification_service.dart';
 import '../services/audio_service.dart';
 import '../services/magento_service.dart';
 import '../services/connectivity_service.dart';
 import '../constants/app_constants.dart';
+import '../screens/profile_screen.dart';
 // import '../l10n/app_localizations_delegate.dart'; // Временно отключено
 import '../utils/simple_localizations.dart';
 import '../animations/custom_page_transitions.dart';
@@ -306,6 +308,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               : null,
                         ),
                         if (_cloudFeaturesEnabled && _isOnline) ...[
+                          SettingsTile(
+                            title: 'Профиль пользователя',
+                            subtitle: 'Управление профилем и настройками',
+                            leading: const Icon(Icons.account_circle),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onPressed: (context) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ProfileScreen(),
+                                ),
+                              );
+                            },
+                          ),
                           SettingsTile(
                             title: 'Глобальная статистика',
                             subtitle:

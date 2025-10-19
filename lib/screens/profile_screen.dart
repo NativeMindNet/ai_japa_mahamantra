@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile_provider.dart';
 import '../models/user_profile.dart';
-import '../l10n/app_localizations.dart';
 
 /// Экран профиля пользователя с интеграцией Magento
 class ProfileScreen extends StatefulWidget {

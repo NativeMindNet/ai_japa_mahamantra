@@ -52,7 +52,9 @@ class MagentoService {
   MagentoService._internal();
 
   Dio? _dio;
+  // ignore: unused_field
   String? _baseUrl;
+  // ignore: unused_field
   String? _accessToken;
   final ConnectivityService _connectivityService = ConnectivityService();
 

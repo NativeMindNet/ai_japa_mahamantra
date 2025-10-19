@@ -54,7 +54,6 @@ class NotificationService {
       showWhen: true,
       enableVibration: true,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('mantra_bell'),
       icon: '@mipmap/ic_launcher',
       color: Color(AppConstants.primaryColor),
     );
