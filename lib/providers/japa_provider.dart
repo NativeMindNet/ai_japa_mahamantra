@@ -12,6 +12,7 @@ import '../services/audio_service.dart';
 import '../services/achievement_service.dart';
 import '../services/magento_service.dart';
 import '../services/connectivity_service.dart';
+import '../services/local_ai_service.dart';
 import '../constants/app_constants.dart';
 
 class JapaProvider with ChangeNotifier {
@@ -50,6 +51,12 @@ class JapaProvider with ChangeNotifier {
   final MagentoService _magentoService = MagentoService();
   final ConnectivityService _connectivityService = ConnectivityService();
 
+  // Локальный AI сервис на устройстве
+  final LocalAIService _localAIService = LocalAIService.instance;
+
+  // Настройка отправки мантр к AI
+  bool _sendMantrasToAI = true; // Включено по умолчанию
+
   // Геттеры
   JapaSession? get currentSession => _currentSession;
   bool get isSessionActive => _isSessionActive;
@@ -73,6 +80,7 @@ class JapaProvider with ChangeNotifier {
     _checkAutoStart();
     _initializeAudioService();
     _initializeCloudServices();
+    _initializeLocalAI();
   }
 
   /// Инициализирует аудио сервис
@@ -81,6 +89,22 @@ class JapaProvider with ChangeNotifier {
       await AudioService().initialize();
     } catch (e) {
       // silent
+    }
+  }
+
+  /// Инициализирует локальный AI сервис
+  Future<void> _initializeLocalAI() async {
+    try {
+      final initialized = await _localAIService.initialize();
+      if (initialized) {
+        debugPrint('Локальный AI сервис готов к работе');
+      } else {
+        debugPrint(
+          'Локальный AI сервис не инициализирован - требуется модель GGUF',
+        );
+      }
+    } catch (e) {
+      debugPrint('Ошибка инициализации локального AI: $e');
     }
   }
 
@@ -127,6 +151,7 @@ class JapaProvider with ChangeNotifier {
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
       _autoStartEnabled = prefs.getBool('auto_start_enabled') ?? false;
       _targetRounds = prefs.getInt('target_rounds') ?? 16;
+      _sendMantrasToAI = prefs.getBool('send_mantras_to_ai') ?? true;
       notifyListeners();
     } catch (e) {
       // silent
@@ -142,6 +167,7 @@ class JapaProvider with ChangeNotifier {
       await prefs.setBool('notifications_enabled', _notificationsEnabled);
       await prefs.setBool('auto_start_enabled', _autoStartEnabled);
       await prefs.setInt('target_rounds', _targetRounds);
+      await prefs.setBool('send_mantras_to_ai', _sendMantrasToAI);
     } catch (e) {
       // silent
     }
@@ -372,7 +398,66 @@ class JapaProvider with ChangeNotifier {
       await AudioService().playEventSound('bead_click');
     }
 
+    // ОТПРАВКА МАНТРЫ К AI НА КАЖДОЙ БУСИНЕ
+    if (_sendMantrasToAI && _localAIService.isAvailable) {
+      await _sendCurrentMantraToAI();
+    }
+
     notifyListeners();
+  }
+
+  /// Отправляет текущую мантру к AI для обработки
+  Future<void> _sendCurrentMantraToAI() async {
+    try {
+      // Определяем какую мантру использовать
+      String mantra;
+      if (_currentBead <= 4) {
+        mantra = AppConstants.firstFourBeadsMantra;
+      } else {
+        mantra = AppConstants.hareKrishnaMantra;
+      }
+
+      // Формируем контекст сессии
+      final sessionContext =
+          'Джапа-медитация. Сессия: $_totalSessions+1. '
+          'Цель: $_targetRounds кругов. Продолжительность: ${_sessionDuration.inMinutes} мин';
+
+      // Отправляем мантру к AI (асинхронно, не блокируем UI)
+      _localAIService
+          .sendMantraToAI(
+            mantra: mantra,
+            beadNumber: _currentBead,
+            roundNumber: _currentRound,
+            sessionContext: sessionContext,
+          )
+          .then((success) {
+            if (success) {
+              debugPrint(
+                '✅ Мантра #$_currentBead отправлена к AI (круг $_currentRound)',
+              );
+            }
+          })
+          .catchError((error) {
+            debugPrint('❌ Ошибка отправки мантры к AI: $error');
+          });
+    } catch (e) {
+      debugPrint('Ошибка при отправке мантры: $e');
+    }
+  }
+
+  /// Включает/выключает отправку мантр к AI
+  void setSendMantrasToAI(bool enabled) {
+    _sendMantrasToAI = enabled;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  /// Проверяет доступность локального AI
+  bool get isLocalAIAvailable => _localAIService.isAvailable;
+
+  /// Получает статистику локального AI
+  Future<Map<String, dynamic>> getLocalAIStatistics() async {
+    return await _localAIService.getStatistics();
   }
 
   /// Завершает текущий круг

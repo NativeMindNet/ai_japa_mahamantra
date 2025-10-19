@@ -43,6 +43,10 @@ dependencies:
   http: ^1.1.0
   dio: ^5.4.0
   
+  # Локальный AI на устройстве
+  llama_cpp_dart: ^0.2.0  # Для работы с GGUF моделями на устройстве
+  path_provider: ^2.1.0  # Для доступа к файлам моделей
+  
   # Локальные уведомления
   flutter_local_notifications: ^19.4.1
   
@@ -131,6 +135,7 @@ flutter:
   assets:
     - assets/audio/
     - assets/animations/
+    - assets/models/  # AI модели в формате GGUF
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

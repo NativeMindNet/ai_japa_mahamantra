@@ -5,7 +5,10 @@ import 'package:dio/dio.dart';
 
 class AIService {
   static const String _baseUrl = 'http://localhost:11434';
-  static const String _model = 'mozgach:latest';
+  static const String _model = 'mozgach108-minimal:latest';
+
+  // Счетчик отправленных мантр для статистики
+  static int _mantraSentCount = 0;
 
   // Кэш для ответов
   static final Map<String, String> _responseCache = {};
