@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_magento/flutter_magento.dart';
 import 'connectivity_service.dart';
+import '../models/japa_session_purchase.dart';
 
 /// Модель для синхронизации данных джапа медитации
 class JapaCloudData {
@@ -56,7 +56,7 @@ class MagentoService {
   final ConnectivityService _connectivityService = ConnectivityService();
 
   // Flutter Magento plugin instance for e-commerce functionality
-  FlutterMagento? _flutterMagento;
+  // FlutterMagento? _flutterMagento;  // Временно отключен
 
   bool _isCloudEnabled = false;
   bool get isCloudEnabled => _isCloudEnabled;
@@ -95,15 +95,15 @@ class MagentoService {
         );
 
         // Инициализируем Flutter Magento plugin для e-commerce функций
-        _flutterMagento = FlutterMagento();
-        await _flutterMagento!.initialize(
-          baseUrl: baseUrl,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            if (accessToken != null) 'Authorization': 'Bearer $accessToken',
-          },
-        );
+        // _flutterMagento = FlutterMagento();
+        // await _flutterMagento!.initialize(
+        //   baseUrl: baseUrl,
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Accept': 'application/json',
+        //     if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+        //   },
+        // );
 
         _isInitialized = true;
       }
@@ -135,7 +135,7 @@ class MagentoService {
   }
 
   /// Получить экземпляр FlutterMagento для e-commerce операций
-  FlutterMagento? get magento => _flutterMagento;
+  // FlutterMagento? get magento => _flutterMagento;
 
   /// Синхронизация данных джапа медитации с облаком
   Future<bool> syncJapaData(JapaCloudData data) async {
@@ -311,17 +311,17 @@ class MagentoService {
 
   /// Аутентификация пользователя через Magento
   Future<bool> authenticateCustomer(String email, String password) async {
-    if (!isCloudAvailable || _flutterMagento == null) {
+    if (!isCloudAvailable) {
       print('E-commerce функции недоступны для аутентификации');
       return false;
     }
 
     try {
-      final authResponse = await _flutterMagento!.authenticateCustomer(
-        email: email,
-        password: password,
+      final response = await _dio!.post(
+        '/rest/V1/integration/customer/token',
+        data: {'username': email, 'password': password},
       );
-      return authResponse != null;
+      return response.statusCode == 200;
     } catch (e) {
       print('Ошибка аутентификации пользователя: $e');
       return false;
@@ -336,20 +336,28 @@ class MagentoService {
     String? categoryId,
     Map<String, dynamic>? filters,
   }) async {
-    if (!isCloudAvailable || _flutterMagento == null) {
+    if (!isCloudAvailable) {
       print('E-commerce функции недоступны для получения продуктов');
       return null;
     }
 
     try {
-      final products = await _flutterMagento!.getProducts(
-        page: page,
-        pageSize: pageSize,
-        searchQuery: searchQuery,
-        categoryId: categoryId,
-        filters: filters,
+      final response = await _dio!.get(
+        '/rest/V1/products',
+        queryParameters: {
+          'searchCriteria[pageSize]': pageSize,
+          'searchCriteria[currentPage]': page,
+          if (searchQuery != null)
+            'searchCriteria[filterGroups][0][filters][0][field]': 'name',
+          if (searchQuery != null)
+            'searchCriteria[filterGroups][0][filters][0][value]': searchQuery,
+          if (categoryId != null)
+            'searchCriteria[filterGroups][1][filters][0][field]': 'category_id',
+          if (categoryId != null)
+            'searchCriteria[filterGroups][1][filters][0][value]': categoryId,
+        },
       );
-      return products;
+      return response.data;
     } catch (e) {
       print('Ошибка получения продуктов: $e');
       return null;
@@ -362,18 +370,22 @@ class MagentoService {
     int page = 1,
     int pageSize = 20,
   }) async {
-    if (!isCloudAvailable || _flutterMagento == null) {
+    if (!isCloudAvailable) {
       print('E-commerce функции недоступны для поиска');
       return null;
     }
 
     try {
-      final results = await _flutterMagento!.searchProducts(
-        query,
-        page: page,
-        pageSize: pageSize,
+      final response = await _dio!.get(
+        '/rest/V1/products',
+        queryParameters: {
+          'searchCriteria[pageSize]': pageSize,
+          'searchCriteria[currentPage]': page,
+          'searchCriteria[filterGroups][0][filters][0][field]': 'name',
+          'searchCriteria[filterGroups][0][filters][0][value]': query,
+        },
       );
-      return results;
+      return response.data;
     } catch (e) {
       print('Ошибка поиска продуктов: $e');
       return null;
@@ -382,14 +394,14 @@ class MagentoService {
 
   /// Создание корзины
   Future<dynamic> createCart() async {
-    if (!isCloudAvailable || _flutterMagento == null) {
+    if (!isCloudAvailable) {
       print('E-commerce функции недоступны для создания корзины');
       return null;
     }
 
     try {
-      final cart = await _flutterMagento!.createCart();
-      return cart;
+      final response = await _dio!.post('/rest/V1/carts/mine');
+      return response.data;
     } catch (e) {
       print('Ошибка создания корзины: $e');
       return null;
@@ -398,21 +410,217 @@ class MagentoService {
 
   /// Добавление товара в корзину
   Future<dynamic> addToCart(String cartId, String sku, int quantity) async {
-    if (!isCloudAvailable || _flutterMagento == null) {
+    if (!isCloudAvailable) {
       print('E-commerce функции недоступны для добавления в корзину');
       return null;
     }
 
     try {
-      final cart = await _flutterMagento!.addToCart(
-        cartId: cartId,
-        sku: sku,
-        quantity: quantity,
+      final response = await _dio!.post(
+        '/rest/V1/carts/mine/items',
+        data: {
+          'cartItem': {'sku': sku, 'qty': quantity},
+        },
       );
-      return cart;
+      return response.data;
     } catch (e) {
       print('Ошибка добавления товара в корзину: $e');
       return null;
+    }
+  }
+
+  // ===== JAPA SESSION AS PURCHASE METHODS =====
+
+  /// Сохранение сессии джапы как покупки в Magento
+  Future<bool> saveJapaSessionAsPurchase(
+    JapaSessionPurchase sessionPurchase,
+  ) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для сохранения сессии как покупки');
+      return false;
+    }
+
+    try {
+      // Создаем заказ в Magento для сессии
+      final orderData = sessionPurchase.toMagentoOrder();
+
+      final response = await _dio!.post('/rest/V1/orders', data: orderData);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('Сессия джапы успешно сохранена как покупка в Magento');
+        return true;
+      } else {
+        print('Ошибка сохранения сессии как покупки: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Ошибка при сохранении сессии как покупки: $e');
+      return false;
+    }
+  }
+
+  /// Получение истории сессий из Magento профиля
+  Future<List<JapaSessionPurchase>> getJapaSessionHistory(
+    String customerId,
+  ) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для получения истории сессий');
+      return [];
+    }
+
+    try {
+      final response = await _dio!.get(
+        '/rest/V1/customers/$customerId/japa-sessions',
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> sessionsData = response.data['items'] ?? [];
+        return sessionsData
+            .map((data) => JapaSessionPurchase.fromJson(data))
+            .toList();
+      } else {
+        print('Ошибка получения истории сессий: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Ошибка при получении истории сессий: $e');
+      return [];
+    }
+  }
+
+  /// Получение статистики сессий из Magento
+  Future<Map<String, dynamic>?> getJapaSessionStatistics(
+    String customerId,
+  ) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для получения статистики сессий');
+      return null;
+    }
+
+    try {
+      final response = await _dio!.get(
+        '/rest/V1/customers/$customerId/japa-statistics',
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        print('Ошибка получения статистики сессий: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка при получении статистики сессий: $e');
+      return null;
+    }
+  }
+
+  /// Синхронизация локальных сессий с Magento
+  Future<bool> syncLocalSessionsWithMagento(
+    List<JapaSessionPurchase> localSessions,
+    String customerId,
+  ) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для синхронизации сессий');
+      return false;
+    }
+
+    try {
+      // Получаем существующие сессии из Magento
+      final existingSessions = await getJapaSessionHistory(customerId);
+      final existingSessionIds = existingSessions
+          .map((session) => session.sessionId)
+          .toSet();
+
+      // Фильтруем только новые сессии
+      final newSessions = localSessions
+          .where((session) => !existingSessionIds.contains(session.sessionId))
+          .toList();
+
+      // Сохраняем новые сессии
+      bool allSuccess = true;
+      for (final session in newSessions) {
+        final success = await saveJapaSessionAsPurchase(session);
+        if (!success) {
+          allSuccess = false;
+        }
+      }
+
+      return allSuccess;
+    } catch (e) {
+      print('Ошибка при синхронизации сессий: $e');
+      return false;
+    }
+  }
+
+  /// Получение достижений пользователя из Magento
+  Future<List<Map<String, dynamic>>?> getCustomerAchievements(
+    String customerId,
+  ) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для получения достижений');
+      return null;
+    }
+
+    try {
+      final response = await _dio!.get(
+        '/rest/V1/customers/$customerId/achievements',
+      );
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(
+          response.data['achievements'] ?? [],
+        );
+      } else {
+        print('Ошибка получения достижений: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка при получении достижений: $e');
+      return null;
+    }
+  }
+
+  /// Создание или обновление профиля пользователя в Magento
+  Future<bool> createOrUpdateCustomerProfile({
+    required String customerId,
+    required String email,
+    required String firstName,
+    required String lastName,
+    Map<String, dynamic>? japaPreferences,
+  }) async {
+    if (!isCloudAvailable) {
+      print('Облачные функции недоступны для создания профиля');
+      return false;
+    }
+
+    try {
+      final customerData = {
+        'customer': {
+          'id': customerId,
+          'email': email,
+          'firstname': firstName,
+          'lastname': lastName,
+          'custom_attributes': [
+            {
+              'attribute_code': 'japa_preferences',
+              'value': japaPreferences != null
+                  ? japaPreferences.toString()
+                  : '{}',
+            },
+            {'attribute_code': 'japa_practitioner', 'value': 'true'},
+          ],
+        },
+      };
+
+      final response = await _dio!.post(
+        '/rest/V1/customers',
+        data: customerData,
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('Ошибка при создании/обновлении профиля: $e');
+      return false;
     }
   }
 
@@ -420,7 +628,7 @@ class MagentoService {
   void dispose() {
     _dio?.close();
     _dio = null;
-    _flutterMagento = null;
+    // _flutterMagento = null;
     _isInitialized = false;
   }
 }

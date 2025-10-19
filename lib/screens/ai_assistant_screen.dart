@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ai_service.dart';
 import '../constants/app_constants.dart';
 import '../models/ai_assistant.dart';
-import '../l10n/app_localizations_delegate.dart';
+// import '../l10n/app_localizations_delegate.dart'; // Временно отключено
+import '../utils/simple_localizations.dart';
 
 class AIAssistantScreen extends StatefulWidget {
   const AIAssistantScreen({super.key});
@@ -180,7 +181,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = SimpleLocalizations();
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -215,7 +216,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
   }
 
   /// Строит карточку статуса AI
-  Widget _buildAIStatusCard(AppLocalizations l10n) {
+  Widget _buildAIStatusCard(SimpleLocalizations l10n) {
     return Card(
       margin: const EdgeInsets.all(AppConstants.defaultPadding),
       child: Padding(
@@ -258,7 +259,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
   }
 
   /// Строит форму вопроса
-  Widget _buildQuestionForm(AppLocalizations l10n) {
+  Widget _buildQuestionForm(SimpleLocalizations l10n) {
     return Card(
       margin: const EdgeInsets.symmetric(
         horizontal: AppConstants.defaultPadding,
@@ -333,7 +334,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
   }
 
   /// Строит список разговоров
-  Widget _buildConversationsList(AppLocalizations l10n) {
+  Widget _buildConversationsList(SimpleLocalizations l10n) {
     if (_conversations.isEmpty) {
       return Center(
         child: Column(

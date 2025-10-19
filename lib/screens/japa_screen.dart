@@ -6,7 +6,7 @@ import '../constants/app_constants.dart';
 import '../widgets/japa_mala_widget.dart';
 import '../widgets/japa_controls_widget.dart';
 import '../widgets/japa_stats_widget.dart';
-import '../l10n/app_localizations_delegate.dart';
+// import '../l10n/app_localizations_delegate.dart';
 import '../animations/custom_page_transitions.dart';
 import '../widgets/chudny_video_widget.dart';
 
@@ -57,14 +57,14 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    // final l10n = AppLocalizations.of(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
-          l10n.appTitle,
+          'AI Japa Mahamantra',
           style: const TextStyle(
             fontFamily: 'Sanskrit',
             fontWeight: FontWeight.bold,
@@ -90,7 +90,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             onPressed: () {
               AnimatedNavigation.toAIAssistant(context);
             },
-            tooltip: l10n.aiAssistant,
+            tooltip: 'AI Assistant',
           ),
           IconButton(
             icon: const Icon(Icons.play_circle_outline),
@@ -102,7 +102,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () {
-              _showHistoryDialog(l10n);
+              _showHistoryDialog();
             },
             tooltip: 'История сессий',
           ),
@@ -111,7 +111,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             onPressed: () {
               AnimatedNavigation.toSettings(context);
             },
-            tooltip: l10n.settings,
+            tooltip: 'Settings',
           ),
         ],
       ),
@@ -122,10 +122,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             child: Column(
               children: [
                 // Мантра
-                Expanded(
-                  flex: 2,
-                  child: _buildMantraSection(l10n, localeProvider),
-                ),
+                Expanded(flex: 2, child: _buildMantraSection(localeProvider)),
 
                 // Мала
                 Expanded(
@@ -153,7 +150,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
                     onCompleteRound: japaProvider.completeRound,
                     onEndSession: () {
                       japaProvider.endSession();
-                      _showSessionCompleteDialog(l10n);
+                      _showSessionCompleteDialog();
                     },
                   ),
                 ),
@@ -178,10 +175,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   }
 
   /// Строит секцию с мантрой
-  Widget _buildMantraSection(
-    AppLocalizations l10n,
-    LocaleProvider localeProvider,
-  ) {
+  Widget _buildMantraSection(LocaleProvider localeProvider) {
     return Container(
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
       child: Column(
@@ -192,7 +186,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
             FadeTransition(
               opacity: _mantraFadeAnimation,
               child: Text(
-                l10n.mantraFirstFour,
+                'Hare Krishna Hare Krishna',
                 style: _getMantraStyle(localeProvider),
                 textAlign: TextAlign.center,
               ),
@@ -204,7 +198,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
           FadeTransition(
             opacity: _mantraFadeAnimation,
             child: Text(
-              l10n.mantraHareKrishna,
+              'Krishna Krishna Hare Hare',
               style: _getMantraStyle(localeProvider),
               textAlign: TextAlign.center,
             ),
@@ -244,7 +238,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   }
 
   /// Показывает диалог истории сессий
-  void _showHistoryDialog(AppLocalizations l10n) {
+  void _showHistoryDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -252,7 +246,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
         return AlertDialog(
           title: const Text('История сессий'),
           content: FutureBuilder<List<Map<String, dynamic>>>(
-            future: japaProvider.getSessionHistory(),
+            future: japaProvider.getCombinedSessionHistory(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -270,19 +264,60 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
 
               return SizedBox(
                 width: double.maxFinite,
-                height: 300,
+                height: 400,
                 child: ListView.builder(
                   itemCount: sessions.length,
                   itemBuilder: (context, index) {
                     final session = sessions[index];
-                    return ListTile(
-                      title: Text('Сессия ${index + 1}'),
-                      subtitle: Text(
-                        '${session['completedRounds']} кругов, ${session['duration']} минут',
+                    final isFromMagento = session['source'] == 'magento';
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
                       ),
-                      trailing: Text(
-                        session['date'],
-                        style: const TextStyle(fontSize: 12),
+                      child: ListTile(
+                        leading: Icon(
+                          isFromMagento ? Icons.cloud : Icons.phone_android,
+                          color: isFromMagento ? Colors.blue : Colors.green,
+                        ),
+                        title: Text('Сессия ${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${session['completedRounds']} кругов, ${session['duration']} минут',
+                            ),
+                            if (isFromMagento) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                'Мантра: ${session['mantra'] ?? 'Hare Krishna'}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              session['date'],
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            if (isFromMagento)
+                              const Text(
+                                'Облако',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -295,7 +330,20 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text(l10n.close),
+              child: Text('Close'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Синхронизация с Magento
+                final japaProvider = Provider.of<JapaProvider>(
+                  context,
+                  listen: false,
+                );
+                await japaProvider.loadFromCloud();
+                Navigator.of(context).pop();
+                _showHistoryDialog(); // Обновляем диалог
+              },
+              child: const Text('Синхронизировать'),
             ),
           ],
         );
@@ -334,7 +382,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
   }
 
   /// Показывает диалог завершения сессии
-  void _showSessionCompleteDialog(AppLocalizations l10n) {
+  void _showSessionCompleteDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -387,7 +435,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text(l10n.close),
+              child: Text('Close'),
             ),
           ],
         );

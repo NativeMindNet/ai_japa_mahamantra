@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 import '../models/japa_session.dart';
+import '../models/japa_session_purchase.dart';
 import '../services/notification_service.dart';
 import '../services/background_service.dart';
 import '../services/calendar_service.dart';
@@ -492,6 +493,11 @@ class JapaProvider with ChangeNotifier {
     // Синхронизируем с облаком
     await _syncWithCloud();
 
+    // Синхронизируем сессию с Magento как покупку
+    if (_currentSession != null) {
+      await _syncSessionWithMagento(_currentSession!);
+    }
+
     notifyListeners();
   }
 
@@ -671,6 +677,73 @@ class JapaProvider with ChangeNotifier {
     }
   }
 
+  /// Получает историю сессий из Magento профиля
+  Future<List<Map<String, dynamic>>> getMagentoSessionHistory() async {
+    try {
+      if (!_magentoService.isCloudAvailable) {
+        return [];
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+
+      if (userId == null) {
+        return [];
+      }
+
+      final magentoSessions = await _magentoService.getJapaSessionHistory(
+        userId,
+      );
+
+      // Преобразуем в формат, совместимый с локальной историей
+      return magentoSessions
+          .map(
+            (session) => {
+              'id': session.sessionId,
+              'startTime': session.sessionDate.toIso8601String(),
+              'endTime': session.sessionDate.toIso8601String(),
+              'completedRounds': session.completedRounds,
+              'targetRounds': session.targetRounds,
+              'duration': session.durationMinutes,
+              'date': session.sessionDate.toIso8601String().split('T')[0],
+              'isActive': false,
+              'source': 'magento',
+              'mantra': session.mantra,
+              'sessionType': session.sessionType,
+            },
+          )
+          .toList();
+    } catch (e) {
+      debugPrint('Ошибка получения истории сессий из Magento: $e');
+      return [];
+    }
+  }
+
+  /// Получает объединенную историю сессий (локальная + Magento)
+  Future<List<Map<String, dynamic>>> getCombinedSessionHistory() async {
+    try {
+      final localHistory = await getSessionHistory();
+      final magentoHistory = await getMagentoSessionHistory();
+
+      // Объединяем и сортируем по дате
+      final combinedHistory = [...localHistory, ...magentoHistory];
+      combinedHistory.sort((a, b) {
+        final dateA =
+            DateTime.tryParse(a['startTime'] ?? a['date'] ?? '') ??
+            DateTime(1970);
+        final dateB =
+            DateTime.tryParse(b['startTime'] ?? b['date'] ?? '') ??
+            DateTime(1970);
+        return dateB.compareTo(dateA);
+      });
+
+      return combinedHistory;
+    } catch (e) {
+      debugPrint('Ошибка получения объединенной истории сессий: $e');
+      return [];
+    }
+  }
+
   /// Сохраняет сессию в историю
   Future<void> _saveSessionToHistory(JapaSession session) async {
     try {
@@ -754,6 +827,46 @@ class JapaProvider with ChangeNotifier {
     } catch (e) {
       // Молча игнорируем ошибки синхронизации
       debugPrint('Ошибка синхронизации с облаком: $e');
+    }
+  }
+
+  /// Синхронизирует завершенную сессию с Magento как покупку
+  Future<void> _syncSessionWithMagento(JapaSession session) async {
+    if (!_magentoService.isCloudAvailable || session.endTime == null) {
+      return;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+
+      if (userId == null) {
+        return;
+      }
+
+      // Создаем покупку сессии
+      final sessionPurchase = JapaSessionPurchase.fromJapaSession(
+        sessionId: session.id.toString(),
+        customerId: userId,
+        sessionDate: session.startTime,
+        completedRounds: session.completedRounds,
+        targetRounds: session.targetRounds,
+        durationMinutes: session.endTime!
+            .difference(session.startTime)
+            .inMinutes,
+        mantra: 'Hare Krishna', // Можно сделать настраиваемым
+        sessionType: 'japa_meditation',
+        metadata: {
+          'isActive': session.isActive,
+          'notes': session.notes,
+          'rounds': session.rounds.map((r) => r.toJson()).toList(),
+        },
+      );
+
+      // Сохраняем сессию как покупку в Magento
+      await _magentoService.saveJapaSessionAsPurchase(sessionPurchase);
+    } catch (e) {
+      debugPrint('Ошибка синхронизации сессии с Magento: $e');
     }
   }
 

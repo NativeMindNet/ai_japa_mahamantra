@@ -23,6 +23,22 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Push a new release build to the App Store
 
+### ios upload_binary
+
+```sh
+[bundle exec] fastlane ios upload_binary
+```
+
+Upload only binary to App Store
+
+### ios build_only
+
+```sh
+[bundle exec] fastlane ios build_only
+```
+
+Build IPA without uploading
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

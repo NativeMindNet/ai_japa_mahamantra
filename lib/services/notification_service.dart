@@ -242,6 +242,7 @@ class NotificationService {
       _nextInstanceOfTime(time),
       details,
       matchDateTimeComponents: DateTimeComponents.time,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 

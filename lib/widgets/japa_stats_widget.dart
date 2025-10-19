@@ -43,6 +43,7 @@ class JapaStatsWidget extends StatelessWidget {
               // Прогресс кругов
               Expanded(
                 child: _buildProgressCard(
+                  context: context,
                   title: 'Круги',
                   current: currentRound,
                   total: totalRounds,
@@ -56,6 +57,7 @@ class JapaStatsWidget extends StatelessWidget {
               // Прогресс бусин
               Expanded(
                 child: _buildProgressCard(
+                  context: context,
                   title: 'Бусины',
                   current: currentBead,
                   total: totalBeads,
@@ -132,6 +134,7 @@ class JapaStatsWidget extends StatelessWidget {
   }
 
   Widget _buildProgressCard({
+    required BuildContext context,
     required String title,
     required int current,
     required int total,

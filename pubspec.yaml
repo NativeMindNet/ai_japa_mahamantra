@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0
+version: 1.2.0
 
 environment:
   sdk: ^3.9.0
@@ -82,20 +82,23 @@ dependencies:
   # Видео плеер
   video_player: ^2.8.2
   
+  # Connectivity
+  connectivity_plus: ^6.1.0
+  
   # Magento интеграция через HTTP клиент
   # Используем dio для работы с REST API
   
   
   # Magento e-commerce integration
-  flutter_magento: ^2.3.4
+  # flutter_magento: ^2.3.4  # Временно отключен из-за ошибок компиляции
   
   # FreeDome integration
-  flutter_freedome: ^1.0.0
+  # flutter_freedome: ^1.0.0  # Временно отключен из-за конфликта классов
   
   # Blockchain integrations
-  flutter_icp: ^1.0.0
-  flutter_nft: ^1.0.0
-  flutter_yuku: ^1.0.0
+  # flutter_icp: ^1.0.0  # Временно отключен
+  # flutter_nft: ^1.0.0  # Временно отключен
+  # flutter_yuku: ^1.0.0  # Временно отключен
 
 dev_dependencies:
   flutter_test:
