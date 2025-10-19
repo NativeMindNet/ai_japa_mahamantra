@@ -12,8 +12,6 @@ import 'constants/app_constants.dart';
 import 'services/notification_service.dart';
 import 'services/background_service.dart';
 import 'services/audio_service.dart';
-import 'services/connectivity_service.dart';
-import 'services/magento_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +30,10 @@ void main() async {
   // Инициализируем и регистрируем фоновые задачи
   await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
   BackgroundService.registerJapaReminder();
+
+  // Регистрируем автоматическое расписание по умолчанию
+  // Будни: 08:01 и 21:08, Выходные: 09:00 и 21:00
+  await BackgroundService.registerDefaultAutoSchedule();
 
   runApp(const AIJapaMahamantraApp());
 }

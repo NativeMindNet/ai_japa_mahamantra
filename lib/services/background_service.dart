@@ -60,19 +60,55 @@ Future<void> _handleJapaReminder() async {
 /// Обработчик проверки расписания
 Future<void> _handleScheduleCheck() async {
   final prefs = await SharedPreferences.getInstance();
-  final scheduledTime = prefs.getString('japa_scheduled_time');
+  final isEnabled = prefs.getBool('auto_schedule_enabled') ?? true;
 
-  if (scheduledTime != null) {
-    final scheduled = DateTime.parse(scheduledTime);
-    final now = DateTime.now();
+  if (!isEnabled) return;
 
-    // Проверяем, пришло ли время для джапы
-    if (now.hour == scheduled.hour && now.minute == scheduled.minute) {
+  final now = DateTime.now();
+  final isWeekday = now.weekday >= 1 && now.weekday <= 5; // Пн-Пт
+
+  // Определяем времена для текущего типа дня
+  List<Map<String, int>> scheduleTimes;
+  if (isWeekday) {
+    // Будни: 08:01 и 21:08
+    scheduleTimes = [
+      {'hour': 8, 'minute': 1},
+      {'hour': 21, 'minute': 8},
+    ];
+  } else {
+    // Выходные: 09:00 и 21:00
+    scheduleTimes = [
+      {'hour': 9, 'minute': 0},
+      {'hour': 21, 'minute': 0},
+    ];
+  }
+
+  // Проверяем, пришло ли время для джапы
+  for (final time in scheduleTimes) {
+    if (now.hour == time['hour'] && now.minute == time['minute']) {
+      final lastNotificationKey =
+          'last_schedule_notification_${time['hour']}_${time['minute']}';
+      final lastNotification = prefs.getString(lastNotificationKey);
+
+      // Проверяем, не отправляли ли мы уже уведомление сегодня в это время
+      if (lastNotification != null) {
+        final lastDate = DateTime.parse(lastNotification);
+        if (lastDate.year == now.year &&
+            lastDate.month == now.month &&
+            lastDate.day == now.day) {
+          continue; // Уже отправляли сегодня
+        }
+      }
+
       await NotificationService.showJapaReminder(
         title: 'Время для джапы! 🕉️',
-        body: 'Пришло запланированное время для духовной практики.',
+        body:
+            'Пришло запланированное время для духовной практики. Харе Кришна!',
         payload: 'scheduled_japa',
       );
+
+      // Сохраняем время последнего уведомления
+      await prefs.setString(lastNotificationKey, now.toIso8601String());
     }
   }
 }
@@ -137,7 +173,7 @@ class BackgroundService {
     );
   }
 
-  /// Регистрирует задачу для проверки расписания
+  /// Регистрирует задачу для проверки расписания (каждые 15 минут)
   static Future<void> registerScheduleCheck() async {
     await Workmanager().registerPeriodicTask(
       'japa_schedule',
@@ -151,6 +187,41 @@ class BackgroundService {
         requiresStorageNotLow: false,
       ),
     );
+  }
+
+  /// Регистрирует автоматическое расписание по умолчанию
+  /// Будни: 08:01 и 21:08
+  /// Выходные: 09:00 и 21:00
+  static Future<void> registerDefaultAutoSchedule() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Проверяем, не отключено ли автоматическое расписание
+    final isEnabled = prefs.getBool('auto_schedule_enabled') ?? true;
+    if (!isEnabled) return;
+
+    // Устанавливаем флаг, что автоматическое расписание зарегистрировано
+    await prefs.setBool('auto_schedule_registered', true);
+
+    // Регистрируем проверку расписания
+    await registerScheduleCheck();
+  }
+
+  /// Включает/выключает автоматическое расписание
+  static Future<void> setAutoScheduleEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('auto_schedule_enabled', enabled);
+
+    if (enabled) {
+      await registerDefaultAutoSchedule();
+    } else {
+      await cancelTask('japa_schedule');
+    }
+  }
+
+  /// Проверяет, включено ли автоматическое расписание
+  static Future<bool> isAutoScheduleEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('auto_schedule_enabled') ?? true;
   }
 
   /// Регистрирует задачу для синхронизации прогресса
