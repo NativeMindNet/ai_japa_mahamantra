@@ -44,7 +44,7 @@ dependencies:
   dio: ^5.4.0
   
   # Локальный AI на устройстве через llama.cpp
-  llama_cpp_dart: ^0.2.1
+  # llama_cpp_dart: ^0.1.0  # Временно отключен из-за проблем со сборкой на Android
   
   # Локальные уведомления
   flutter_local_notifications: ^19.4.1
@@ -61,6 +61,12 @@ dependencies:
   
   # Пути к файлам
   path_provider: ^2.1.1
+  
+  # Информация о пакете (версия приложения)
+  package_info_plus: ^8.0.0
+  
+  # Открытие URL
+  url_launcher: ^6.3.0
   
   # Аудио
   audioplayers: ^5.2.1
