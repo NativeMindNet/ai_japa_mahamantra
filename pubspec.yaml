@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.1
+version: 2.0.2
 
 environment:
   sdk: ^3.9.0
@@ -43,9 +43,8 @@ dependencies:
   http: ^1.1.0
   dio: ^5.4.0
   
-  # Локальный AI на устройстве (через нативный код)
-  # llama.cpp интегрирован через MethodChannel в нативном коде
-  # path_provider уже есть ниже
+  # Локальный AI на устройстве через llama.cpp
+  llama_cpp_dart: ^0.2.1
   
   # Локальные уведомления
   flutter_local_notifications: ^19.4.1

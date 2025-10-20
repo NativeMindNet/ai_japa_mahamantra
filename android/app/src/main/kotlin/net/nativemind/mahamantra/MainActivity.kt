@@ -1,13 +1,8 @@
 package net.nativemind.mahamantra
 
 import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine
 
 class MainActivity : FlutterActivity() {
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-        
-        // Регистрируем LocalAI плагин
-        flutterEngine.plugins.add(LocalAIPlugin())
-    }
+    // LocalAI теперь работает через llama_cpp_dart FFI
+    // Нет необходимости в кастомном плагине
 }
