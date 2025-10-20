@@ -11,6 +11,7 @@ import '../services/notification_service.dart';
 import '../services/audio_service.dart';
 import '../services/magento_service.dart';
 import '../services/connectivity_service.dart';
+import '../services/charging_chanting_service.dart';
 import '../constants/app_constants.dart';
 import '../screens/profile_screen.dart';
 // import '../l10n/app_localizations_delegate.dart'; // Временно отключено
@@ -276,6 +277,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
                             _showAIStatsDialog(l10n);
+                          },
+                        ),
+                      ],
+                    ),
+
+                    // Воспевание на зарядке (Правило № 4)
+                    SettingsSection(
+                      title: '🔋 Воспевание на зарядке',
+                      tiles: [
+                        SettingsTile.switchTile(
+                          title: 'Включить на зарядке',
+                          subtitle:
+                              'Автоматическое воспевание при подключении зарядки',
+                          leading: const Icon(Icons.battery_charging_full),
+                          switchValue:
+                              true, // Значение по умолчанию, будет загружено позже
+                          onToggle: (value) async {
+                            await ChargingChantingService.instance
+                                .setChargingChantingEnabled(value);
+                            setState(() {});
+                          },
+                        ),
+                        SettingsTile.switchTile(
+                          title: 'Воспевание в спящем режиме',
+                          subtitle: 'Работа в фоновом режиме (энергозатратно)',
+                          leading: const Icon(Icons.bedtime),
+                          switchValue:
+                              false, // Значение по умолчанию, будет загружено позже
+                          onToggle: (value) async {
+                            await ChargingChantingService.instance
+                                .setSleepChantingEnabled(value);
+                            setState(() {});
+                          },
+                        ),
+                        SettingsTile.switchTile(
+                          title: 'Использовать AI модели',
+                          subtitle: 'Обработка через 108 моделей Мозgач108',
+                          leading: const Icon(Icons.psychology),
+                          switchValue:
+                              true, // Значение по умолчанию, будет загружено позже
+                          onToggle: (value) async {
+                            await ChargingChantingService.instance
+                                .setUseAIModels(value);
+                            setState(() {});
+                          },
+                        ),
+                        SettingsTile(
+                          title: 'Интервал воспевания',
+                          subtitle: '30 секунд между мантрами',
+                          leading: const Icon(Icons.timer),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showChantingIntervalDialog();
+                          },
+                        ),
+                        SettingsTile(
+                          title: 'Статистика воспевания',
+                          subtitle: 'Просмотр статистики и логов',
+                          leading: const Icon(Icons.bar_chart),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            _showChantingStatsDialog();
                           },
                         ),
                       ],
@@ -2074,5 +2137,232 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+  }
+
+  /// Показывает диалог настройки интервала воспевания
+  void _showChantingIntervalDialog() {
+    int currentInterval = 30; // Значение по умолчанию
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Интервал воспевания'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Время между мантрами (секунды):'),
+                  const SizedBox(height: 16),
+                  Slider(
+                    value: currentInterval.toDouble(),
+                    min: 10,
+                    max: 300,
+                    divisions: 29,
+                    label: '$currentInterval сек',
+                    onChanged: (value) {
+                      setState(() {
+                        currentInterval = value.toInt();
+                      });
+                    },
+                  ),
+                  Text(
+                    '$currentInterval секунд',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Примерно ${(3600 / currentInterval).floor()} воспеваний в час',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Отмена'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await ChargingChantingService.instance.setChantingInterval(
+                      currentInterval,
+                    );
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Интервал установлен: $currentInterval секунд',
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  child: const Text('Сохранить'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Показывает диалог со статистикой воспевания на зарядке
+  void _showChantingStatsDialog() {
+    final stats = ChargingChantingService.instance.getStatistics();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.battery_charging_full, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Статистика воспевания'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStatRow(
+                  'Статус',
+                  stats['is_chanting'] ? '🟢 Активно' : '⚪ Неактивно',
+                ),
+                _buildStatRow(
+                  'На зарядке',
+                  stats['is_charging'] ? '🔋 Да' : '🪫 Нет',
+                ),
+                _buildStatRow('Батарея', '${stats['battery_level']}%'),
+                const Divider(),
+                _buildStatRow('Всего воспеваний', '${stats['total_chants']}'),
+                _buildStatRow(
+                  'На зарядке',
+                  '${stats['chants_during_charging']}',
+                ),
+                _buildStatRow(
+                  'В спящем режиме',
+                  '${stats['chants_during_sleep']}',
+                ),
+                const Divider(),
+                _buildStatRow('Интервал', '${stats['interval_seconds']} сек'),
+                _buildStatRow(
+                  'Использование AI',
+                  stats['use_ai_models'] ? '🧠 Да' : '💡 Low Power',
+                ),
+                const Divider(),
+                if (stats['last_chant_time'] != null)
+                  _buildStatRow(
+                    'Последнее воспевание',
+                    _formatDateTime(stats['last_chant_time']),
+                  ),
+                if (stats['charging_start_time'] != null)
+                  _buildStatRow(
+                    'Зарядка началась',
+                    _formatDateTime(stats['charging_start_time']),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Закрыть'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showChantingLogsDialog();
+              },
+              child: const Text('Показать логи'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Вспомогательный метод для отображения строки статистики
+  Widget _buildStatRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+  /// Форматирует дату и время
+  String _formatDateTime(String? isoString) {
+    if (isoString == null) return 'Нет данных';
+    try {
+      final dt = DateTime.parse(isoString);
+      return '${dt.day}.${dt.month}.${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return 'Ошибка формата';
+    }
+  }
+
+  /// Показывает диалог с логами воспевания
+  void _showChantingLogsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.article, color: Colors.blue),
+              SizedBox(width: 8),
+              Text('Логи воспевания'),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Логи воспевания зашифрованы и доступны через Easter Egg',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 8),
+                const Text(
+                  'Для доступа к полным логам:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('1. Тройной тап на 108-й бусине'),
+                const Text('2. Или удержание мандалы + свайп 108 раз'),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Переход к экрану логов можно добавить позже
+                  },
+                  icon: const Icon(Icons.lock),
+                  label: const Text('Открыть секретные логи'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Закрыть'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

@@ -54,13 +54,13 @@ class JapaProvider with ChangeNotifier {
 
   // Локальный AI сервис на устройстве
   final LocalAIService _localAIService = LocalAIService.instance;
-  
+
   // Сервис управления режимами AI (High Power / Low Power)
   final AIPowerModeService _aiPowerModeService = AIPowerModeService.instance;
 
   // Настройка отправки мантр к AI
   bool _sendMantrasToAI = true; // Включено по умолчанию
-  
+
   // Easter Egg триггер - счетчик тапов на 108 бусине
   int _easterEggTapCount = 0;
   DateTime? _lastEasterEggTap;
@@ -116,12 +116,14 @@ class JapaProvider with ChangeNotifier {
       debugPrint('Ошибка инициализации локального AI: $e');
     }
   }
-  
+
   /// Инициализирует сервис управления режимами AI
   Future<void> _initializeAIPowerMode() async {
     try {
       await _aiPowerModeService.initialize();
-      debugPrint('AI Power Mode сервис инициализирован: ${_aiPowerModeService.currentMode}');
+      debugPrint(
+        'AI Power Mode сервис инициализирован: ${_aiPowerModeService.currentMode}',
+      );
     } catch (e) {
       debugPrint('Ошибка инициализации AI Power Mode: $e');
     }
@@ -421,7 +423,7 @@ class JapaProvider with ChangeNotifier {
     if (_sendMantrasToAI) {
       await _sendCurrentMantraToAI();
     }
-    
+
     // Easter Egg: проверка на тройной тап по 108 бусине
     if (_currentBead == 108) {
       _checkEasterEggTrigger();
@@ -447,9 +449,9 @@ class JapaProvider with ChangeNotifier {
         beadNumber: _currentBead,
         roundNumber: _currentRound,
       );
-      
+
       // Если High Power режим и AI доступен - отправляем к LocalAI
-      if (_aiPowerModeService.currentMode == AIPowerMode.highPower && 
+      if (_aiPowerModeService.currentMode == AIPowerMode.highPower &&
           _localAIService.isAvailable) {
         // Формируем контекст сессии
         final sessionContext =
@@ -479,36 +481,36 @@ class JapaProvider with ChangeNotifier {
       debugPrint('Ошибка при обработке мантры: $e');
     }
   }
-  
+
   /// Проверяет триггер Easter Egg (тройной тап на 108 бусине)
   void _checkEasterEggTrigger() {
     final now = DateTime.now();
-    
+
     // Сбрасываем счетчик если прошло больше 2 секунд
-    if (_lastEasterEggTap != null && 
+    if (_lastEasterEggTap != null &&
         now.difference(_lastEasterEggTap!).inSeconds > 2) {
       _easterEggTapCount = 0;
     }
-    
+
     _easterEggTapCount++;
     _lastEasterEggTap = now;
-    
+
     debugPrint('Easter Egg тап: $_easterEggTapCount/3');
-    
+
     // Если тройной тап - активируем Easter Egg
     if (_easterEggTapCount >= 3) {
       _easterEggTapCount = 0;
       _triggerEasterEgg();
     }
   }
-  
+
   /// Активирует Easter Egg (открывает экран с логами)
   void _triggerEasterEgg() {
     debugPrint('🐣 Easter Egg активирован! Открываем логи...');
     // Этот метод будет вызываться из UI
     notifyListeners();
   }
-  
+
   /// Проверяет, был ли активирован Easter Egg
   bool checkAndResetEasterEggTrigger() {
     final wasTriggered = _easterEggTapCount >= 3;
@@ -517,12 +519,12 @@ class JapaProvider with ChangeNotifier {
     }
     return wasTriggered;
   }
-  
+
   /// Получает информацию о режиме AI
   Map<String, dynamic> getAIPowerModeInfo() {
     return _aiPowerModeService.getStatistics();
   }
-  
+
   /// Получает статус Low Power цикла
   Map<String, dynamic> getLowPowerStatus() {
     return _aiPowerModeService.getLowPowerStatus();

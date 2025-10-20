@@ -124,7 +124,7 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
               _openEasterEggScreen();
             }
           });
-          
+
           return Container(
             color: Theme.of(context).colorScheme.surface,
             child: Column(
@@ -247,11 +247,9 @@ class _JapaScreenState extends State<JapaScreen> with TickerProviderStateMixin {
 
   /// Открывает экран Easter Egg с логами AI
   void _openEasterEggScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const EasterEggLogScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const EasterEggLogScreen()));
   }
 
   /// Показывает диалог истории сессий

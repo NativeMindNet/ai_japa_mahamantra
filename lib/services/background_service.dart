@@ -19,6 +19,9 @@ void callbackDispatcher() {
         case 'japa_progress_sync':
           await _handleProgressSync();
           break;
+        case 'charging_chanting_check':
+          await _handleChargingChantingCheck();
+          break;
         default:
         // silent
       }
@@ -27,6 +30,18 @@ void callbackDispatcher() {
       return false;
     }
   });
+}
+
+/// Обработчик проверки воспевания на зарядке
+Future<void> _handleChargingChantingCheck() async {
+  final prefs = await SharedPreferences.getInstance();
+  final isEnabled = prefs.getBool('charging_chanting_enabled') ?? true;
+
+  if (!isEnabled) return;
+
+  // Здесь логика проверки состояния зарядки
+  // В основном сервисе ChargingChantingService это обрабатывается автоматически
+  // Эта функция нужна для дополнительных проверок в фоне
 }
 
 /// Обработчик напоминания о джапе
@@ -367,5 +382,39 @@ class BackgroundService {
       final parts = s.split(':');
       return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
     }).toList();
+  }
+
+  /// Регистрирует задачу для воспевания на зарядке
+  static Future<void> registerChargingChanting() async {
+    await Workmanager().registerPeriodicTask(
+      'charging_chanting',
+      'charging_chanting_check',
+      frequency: const Duration(minutes: 15),
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+        requiresBatteryNotLow: false,
+        requiresCharging: false,
+        requiresDeviceIdle: false,
+        requiresStorageNotLow: false,
+      ),
+    );
+  }
+
+  /// Включает/выключает воспевание на зарядке
+  static Future<void> setChargingChantingEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('charging_chanting_enabled', enabled);
+
+    if (enabled) {
+      await registerChargingChanting();
+    } else {
+      await cancelTask('charging_chanting');
+    }
+  }
+
+  /// Проверяет, включено ли воспевание на зарядке
+  static Future<bool> isChargingChantingEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('charging_chanting_enabled') ?? true;
   }
 }

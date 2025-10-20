@@ -13,6 +13,10 @@ import 'constants/app_constants.dart';
 import 'services/notification_service.dart';
 import 'services/background_service.dart';
 import 'services/audio_service.dart';
+import 'services/charging_chanting_service.dart';
+import 'services/mozgach108_service.dart';
+import 'services/ai_power_mode_service.dart';
+import 'services/encrypted_log_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +39,21 @@ void main() async {
   // Регистрируем автоматическое расписание по умолчанию
   // Будни: 08:01 и 21:08, Выходные: 09:00 и 21:00
   await BackgroundService.registerDefaultAutoSchedule();
+
+  // Правило № 1: Инициализируем Мозgач108
+  await Mozgach108Service.instance.initialize();
+
+  // Правило № 3: Инициализируем AI Power Mode
+  await AIPowerModeService.instance.initialize();
+
+  // Инициализируем шифрованное логирование
+  await EncryptedLogService.instance.initialize();
+
+  // Правило № 4: Инициализируем воспевание на зарядке и в спящем режиме
+  await ChargingChantingService.instance.initialize();
+
+  // Регистрируем фоновую задачу для воспевания на зарядке
+  await BackgroundService.registerChargingChanting();
 
   runApp(const AIJapaMahamantraApp());
 }

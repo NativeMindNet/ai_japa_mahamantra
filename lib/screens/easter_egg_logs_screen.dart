@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert';
 import '../services/encrypted_log_service.dart';
 import '../services/ai_power_mode_service.dart';
 import '../services/mozgach108_service.dart';

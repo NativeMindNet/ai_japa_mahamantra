@@ -78,18 +78,18 @@ class _EasterEggLogScreenState extends State<EasterEggLogScreen>
       await _aiPowerService.clearLogs();
       await _loadLogs();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Логи очищены')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Логи очищены')));
       }
     }
   }
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Скопировано в буфер обмена')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Скопировано в буфер обмена')));
   }
 
   @override
@@ -145,7 +145,10 @@ class _EasterEggLogScreenState extends State<EasterEggLogScreen>
             title: 'Режим работы AI',
             icon: Icons.power_settings_new,
             children: [
-              _buildStatItem('Текущий режим', stats['currentMode'] ?? 'Unknown'),
+              _buildStatItem(
+                'Текущий режим',
+                stats['currentMode'] ?? 'Unknown',
+              ),
               _buildStatItem(
                 'AI Ускоритель',
                 stats['isAcceleratorAvailable'] == true
@@ -188,10 +191,7 @@ class _EasterEggLogScreenState extends State<EasterEggLogScreen>
             title: 'Общая статистика',
             icon: Icons.analytics,
             children: [
-              _buildStatItem(
-                'Записей в памяти',
-                '${stats['logsCount']}',
-              ),
+              _buildStatItem('Записей в памяти', '${stats['logsCount']}'),
               _buildStatItem(
                 'Циклов Low Power',
                 '${lowPowerStatus['cycleCount']}',
@@ -267,8 +267,7 @@ class _EasterEggLogScreenState extends State<EasterEggLogScreen>
                 ),
                 IconButton(
                   icon: const Icon(Icons.copy, color: Colors.white),
-                  onPressed: () =>
-                      _copyToClipboard(_recentLogs.join('\n')),
+                  onPressed: () => _copyToClipboard(_recentLogs.join('\n')),
                   tooltip: 'Копировать',
                 ),
               ],
@@ -286,8 +285,7 @@ class _EasterEggLogScreenState extends State<EasterEggLogScreen>
                     itemCount: _recentLogs.length,
                     reverse: true,
                     itemBuilder: (context, index) {
-                      final log = _recentLogs[
-                          _recentLogs.length - 1 - index];
+                      final log = _recentLogs[_recentLogs.length - 1 - index];
                       return Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -357,19 +355,10 @@ class _EasterEggLogScreenState extends State<EasterEggLogScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 14,
-            ),
-          ),
+          Text(label, style: TextStyle(color: Colors.grey[700], fontSize: 14)),
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ],
       ),

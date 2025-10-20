@@ -18,7 +18,6 @@ class Mozgach108Service {
   
   // Константы
   static const int _totalModels = 108;
-  static const String _baseMantra = 'Харе Кришна Харе Кришна Кришна Кришна Харе Харей Харе Рама Харе Рама Рама Рама Харей Харе';
   
   // Список названий 108 квантовых моделей
   static const List<String> _modelNames = [
