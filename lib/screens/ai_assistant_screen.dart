@@ -21,7 +21,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
   bool _isLoading = false;
   String? _selectedCategory;
   String? _aiStatus;
-  bool _isMozgachAvailable = false;
+  bool _isBraindlerAvailable = false;
 
   @override
   void initState() {
@@ -44,16 +44,16 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
 
     try {
       final isAvailable = await AIService.isServerAvailable();
-      final isMozgach = await AIService.isMozgachAvailable();
+      final isBraindler = await AIService.isBraindlerAvailable();
 
       if (mounted) {
         setState(() {
           _aiStatus = isAvailable
-              ? (isMozgach
-                    ? 'mozgach:latest доступен'
-                    : 'AI доступен, но mozgach:latest не найден')
+              ? (isBraindler
+                    ? 'braindler:q2_k доступен'
+                    : 'AI доступен, но braindler не найден')
               : 'AI сервер недоступен';
-          _isMozgachAvailable = isMozgach;
+          _isBraindlerAvailable = isBraindler;
           _isLoading = false;
         });
       }
@@ -227,8 +227,8 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
             Row(
               children: [
                 Icon(
-                  _isMozgachAvailable ? Icons.check_circle : Icons.error,
-                  color: _isMozgachAvailable ? Colors.green : Colors.red,
+                  _isBraindlerAvailable ? Icons.check_circle : Icons.error,
+                  color: _isBraindlerAvailable ? Colors.green : Colors.red,
                 ),
                 const SizedBox(width: AppConstants.smallPadding),
                 Text(
@@ -244,7 +244,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen>
             Text(
               _aiStatus ?? 'Проверка...',
               style: TextStyle(
-                color: _isMozgachAvailable ? Colors.green : Colors.red,
+                color: _isBraindlerAvailable ? Colors.green : Colors.red,
               ),
             ),
             if (_isLoading)

@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = false;
   bool _cloudFeaturesEnabled = false;
   bool _isOnline = false;
-  
+
   // Easter Egg: Режим разработчика через нажатия на версию
   int _versionTapCount = 0;
   bool _developerModeEnabled = false;
@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _initConnectivity();
     _loadDeveloperMode();
   }
-  
+
   /// Загружает статус режима разработчика
   Future<void> _loadDeveloperMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -58,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _developerModeEnabled = prefs.getBool('developer_mode_enabled') ?? false;
     });
   }
-  
+
   /// Сохраняет статус режима разработчика
   Future<void> _saveDeveloperMode(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
@@ -99,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _versionTapTimer?.cancel();
     super.dispose();
   }
-  
+
   /// Обработка нажатия на версию (Easter Egg)
   void _handleVersionTap() {
     if (_developerModeEnabled) {
@@ -112,11 +112,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _versionTapCount++;
     });
-    
+
     // Сбрасываем счетчик через таймаут
     _versionTapTimer?.cancel();
     _versionTapTimer = Timer(_tapTimeout, () {
@@ -126,45 +126,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
       }
     });
-    
+
     // Показываем прогресс
     final remaining = _requiredTaps - _versionTapCount;
     if (remaining > 0 && remaining <= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('🔐 Еще $remaining ${_pluralTaps(remaining)} до режима разработчика'),
+          content: Text(
+            '🔐 Еще $remaining ${_pluralTaps(remaining)} до режима разработчика',
+          ),
           duration: const Duration(milliseconds: 800),
         ),
       );
     }
-    
+
     // Активируем режим разработчика
     if (_versionTapCount >= _requiredTaps) {
       _activateDeveloperMode();
     }
   }
-  
+
   /// Склонение слова "нажатие"
   String _pluralTaps(int count) {
     if (count == 1) return 'нажатие';
     if (count >= 2 && count <= 4) return 'нажатия';
     return 'нажатий';
   }
-  
+
   /// Активация режима разработчика
   void _activateDeveloperMode() {
     _saveDeveloperMode(true);
     _versionTapCount = 0;
-    
+
     // Показываем сообщение об активации
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('🎉 Режим разработчика активирован! Теперь доступен просмотр логов.'),
+        content: Text(
+          '🎉 Режим разработчика активирован! Теперь доступен просмотр логов.',
+        ),
         duration: Duration(seconds: 3),
         backgroundColor: Colors.green,
       ),
     );
-    
+
     // Вибрация
     if (Vibration.hasVibrator() != null) {
       Vibration.vibrate(duration: 200);
@@ -569,12 +573,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: l10n.version,
                           subtitle: '1.0.0',
                           leading: Icon(
-                            _developerModeEnabled ? Icons.developer_mode : Icons.info,
+                            _developerModeEnabled
+                                ? Icons.developer_mode
+                                : Icons.info,
                             color: _developerModeEnabled ? Colors.green : null,
                           ),
-                          trailing: _developerModeEnabled 
-                            ? const Icon(Icons.check_circle, color: Colors.green)
-                            : null,
+                          trailing: _developerModeEnabled
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                )
+                              : null,
                           onPressed: (context) => _handleVersionTap(),
                         ),
                         // Кнопка просмотра логов (только в режиме разработчика)
@@ -582,12 +591,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           SettingsTile(
                             title: '🔓 Просмотр логов',
                             subtitle: 'Зашифрованные логи воспеваний (AES-256)',
-                            leading: const Icon(Icons.visibility, color: Colors.blue),
+                            leading: const Icon(
+                              Icons.visibility,
+                              color: Colors.blue,
+                            ),
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onPressed: (context) {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const EasterEggLogsScreen(),
+                                  builder: (context) =>
+                                      const EasterEggLogsScreen(),
                                 ),
                               );
                             },
@@ -1096,20 +1109,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       final isServerAvailable = await AIService.isServerAvailable();
-      final isMozgachAvailable = await AIService.isMozgachAvailable();
+      final isBraindlerAvailable = await AIService.isBraindlerAvailable();
       final availableModels = await AIService.getAvailableModels();
       final modelInfo = await AIService.getModelInfo();
 
       String statusMessage;
       Color statusColor;
 
-      if (isServerAvailable && isMozgachAvailable) {
+      if (isServerAvailable && isBraindlerAvailable) {
         statusMessage =
-            'AI сервер доступен\nМодель mozgach:latest готова к работе\nДоступно моделей: ${availableModels.length}';
+            'AI сервер доступен\nМодель braindler:q2_k готова к работе\nДоступно моделей: ${availableModels.length}';
         statusColor = Colors.green;
       } else if (isServerAvailable) {
         statusMessage =
-            'AI сервер доступен, но mozgach:latest не найден\nДоступные модели: ${availableModels.join(', ')}';
+            'AI сервер доступен, но braindler не найден\nДоступные модели: ${availableModels.join(', ')}';
         statusColor = Colors.orange;
       } else {
         statusMessage =
@@ -1125,7 +1138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: Row(
                 children: [
                   Icon(
-                    isServerAvailable && isMozgachAvailable
+                    isServerAvailable && isBraindlerAvailable
                         ? Icons.check_circle
                         : Icons.error,
                     color: statusColor,
@@ -1160,7 +1173,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                   child: const Text('Закрыть'),
                 ),
-                if (!isServerAvailable || !isMozgachAvailable)
+                if (!isServerAvailable || !isBraindlerAvailable)
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();

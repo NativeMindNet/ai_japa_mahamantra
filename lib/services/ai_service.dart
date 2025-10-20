@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
 import 'package:dio/dio.dart';
@@ -6,9 +5,6 @@ import 'package:dio/dio.dart';
 class AIService {
   static const String _baseUrl = 'http://localhost:11434';
   static const String _model = 'braindler:q2_k';
-
-  // Счетчик отправленных мантр для статистики
-  static int _mantraSentCount = 0;
 
   // Кэш для ответов
   static final Map<String, String> _responseCache = {};
@@ -398,8 +394,8 @@ class AIService {
   static Future<bool> isBraindlerAvailable() async {
     try {
       final models = await getAvailableModels();
-      return models.contains(_model) || 
-             models.any((m) => m.startsWith('braindler'));
+      return models.contains(_model) ||
+          models.any((m) => m.startsWith('braindler'));
     } catch (e) {
       return false;
     }

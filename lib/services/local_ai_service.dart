@@ -78,9 +78,7 @@ class LocalAIService {
   Future<String?> _findOrExtractModel() async {
     try {
       final documentsDir = await getApplicationDocumentsDirectory();
-      final modelFile = File(
-        '${documentsDir.path}/models/braindler-q2_k.gguf',
-      );
+      final modelFile = File('${documentsDir.path}/models/braindler-q2_k.gguf');
 
       // Если модель уже существует, используем её
       if (await modelFile.exists()) {
