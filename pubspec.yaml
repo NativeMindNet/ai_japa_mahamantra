@@ -56,6 +56,13 @@ dependencies:
   # Локальное хранилище
   shared_preferences: ^2.2.2
   
+  # Шифрование для логов
+  encrypt: ^5.0.3
+  crypto: ^3.0.3
+  
+  # Пути к файлам
+  path_provider: ^2.1.1
+  
   # Аудио
   audioplayers: ^5.2.1
   
@@ -88,6 +95,12 @@ dependencies:
   
   # Connectivity
   connectivity_plus: ^6.1.0
+  
+  # Battery monitoring для воспевания на зарядке
+  battery_plus: ^6.0.3
+  
+  # Wake lock для постоянного воспевания на зарядке
+  wakelock_plus: ^1.2.8
   
   # Magento интеграция через HTTP клиент
   # Используем dio для работы с REST API
