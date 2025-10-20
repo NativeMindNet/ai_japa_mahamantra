@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/japa_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/profile_provider.dart';
@@ -32,6 +33,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = false;
   bool _cloudFeaturesEnabled = false;
   bool _isOnline = false;
+  String _appVersion = '...'; // Версия приложения
+  String _appBuildNumber = ''; // Номер сборки
 
   // Easter Egg: Режим разработчика через нажатия на версию
   int _versionTapCount = 0;
@@ -46,9 +49,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _loadAppVersion();
     _loadCloudSettings();
     _initConnectivity();
     _loadDeveloperMode();
+  }
+  
+  /// Загружает информацию о версии приложения
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        _appVersion = packageInfo.version;
+        _appBuildNumber = packageInfo.buildNumber;
+      });
+    } catch (e) {
+      debugPrint('Ошибка загрузки версии: $e');
+      setState(() {
+        _appVersion = '2.0.2'; // Fallback версия из pubspec.yaml
+      });
+    }
   }
 
   /// Загружает статус режима разработчика
@@ -571,7 +591,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         // Версия приложения - Easter Egg (7 нажатий активируют режим разработчика)
                         SettingsTile(
                           title: l10n.version,
-                          subtitle: '1.0.0',
+                          subtitle: _appBuildNumber.isNotEmpty 
+                              ? '$_appVersion (build $_appBuildNumber)'
+                              : _appVersion,
                           leading: Icon(
                             _developerModeEnabled
                                 ? Icons.developer_mode
@@ -1530,7 +1552,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Добавляем метаданные экспорта
       exportData['export_metadata'] = {
         'export_date': DateTime.now().toIso8601String(),
-        'app_version': '1.0.0',
+        'app_version': _appVersion,
+        'build_number': _appBuildNumber,
         'total_keys': allKeys.length,
       };
 
@@ -1748,9 +1771,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(l10n.license),
-          content: const Text(
-            'Это приложение распространяется под лицензией MIT. Исходный код доступен на GitHub.',
+          title: Row(
+            children: [
+              const Icon(Icons.description),
+              const SizedBox(width: 8),
+              Text(l10n.license),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'AI Джапа Махамантра',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Version $_appVersion',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 16),
+                const Text(
+                  'Лицензия:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('NativeMindNONC License'),
+                const SizedBox(height: 16),
+                const Text(
+                  'Copyright © 2010-2025 NativeMind',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Условия использования:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('• Бесплатно для некоммерческого использования'),
+                const Text('• Исходный код доступен на GitHub'),
+                const Text('• При модификации требуется указание авторства'),
+                const Text('• Запрещено добавление вредоносного кода'),
+                const SizedBox(height: 16),
+                const Text(
+                  '🕉️ Для духовного развития',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.purple,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Полный текст лицензии доступен в файле LICENSE',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -1758,6 +1840,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(context).pop();
               },
               child: Text(l10n.close),
+            ),
+            TextButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('GitHub: github.com/nativemind/mahamantra'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              },
+              child: const Text('GitHub'),
             ),
           ],
         );
