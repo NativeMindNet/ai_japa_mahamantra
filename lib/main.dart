@@ -14,6 +14,7 @@ import 'services/notification_service.dart';
 import 'services/background_service.dart';
 import 'services/audio_service.dart';
 import 'services/charging_chanting_service.dart';
+import 'services/braindler108_service.dart';
 import 'services/mozgach108_service.dart';
 import 'services/ai_power_mode_service.dart';
 import 'services/encrypted_log_service.dart';
@@ -40,7 +41,9 @@ void main() async {
   // Будни: 08:01 и 21:08, Выходные: 09:00 и 21:00
   await BackgroundService.registerDefaultAutoSchedule();
 
-  // Правило № 1: Инициализируем Мозgач108
+  // Правило № 1: Инициализируем Braindler108 (замена Мозgач108)
+  await Braindler108Service.instance.initialize();
+  // Старый сервис (для совместимости)
   await Mozgach108Service.instance.initialize();
 
   // Правило № 3: Инициализируем AI Power Mode

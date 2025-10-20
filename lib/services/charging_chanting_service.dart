@@ -5,6 +5,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 import 'encrypted_log_service.dart';
+import 'braindler108_service.dart';
 import 'mozgach108_service.dart';
 import 'ai_power_mode_service.dart';
 import 'notification_service.dart';
@@ -267,17 +268,17 @@ class ChargingChantingService {
         final isHighPowerMode = aiService.isAcceleratorAvailable;
 
         if (isHighPowerMode) {
-          // Обрабатываем через Мозgач108
-          final mozgachService = Mozgach108Service.instance;
+          // Обрабатываем через Braindler108 (7 моделей × параметры = 108 циклов)
+          final braindlerService = Braindler108Service.instance;
 
           try {
-            // Обрабатываем через все 108 моделей
-            await mozgachService.processMantraThroughAll108Models(
+            // Обрабатываем через все 108 циклов braindler
+            await braindlerService.processMantraThroughAll108Cycles(
               mantra: _mahamantra,
               beadNumber: _totalChants % 108,
               roundNumber: (_totalChants / 108).floor() + 1,
             );
-            result = 'AI обработка через 108 моделей завершена';
+            result = 'AI обработка через 108 циклов Braindler завершена';
           } catch (e) {
             debugPrint('Ошибка AI обработки: $e');
             result = await _simpleLowPowerChant();

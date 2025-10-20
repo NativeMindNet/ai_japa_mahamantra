@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 import '../providers/japa_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/profile_provider.dart';
@@ -14,6 +16,7 @@ import '../services/connectivity_service.dart';
 import '../services/charging_chanting_service.dart';
 import '../constants/app_constants.dart';
 import '../screens/profile_screen.dart';
+import '../screens/easter_egg_logs_screen.dart';
 // import '../l10n/app_localizations_delegate.dart'; // Временно отключено
 import '../utils/simple_localizations.dart';
 import '../animations/custom_page_transitions.dart';
@@ -29,6 +32,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = false;
   bool _cloudFeaturesEnabled = false;
   bool _isOnline = false;
+  
+  // Easter Egg: Режим разработчика через нажатия на версию
+  int _versionTapCount = 0;
+  bool _developerModeEnabled = false;
+  Timer? _versionTapTimer;
+  static const int _requiredTaps = 7; // Как в Android
+  static const Duration _tapTimeout = Duration(seconds: 3);
 
   final MagentoService _magentoService = MagentoService();
   final ConnectivityService _connectivityService = ConnectivityService();
@@ -38,6 +48,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _loadCloudSettings();
     _initConnectivity();
+    _loadDeveloperMode();
+  }
+  
+  /// Загружает статус режима разработчика
+  Future<void> _loadDeveloperMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _developerModeEnabled = prefs.getBool('developer_mode_enabled') ?? false;
+    });
+  }
+  
+  /// Сохраняет статус режима разработчика
+  Future<void> _saveDeveloperMode(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('developer_mode_enabled', enabled);
+    setState(() {
+      _developerModeEnabled = enabled;
+    });
   }
 
   /// Загружает настройки облачных функций
@@ -68,7 +96,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void dispose() {
     _connectivityService.dispose();
+    _versionTapTimer?.cancel();
     super.dispose();
+  }
+  
+  /// Обработка нажатия на версию (Easter Egg)
+  void _handleVersionTap() {
+    if (_developerModeEnabled) {
+      // Уже включен - показываем сообщение
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🔓 Режим разработчика уже активирован'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+      return;
+    }
+    
+    setState(() {
+      _versionTapCount++;
+    });
+    
+    // Сбрасываем счетчик через таймаут
+    _versionTapTimer?.cancel();
+    _versionTapTimer = Timer(_tapTimeout, () {
+      if (mounted) {
+        setState(() {
+          _versionTapCount = 0;
+        });
+      }
+    });
+    
+    // Показываем прогресс
+    final remaining = _requiredTaps - _versionTapCount;
+    if (remaining > 0 && remaining <= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🔐 Еще $remaining ${_pluralTaps(remaining)} до режима разработчика'),
+          duration: const Duration(milliseconds: 800),
+        ),
+      );
+    }
+    
+    // Активируем режим разработчика
+    if (_versionTapCount >= _requiredTaps) {
+      _activateDeveloperMode();
+    }
+  }
+  
+  /// Склонение слова "нажатие"
+  String _pluralTaps(int count) {
+    if (count == 1) return 'нажатие';
+    if (count >= 2 && count <= 4) return 'нажатия';
+    return 'нажатий';
+  }
+  
+  /// Активация режима разработчика
+  void _activateDeveloperMode() {
+    _saveDeveloperMode(true);
+    _versionTapCount = 0;
+    
+    // Показываем сообщение об активации
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🎉 Режим разработчика активирован! Теперь доступен просмотр логов.'),
+        duration: Duration(seconds: 3),
+        backgroundColor: Colors.green,
+      ),
+    );
+    
+    // Вибрация
+    if (Vibration.hasVibrator() != null) {
+      Vibration.vibrate(duration: 200);
+    }
   }
 
   @override
@@ -464,11 +564,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SettingsSection(
                       title: l10n.aboutApp,
                       tiles: [
+                        // Версия приложения - Easter Egg (7 нажатий активируют режим разработчика)
                         SettingsTile(
                           title: l10n.version,
                           subtitle: '1.0.0',
-                          leading: const Icon(Icons.info),
+                          leading: Icon(
+                            _developerModeEnabled ? Icons.developer_mode : Icons.info,
+                            color: _developerModeEnabled ? Colors.green : null,
+                          ),
+                          trailing: _developerModeEnabled 
+                            ? const Icon(Icons.check_circle, color: Colors.green)
+                            : null,
+                          onPressed: (context) => _handleVersionTap(),
                         ),
+                        // Кнопка просмотра логов (только в режиме разработчика)
+                        if (_developerModeEnabled)
+                          SettingsTile(
+                            title: '🔓 Просмотр логов',
+                            subtitle: 'Зашифрованные логи воспеваний (AES-256)',
+                            leading: const Icon(Icons.visibility, color: Colors.blue),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onPressed: (context) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const EasterEggLogsScreen(),
+                                ),
+                              );
+                            },
+                          ),
                         SettingsTile(
                           title: l10n.license,
                           subtitle: l10n.openSource,
