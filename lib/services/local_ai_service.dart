@@ -79,12 +79,12 @@ class LocalAIService {
     try {
       final documentsDir = await getApplicationDocumentsDirectory();
       final modelFile = File(
-        '${documentsDir.path}/models/mozgach108-minimal-q4.gguf',
+        '${documentsDir.path}/models/braindler-q2_k.gguf',
       );
 
       // Если модель уже существует, используем её
       if (await modelFile.exists()) {
-        debugPrint('Модель найдена: ${modelFile.path}');
+        debugPrint('Модель braindler найдена: ${modelFile.path}');
         return modelFile.path;
       }
 
@@ -95,23 +95,24 @@ class LocalAIService {
           await modelsDir.create(recursive: true);
         }
 
-        // Копируем модель из assets
+        // Копируем модель braindler из assets
+        debugPrint('Извлекаем модель braindler из assets...');
         final byteData = await rootBundle.load(
-          'assets/models/mozgach108-minimal-q4.gguf',
+          'assets/models/braindler-q2_k.gguf',
         );
         final buffer = byteData.buffer;
         await modelFile.writeAsBytes(
           buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
         );
 
-        debugPrint('Модель извлечена из assets: ${modelFile.path}');
+        debugPrint('Модель braindler извлечена из assets: ${modelFile.path}');
         return modelFile.path;
       } catch (e) {
-        debugPrint('Модель не найдена в assets: $e');
+        debugPrint('Модель braindler не найдена в assets: $e');
         return null;
       }
     } catch (e) {
-      debugPrint('Ошибка поиска модели: $e');
+      debugPrint('Ошибка поиска модели braindler: $e');
       return null;
     }
   }

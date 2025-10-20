@@ -9,11 +9,11 @@ import UIKit
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
     
-    // Регистрируем LocalAI плагин
-    let controller = window?.rootViewController as! FlutterViewController
-    if #available(iOS 13.0, *) {
-      LocalAIPlugin.register(with: registrar(forPlugin: "LocalAIPlugin")!)
-    }
+    // LocalAI plugin disabled for release
+    // let controller = window?.rootViewController as! FlutterViewController
+    // if #available(iOS 13.0, *) {
+    //   LocalAIPlugin.register(with: registrar(forPlugin: "LocalAIPlugin")!)
+    // }
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

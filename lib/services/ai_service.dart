@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 
 class AIService {
   static const String _baseUrl = 'http://localhost:11434';
-  static const String _model = 'mozgach108-minimal:latest';
+  static const String _model = 'braindler:q2_k';
 
   // Счетчик отправленных мантр для статистики
   static int _mantraSentCount = 0;
@@ -394,11 +394,12 @@ class AIService {
     }
   }
 
-  /// Проверяет, доступна ли модель mozgach:latest
-  static Future<bool> isMozgachAvailable() async {
+  /// Проверяет, доступна ли модель braindler
+  static Future<bool> isBraindlerAvailable() async {
     try {
       final models = await getAvailableModels();
-      return models.contains(_model);
+      return models.contains(_model) || 
+             models.any((m) => m.startsWith('braindler'));
     } catch (e) {
       return false;
     }
