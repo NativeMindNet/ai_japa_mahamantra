@@ -55,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _initConnectivity();
     _loadDeveloperMode();
   }
-  
+
   /// Загружает информацию о версии приложения
   Future<void> _loadAppVersion() async {
     try {
@@ -225,11 +225,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   sections: [
                     // Выбор языка
                     SettingsSection(
-                      title: l10n.language,
+                      title: Text(l10n.language),
                       tiles: [
                         SettingsTile(
-                          title: l10n.selectLanguage,
-                          subtitle: _getCurrentLanguageName(localeProvider),
+                          title: Text(l10n.selectLanguage),
+                          description: Text(
+                            _getCurrentLanguageName(localeProvider),
+                          ),
                           leading: const Icon(Icons.language),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -241,13 +243,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // Настройки темы
                     SettingsSection(
-                      title: l10n.theme,
+                      title: Text(l10n.theme),
                       tiles: [
                         SettingsTile.switchTile(
-                          title: l10n.darkTheme,
-                          subtitle: l10n.themeDescription,
+                          title: Text(l10n.darkTheme),
+                          description: Text(l10n.themeDescription),
                           leading: const Icon(Icons.dark_mode),
-                          switchValue: localeProvider.isDarkTheme,
+                          initialValue: localeProvider.isDarkTheme,
                           onToggle: (value) {
                             localeProvider.toggleTheme();
                           },
@@ -257,12 +259,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // Основные настройки джапы
                     SettingsSection(
-                      title: l10n.basicSettings,
+                      title: Text(l10n.basicSettings),
                       tiles: [
                         SettingsTile(
-                          title: l10n.targetRounds,
-                          subtitle:
-                              '${japaProvider.targetRounds} ${l10n.rounds}',
+                          title: Text(l10n.targetRounds),
+                          description: Text(
+                            '${japaProvider.targetRounds} ${l10n.rounds}',
+                          ),
                           leading: const Icon(Icons.track_changes),
                           trailing: DropdownButton<int>(
                             value: japaProvider.targetRounds,
@@ -280,16 +283,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         SettingsTile(
-                          title: l10n.timePerRound,
-                          subtitle:
-                              '${AppConstants.minutesPerRound} ${l10n.minutes}',
+                          title: Text(l10n.timePerRound),
+                          description: Text(
+                            '${AppConstants.minutesPerRound} ${l10n.minutes}',
+                          ),
                           leading: const Icon(Icons.timer),
                           trailing: const Text('Примерно'),
                         ),
                         SettingsTile(
-                          title: l10n.maxRoundsPerDay,
-                          subtitle:
-                              '${AppConstants.maxRoundsPerDay} ${l10n.rounds}',
+                          title: Text(l10n.maxRoundsPerDay),
+                          description: Text(
+                            '${AppConstants.maxRoundsPerDay} ${l10n.rounds}',
+                          ),
                           leading: const Icon(Icons.warning),
                           trailing: Text(l10n.notRecommendedToExceed),
                         ),
@@ -298,29 +303,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // Уведомления и напоминания
                     SettingsSection(
-                      title: l10n.notificationsAndReminders,
+                      title: Text(l10n.notificationsAndReminders),
                       tiles: [
                         SettingsTile.switchTile(
-                          title: l10n.notifications,
-                          subtitle: l10n.japaProgressNotifications,
+                          title: Text(l10n.notifications),
+                          description: Text(l10n.japaProgressNotifications),
                           leading: const Icon(Icons.notifications),
-                          switchValue: japaProvider.notificationsEnabled,
+                          initialValue: japaProvider.notificationsEnabled,
                           onToggle: (value) {
                             japaProvider.setNotificationsEnabled(value);
                           },
                         ),
                         SettingsTile.switchTile(
-                          title: l10n.autoStart,
-                          subtitle: l10n.japaTimeReminders,
+                          title: Text(l10n.autoStart),
+                          description: Text(l10n.japaTimeReminders),
                           leading: const Icon(Icons.schedule),
-                          switchValue: japaProvider.autoStartEnabled,
+                          initialValue: japaProvider.autoStartEnabled,
                           onToggle: (value) {
                             japaProvider.setAutoStartEnabled(value);
                           },
                         ),
                         SettingsTile(
-                          title: l10n.dailyReminder,
-                          subtitle: l10n.setJapaTime,
+                          title: Text(l10n.dailyReminder),
+                          description: Text(l10n.setJapaTime),
                           leading: const Icon(Icons.access_time),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -328,8 +333,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: l10n.japaSchedule,
-                          subtitle: l10n.setMultipleTimes,
+                          title: Text(l10n.japaSchedule),
+                          description: Text(l10n.setMultipleTimes),
                           leading: const Icon(Icons.calendar_today),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -341,29 +346,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // Звук и вибрация
                     SettingsSection(
-                      title: l10n.soundAndVibration,
+                      title: Text(l10n.soundAndVibration),
                       tiles: [
                         SettingsTile.switchTile(
-                          title: l10n.vibration,
-                          subtitle: l10n.beadClickVibration,
+                          title: Text(l10n.vibration),
+                          description: Text(l10n.beadClickVibration),
                           leading: const Icon(Icons.vibration),
-                          switchValue: japaProvider.vibrationEnabled,
+                          initialValue: japaProvider.vibrationEnabled,
                           onToggle: (value) {
                             japaProvider.setVibrationEnabled(value);
                           },
                         ),
                         SettingsTile.switchTile(
-                          title: l10n.sound,
-                          subtitle: l10n.soundEffects,
+                          title: Text(l10n.sound),
+                          description: Text(l10n.soundEffects),
                           leading: const Icon(Icons.volume_up),
-                          switchValue: japaProvider.soundEnabled,
+                          initialValue: japaProvider.soundEnabled,
                           onToggle: (value) {
                             japaProvider.setSoundEnabled(value);
                           },
                         ),
                         SettingsTile(
-                          title: l10n.japaSounds,
-                          subtitle: l10n.configureSounds,
+                          title: Text(l10n.japaSounds),
+                          description: Text(l10n.configureSounds),
                           leading: const Icon(Icons.music_note),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -375,11 +380,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // AI помощник
                     SettingsSection(
-                      title: l10n.aiAssistantSection,
+                      title: Text(l10n.aiAssistantSection),
                       tiles: [
                         SettingsTile(
-                          title: l10n.aiStatus,
-                          subtitle: l10n.checkMozgachAvailability,
+                          title: Text(l10n.aiStatus),
+                          description: Text(l10n.checkMozgachAvailability),
                           leading: const Icon(Icons.smart_toy),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -387,8 +392,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: l10n.aiSettings,
-                          subtitle: l10n.aiAssistantParameters,
+                          title: Text(l10n.aiSettings),
+                          description: Text(l10n.aiAssistantParameters),
                           leading: const Icon(Icons.settings),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -396,8 +401,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: l10n.aiStatistics,
-                          subtitle: l10n.aiAssistantUsage,
+                          title: Text(l10n.aiStatistics),
+                          description: Text(l10n.aiAssistantUsage),
                           leading: const Icon(Icons.analytics),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -409,14 +414,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // Воспевание на зарядке (Правило № 4)
                     SettingsSection(
-                      title: '🔋 Воспевание на зарядке',
+                      title: const Text('🔋 Воспевание на зарядке'),
                       tiles: [
                         SettingsTile.switchTile(
-                          title: 'Включить на зарядке',
-                          subtitle:
-                              'Автоматическое воспевание при подключении зарядки',
+                          title: const Text('Включить на зарядке'),
+                          description: const Text(
+                            'Автоматическое воспевание при подключении зарядки',
+                          ),
                           leading: const Icon(Icons.battery_charging_full),
-                          switchValue:
+                          initialValue:
                               true, // Значение по умолчанию, будет загружено позже
                           onToggle: (value) async {
                             await ChargingChantingService.instance
@@ -425,10 +431,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile.switchTile(
-                          title: 'Воспевание в спящем режиме',
-                          subtitle: 'Работа в фоновом режиме (энергозатратно)',
+                          title: const Text('Воспевание в спящем режиме'),
+                          description: const Text(
+                            'Работа в фоновом режиме (энергозатратно)',
+                          ),
                           leading: const Icon(Icons.bedtime),
-                          switchValue:
+                          initialValue:
                               false, // Значение по умолчанию, будет загружено позже
                           onToggle: (value) async {
                             await ChargingChantingService.instance
@@ -437,10 +445,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile.switchTile(
-                          title: 'Использовать AI модели',
-                          subtitle: 'Обработка через 108 моделей Мозgач108',
+                          title: const Text('Использовать AI модели'),
+                          description: const Text(
+                            'Обработка через 108 моделей Мозgач108',
+                          ),
                           leading: const Icon(Icons.psychology),
-                          switchValue:
+                          initialValue:
                               true, // Значение по умолчанию, будет загружено позже
                           onToggle: (value) async {
                             await ChargingChantingService.instance
@@ -449,8 +459,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: 'Интервал воспевания',
-                          subtitle: '30 секунд между мантрами',
+                          title: const Text('Интервал воспевания'),
+                          description: const Text('30 секунд между мантрами'),
                           leading: const Icon(Icons.timer),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -458,8 +468,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: 'Статистика воспевания',
-                          subtitle: 'Просмотр статистики и логов',
+                          title: const Text('Статистика воспевания'),
+                          description: const Text(
+                            'Просмотр статистики и логов',
+                          ),
                           leading: const Icon(Icons.bar_chart),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -471,15 +483,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // Облачные функции
                     SettingsSection(
-                      title: 'Облачные функции',
+                      title: const Text('Облачные функции'),
                       tiles: [
                         SettingsTile.switchTile(
-                          title: 'Облачная синхронизация',
-                          subtitle: _isOnline
-                              ? (_cloudFeaturesEnabled
-                                    ? 'Включена • Онлайн'
-                                    : 'Выключена • Онлайн')
-                              : 'Нет подключения к интернету',
+                          title: const Text('Облачная синхронизация'),
+                          description: Text(
+                            _isOnline
+                                ? (_cloudFeaturesEnabled
+                                      ? 'Включена • Онлайн'
+                                      : 'Выключена • Онлайн')
+                                : 'Нет подключения к интернету',
+                          ),
                           leading: Icon(
                             _isOnline ? Icons.cloud : Icons.cloud_off,
                             color: _isOnline
@@ -488,7 +502,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       : Colors.grey)
                                 : Colors.red,
                           ),
-                          switchValue: _cloudFeaturesEnabled,
+                          initialValue: _cloudFeaturesEnabled,
                           onToggle: _isOnline
                               ? (value) async {
                                   await _toggleCloudFeatures(value);
@@ -497,8 +511,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         if (_cloudFeaturesEnabled && _isOnline) ...[
                           SettingsTile(
-                            title: 'Профиль пользователя',
-                            subtitle: 'Управление профилем и настройками',
+                            title: const Text('Профиль пользователя'),
+                            description: const Text(
+                              'Управление профилем и настройками',
+                            ),
                             leading: const Icon(Icons.account_circle),
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onPressed: (context) {
@@ -510,9 +526,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             },
                           ),
                           SettingsTile(
-                            title: 'Глобальная статистика',
-                            subtitle:
-                                'Посмотреть общую статистику пользователей',
+                            title: const Text('Глобальная статистика'),
+                            description: const Text(
+                              'Посмотреть общую статистику пользователей',
+                            ),
                             leading: const Icon(Icons.public),
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onPressed: (context) {
@@ -520,8 +537,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             },
                           ),
                           SettingsTile(
-                            title: 'Рейтинг пользователей',
-                            subtitle: 'Топ практикующих джапу',
+                            title: const Text('Рейтинг пользователей'),
+                            description: const Text('Топ практикующих джапу'),
                             leading: const Icon(Icons.leaderboard),
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onPressed: (context) {
@@ -529,9 +546,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             },
                           ),
                           SettingsTile(
-                            title: 'Персональные рекомендации',
-                            subtitle:
-                                'AI-рекомендации на основе вашей практики',
+                            title: const Text('Персональные рекомендации'),
+                            description: const Text(
+                              'AI-рекомендации на основе вашей практики',
+                            ),
                             leading: const Icon(Icons.recommend),
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onPressed: (context) {
@@ -539,8 +557,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             },
                           ),
                           SettingsTile(
-                            title: 'Настройки облака',
-                            subtitle: 'Конфигурация Magento бэкенда',
+                            title: const Text('Настройки облака'),
+                            description: const Text(
+                              'Конфигурация Magento бэкенда',
+                            ),
                             leading: const Icon(Icons.cloud_sync),
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onPressed: (context) {
@@ -553,11 +573,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // Статистика и данные
                     SettingsSection(
-                      title: l10n.statisticsAndData,
+                      title: Text(l10n.statisticsAndData),
                       tiles: [
                         SettingsTile(
-                          title: l10n.overallStatistics,
-                          subtitle: l10n.viewAllAchievements,
+                          title: Text(l10n.overallStatistics),
+                          description: Text(l10n.viewAllAchievements),
                           leading: const Icon(Icons.bar_chart),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -565,8 +585,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: l10n.dataExport,
-                          subtitle: l10n.saveDataToDevice,
+                          title: Text(l10n.dataExport),
+                          description: Text(l10n.saveDataToDevice),
                           leading: const Icon(Icons.download),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -574,8 +594,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: l10n.clearData,
-                          subtitle: l10n.deleteAllSavedData,
+                          title: Text(l10n.clearData),
+                          description: Text(l10n.deleteAllSavedData),
                           leading: const Icon(Icons.delete_forever),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -587,14 +607,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // О приложении
                     SettingsSection(
-                      title: l10n.aboutApp,
+                      title: Text(l10n.aboutApp),
                       tiles: [
                         // Версия приложения - Easter Egg (7 нажатий активируют режим разработчика)
                         SettingsTile(
-                          title: l10n.version,
-                          subtitle: _appBuildNumber.isNotEmpty 
-                              ? '$_appVersion (build $_appBuildNumber)'
-                              : _appVersion,
+                          title: Text(l10n.version),
+                          description: Text(
+                            _appBuildNumber.isNotEmpty
+                                ? '$_appVersion (build $_appBuildNumber)'
+                                : _appVersion,
+                          ),
                           leading: Icon(
                             _developerModeEnabled
                                 ? Icons.developer_mode
@@ -612,8 +634,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         // Кнопка просмотра логов (только в режиме разработчика)
                         if (_developerModeEnabled)
                           SettingsTile(
-                            title: '🔓 Просмотр логов',
-                            subtitle: 'Зашифрованные логи воспеваний (AES-256)',
+                            title: const Text('🔓 Просмотр логов'),
+                            description: const Text(
+                              'Зашифрованные логи воспеваний (AES-256)',
+                            ),
                             leading: const Icon(
                               Icons.visibility,
                               color: Colors.blue,
@@ -629,8 +653,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             },
                           ),
                         SettingsTile(
-                          title: l10n.license,
-                          subtitle: l10n.openSource,
+                          title: Text(l10n.license),
+                          description: Text(l10n.openSource),
                           leading: const Icon(Icons.description),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -638,8 +662,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: l10n.developers,
-                          subtitle: l10n.aiJapaTeam,
+                          title: Text(l10n.developers),
+                          description: Text(l10n.aiJapaTeam),
                           leading: const Icon(Icons.people),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -647,8 +671,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                         SettingsTile(
-                          title: l10n.donate,
-                          subtitle: 'Поддержать развитие приложения',
+                          title: Text(l10n.donate),
+                          description: const Text(
+                            'Поддержать развитие приложения',
+                          ),
                           leading: const Icon(Icons.favorite),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onPressed: (context) {
@@ -1786,10 +1812,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 const Text(
                   'AI Джапа Махамантра',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   'Version $_appVersion',
@@ -1878,10 +1901,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               const Text(
                 'AI Джапа Махамантра',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -1895,10 +1915,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 16),
               const Text(
                 'Разработчики:',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               InkWell(
