@@ -87,31 +87,33 @@ class JapaControlsWidget extends StatelessWidget {
             ),
 
           // Информация о сессии
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(AppConstants.backgroundColor),
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildInfoItem(
-                  icon: Icons.timer,
-                  label: 'Время',
-                  value: '00:00',
-                ),
-                _buildInfoItem(
-                  icon: Icons.refresh,
-                  label: 'Круги',
-                  value: '0/16',
-                ),
-                _buildInfoItem(
-                  icon: Icons.circle,
-                  label: 'Бусины',
-                  value: '0/108',
-                ),
-              ],
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(AppConstants.backgroundColor),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildInfoItem(
+                    icon: Icons.timer,
+                    label: 'Время',
+                    value: '00:00',
+                  ),
+                  _buildInfoItem(
+                    icon: Icons.refresh,
+                    label: 'Круги',
+                    value: '0/16',
+                  ),
+                  _buildInfoItem(
+                    icon: Icons.circle,
+                    label: 'Бусины',
+                    value: '0/108',
+                  ),
+                ],
+              ),
             ),
           ),
         ],

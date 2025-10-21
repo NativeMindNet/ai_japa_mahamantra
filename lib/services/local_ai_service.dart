@@ -3,16 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:llama_cpp_dart/llama_cpp_dart.dart'; // Временно отключен
+import 'package:flutter_llama/flutter_llama.dart';
 
 /// Сервис для работы с локальной AI моделью на устройстве
-/// Использует llama.cpp для запуска GGUF моделей
-/// ВНИМАНИЕ: llama_cpp_dart временно отключен из-за проблем сборки на Android
+/// Использует flutter_llama для запуска GGUF моделей
 class LocalAIService {
   static LocalAIService? _instance;
 
-  // Используем llama_cpp_dart (временно отключен)
-  // Llama? _llama;
+  final FlutterLlama _llama = FlutterLlama.instance;
 
   bool _isInitialized = false;
   bool _isModelLoaded = false;
@@ -24,7 +22,7 @@ class LocalAIService {
 
   // Настройки для максимальной нагрузки и качества
   static const int _nThreads = 8; // Максимум потоков
-  static const int _nGpuLayers = 99; // Максимум GPU слоев
+  static const int _nGpuLayers = -1; // Все слои на GPU
   static const int _contextSize = 4096; // Большой контекст
   static const double _temperature = 0.8; // Креативность
   static const double _topP = 0.95; // Разнообразие
@@ -44,13 +42,10 @@ class LocalAIService {
     if (_isInitialized) return true;
 
     try {
-      // llama_cpp_dart временно отключен из-за проблем сборки на Android
-      // AI функционал будет недоступен, но приложение не будет крашиться
-      debugPrint(
-        'LocalAIService: llama_cpp_dart отключен, AI функции недоступны',
-      );
+      if (kDebugMode) {
+        debugPrint('ℹ️ LocalAI: Инициализация с flutter_llama');
+      }
 
-      /* Временно закомментировано
       // Проверяем наличие модели в assets или документах
       final modelPath = await _findOrExtractModel();
 
@@ -61,39 +56,35 @@ class LocalAIService {
 
       _modelPath = modelPath;
 
-      // Инициализируем llama.cpp через llama_cpp_dart
-      debugPrint('Инициализация Llama с моделью: $modelPath');
-      
-      // Настройка библиотеки для Android
-      if (Platform.isAndroid) {
-        Llama.libraryPath = "libllama.so";
+      // Инициализируем llama через flutter_llama
+      if (kDebugMode) {
+        debugPrint('Инициализация Llama с моделью: $modelPath');
       }
-      
-      final modelParams = ModelParams()..nGpuLayers = _nGpuLayers;
-      
-      final contextParams = ContextParams()
-        ..nPredict = _maxTokens
-        ..nCtx = _contextSize
-        ..nBatch = 512;
-      
-      final samplerParams = SamplerParams()
-        ..temp = _temperature
-        ..topK = _topK
-        ..topP = _topP;
-      
-      _llama = Llama(
-        modelPath,
-        modelParams,
-        contextParams,
-        samplerParams,
-        false, // verbos
+
+      final config = LlamaConfig(
+        modelPath: modelPath,
+        nThreads: _nThreads,
+        nGpuLayers: _nGpuLayers,
+        contextSize: _contextSize,
+        batchSize: 512,
+        useGpu: true,
+        verbose: kDebugMode,
       );
-      
-      _isInitialized = true;
-      _isModelLoaded = true;
-      debugPrint('LocalAIService инициализирован успешно с llama_cpp_dart');
-      */
-      return false; // AI недоступен
+
+      final success = await _llama.loadModel(config);
+
+      _isInitialized = success;
+      _isModelLoaded = success;
+
+      if (success && kDebugMode) {
+        debugPrint('✅ LocalAIService инициализирован успешно с flutter_llama');
+        final info = await _llama.getModelInfo();
+        if (info != null) {
+          debugPrint('📊 Model Info: $info');
+        }
+      }
+
+      return success;
     } catch (e) {
       debugPrint('Ошибка инициализации LocalAIService: $e');
       _isInitialized = false;
@@ -183,35 +174,25 @@ class LocalAIService {
   /// Обрабатывает мантру в фоновом режиме
   Future<void> _processMantraInBackground(String prompt) async {
     try {
-      // AI функционал временно отключен
-      debugPrint('AI обработка недоступна (llama_cpp_dart отключен)');
-      return;
+      final params = GenerationParams(
+        prompt: prompt,
+        temperature: _temperature,
+        topP: _topP,
+        topK: _topK,
+        maxTokens: _maxTokens,
+      );
 
-      /* Временно закомментировано
-      if (_llama == null) {
-        debugPrint('Llama не инициализирован');
-        return;
-      }
-      
       // Запускаем генерацию
-      _llama!.setPrompt(prompt);
-      
-      final StringBuffer response = StringBuffer();
-      while (true) {
-        final (token, done) = _llama!.getNext();
-        response.write(token);
-        if (done) break;
-      }
+      final response = await _llama.generate(params);
 
-      final responseText = response.toString();
-      if (responseText.isNotEmpty) {
+      if (response.text.isNotEmpty) {
         _mantrasProcessed++;
-        final preview = responseText.length > 50 
-            ? '${responseText.substring(0, 50)}...' 
-            : responseText;
+        final preview = response.text.length > 50
+            ? '${response.text.substring(0, 50)}...'
+            : response.text;
         debugPrint('Мантра обработана AI: $preview');
+        debugPrint('Скорость: ${response.tokensPerSecond.toStringAsFixed(2)} tok/s');
       }
-      */
     } catch (e) {
       debugPrint('Ошибка обработки мантры: $e');
     }
@@ -245,33 +226,28 @@ $mantra
     String question, {
     String category = 'spiritual',
   }) async {
-    // AI функционал временно отключен, возвращаем офлайн ответ
-    return _getOfflineAnswer(question);
-
-    /* Временно закомментировано
-    if (!_isInitialized || !_isModelLoaded || _llama == null) {
+    if (!_isInitialized || !_isModelLoaded) {
       return _getOfflineAnswer(question);
     }
 
     try {
       final prompt = _buildQuestionPrompt(question, category);
 
-      _llama!.setPrompt(prompt);
-      
-      final StringBuffer response = StringBuffer();
-      while (true) {
-        final (token, done) = _llama!.getNext();
-        response.write(token);
-        if (done) break;
-      }
-      
-      final responseText = response.toString();
-      return responseText.isNotEmpty ? responseText : null;
+      final params = GenerationParams(
+        prompt: prompt,
+        temperature: _temperature,
+        topP: _topP,
+        topK: _topK,
+        maxTokens: _maxTokens,
+      );
+
+      final response = await _llama.generate(params);
+
+      return response.text.isNotEmpty ? response.text : null;
     } catch (e) {
       debugPrint('Ошибка запроса к AI: $e');
       return _getOfflineAnswer(question);
     }
-    */
   }
 
   /// Формирует промпт для вопроса
@@ -324,12 +300,14 @@ AI модель временно недоступна.
   Future<Map<String, dynamic>> getStatistics() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final info = await _llama.getModelInfo();
       return {
         'mantrasSent': prefs.getInt('local_ai_mantras_sent') ?? 0,
         'mantrasProcessed': prefs.getInt('local_ai_mantras_processed') ?? 0,
         'isInitialized': _isInitialized,
         'isModelLoaded': _isModelLoaded,
         'modelPath': _modelPath,
+        'modelInfo': info,
       };
     } catch (e) {
       return {};
@@ -345,8 +323,7 @@ AI модель временно недоступна.
   /// Освобождает ресурсы
   Future<void> dispose() async {
     try {
-      // _llama?.dispose(); // Временно отключено
-      // _llama = null;
+      await _llama.unloadModel();
       _isInitialized = false;
       _isModelLoaded = false;
       debugPrint('LocalAIService ресурсы освобождены');

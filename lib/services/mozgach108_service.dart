@@ -83,7 +83,10 @@ class Mozgach108Service {
       final isAvailable = await _checkModelsAvailability();
       
       if (!isAvailable) {
-        debugPrint('Модели мозgач108 недоступны');
+        // Тихая обработка - на мобильных это нормально
+        if (!Platform.isAndroid && !Platform.isIOS) {
+          debugPrint('ℹ️ AI модели недоступны. Работа в базовом режиме.');
+        }
         return false;
       }
       

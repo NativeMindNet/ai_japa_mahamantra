@@ -161,11 +161,48 @@ class _EasterEggLogsScreenState extends State<EasterEggLogsScreen>
           indicatorColor: Colors.amber,
           labelColor: Colors.amber,
           unselectedLabelColor: Colors.grey,
+          isScrollable: true,
           tabs: const [
-            Tab(text: 'High Power\n(108 Models)', icon: Icon(Icons.rocket_launch, size: 18)),
-            Tab(text: 'Low Power\n(Energy Save)', icon: Icon(Icons.battery_saver, size: 18)),
-            Tab(text: 'Statistics', icon: Icon(Icons.analytics, size: 18)),
-            Tab(text: 'About', icon: Icon(Icons.info, size: 18)),
+            Tab(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.rocket_launch, size: 18),
+                  SizedBox(height: 4),
+                  Text('High Power', style: TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
+            Tab(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.battery_saver, size: 18),
+                  SizedBox(height: 4),
+                  Text('Low Power', style: TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
+            Tab(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.analytics, size: 18),
+                  SizedBox(height: 4),
+                  Text('Statistics', style: TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
+            Tab(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.info, size: 18),
+                  SizedBox(height: 4),
+                  Text('About', style: TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
           ],
         ),
       ),

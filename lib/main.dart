@@ -18,6 +18,8 @@ import 'services/braindler108_service.dart';
 import 'services/mozgach108_service.dart';
 import 'services/ai_power_mode_service.dart';
 import 'services/encrypted_log_service.dart';
+import 'l10n/harkonnen_material_localizations.dart';
+import 'l10n/harkonnen_cupertino_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,6 +89,8 @@ class AIJapaMahamantraApp extends StatelessWidget {
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
+              HarkonnenMaterialLocalizationsDelegate(),
+              HarkonnenCupertinoLocalizationsDelegate(),
             ],
             localeResolutionCallback: (locale, supportedLocales) {
               for (var supportedLocale in supportedLocales) {

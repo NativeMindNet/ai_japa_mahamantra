@@ -63,7 +63,11 @@ class Braindler108Service {
       final isAvailable = await _checkOllamaAvailability();
       
       if (!isAvailable) {
-        debugPrint('Ollama сервер недоступен (проверьте http://localhost:11434)');
+        if (!Platform.isAndroid && !Platform.isIOS) {
+          debugPrint('ℹ️ Ollama сервер недоступен. AI функции будут ограничены.');
+          debugPrint('📖 Для полного функционала установите Ollama и модели braindler');
+        }
+        // Не показываем ошибку на мобильных - это нормальная ситуация
         return false;
       }
       
@@ -71,7 +75,8 @@ class Braindler108Service {
       final hasModels = await _checkBraindlerModels();
       
       if (!hasModels) {
-        debugPrint('Модели braindler не установлены. Установите: ollama pull braindler');
+        debugPrint('ℹ️ Модели braindler не найдены');
+        debugPrint('📦 Установите: ollama pull nativemind/braindler');
         return false;
       }
       
@@ -93,11 +98,18 @@ class Braindler108Service {
     try {
       final response = await http.get(
         Uri.parse('$_ollamaBaseUrl/api/tags'),
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 2));
       
       return response.statusCode == 200;
     } catch (e) {
-      debugPrint('Ollama недоступна: $e');
+      // Тихая обработка ошибки - Ollama недоступен на мобильных устройствах
+      if (Platform.isAndroid || Platform.isIOS) {
+        // На мобильных устройствах это нормально - Ollama работает на десктопе
+        return false;
+      }
+      // На десктопе показываем предупреждение
+      debugPrint('⚠️ Ollama сервер недоступен на $_ollamaBaseUrl');
+      debugPrint('💡 Запустите Ollama локально или используйте мобильный AI режим');
       return false;
     }
   }
