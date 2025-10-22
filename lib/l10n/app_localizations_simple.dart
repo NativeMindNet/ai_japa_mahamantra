@@ -5,6 +5,16 @@ class AppLocalizationsSimple {
     return AppLocalizationsSimple();
   }
 
+  static const LocalizationsDelegate<AppLocalizationsSimple> delegate =
+      _AppLocalizationsSimpleDelegate();
+
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ru'),
+    Locale('en'),
+    Locale('de'),
+    Locale('harkonnen'),
+  ];
+
   // Основные строки
   String get appTitle => 'AI Japa Mahamantra';
   String get settings => 'Settings';
@@ -122,8 +132,6 @@ class AppLocalizationsSimple {
   String get openSource => 'Open Source';
   String get developers => 'Developers';
   String get aiJapaTeam => 'AI Japa Team';
-  String get cancel => 'Cancel';
-  String get close => 'Close';
   String get set => 'Set';
   String get configure => 'Configure';
   String get delete => 'Delete';
@@ -134,17 +142,37 @@ class AppLocalizationsSimple {
   String get averageRoundsPerSession => 'Average Rounds Per Session';
   String get averageTimePerSession => 'Average Time Per Session';
   String get hours => 'Hours';
-  String get minutesShort => 'Minutes';
-  String get spiritualCategories => [
+  String get minutesShort => 'min';
+  List<String> get spiritualCategories => [
     'Meditation',
     'Spirituality',
     'Mindfulness',
   ];
-  String get spiritualQuestionHints => [
+  List<String> get spiritualQuestionHints => [
     'How to meditate?',
     'What is japa?',
     'Spiritual growth',
   ];
 }
 
+class _AppLocalizationsSimpleDelegate
+    extends LocalizationsDelegate<AppLocalizationsSimple> {
+  const _AppLocalizationsSimpleDelegate();
 
+  @override
+  bool isSupported(Locale locale) {
+    return AppLocalizationsSimple.supportedLocales.any(
+      (l) => l.languageCode == locale.languageCode,
+    );
+  }
+
+  @override
+  Future<AppLocalizationsSimple> load(Locale locale) async {
+    return AppLocalizationsSimple();
+  }
+
+  @override
+  bool shouldReload(
+    covariant LocalizationsDelegate<AppLocalizationsSimple> old,
+  ) => false;
+}

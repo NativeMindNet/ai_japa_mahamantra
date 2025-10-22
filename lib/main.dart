@@ -20,6 +20,7 @@ import 'services/ai_power_mode_service.dart';
 import 'services/encrypted_log_service.dart';
 import 'l10n/harkonnen_material_localizations.dart';
 import 'l10n/harkonnen_cupertino_localizations.dart';
+import 'l10n/app_localizations_simple.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,18 +80,14 @@ class AIJapaMahamantraApp extends StatelessWidget {
           return MaterialApp(
             title: 'AI Джапа Махамантра',
             locale: localeProvider.currentLocale,
-            supportedLocales: const [
-              Locale('ru'),
-              Locale('en'),
-              Locale('de'),
-              Locale('harkonnen'),
-            ],
+            supportedLocales: AppLocalizationsSimple.supportedLocales,
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
               HarkonnenMaterialLocalizationsDelegate(),
               HarkonnenCupertinoLocalizationsDelegate(),
+              AppLocalizationsSimple.delegate,
             ],
             localeResolutionCallback: (locale, supportedLocales) {
               for (var supportedLocale in supportedLocales) {

@@ -19,7 +19,7 @@ import '../constants/app_constants.dart';
 import '../screens/profile_screen.dart';
 import '../screens/easter_egg_logs_screen.dart';
 // import '../l10n/app_localizations_delegate.dart'; // Временно отключено
-import '../utils/simple_localizations.dart';
+import '../l10n/app_localizations_simple.dart';
 import '../animations/custom_page_transitions.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -226,7 +226,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = SimpleLocalizations();
+    final l10n = AppLocalizationsSimple.of(context);
     final localeProvider = Provider.of<LocaleProvider>(context);
 
     return Scaffold(
@@ -737,7 +737,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     AnimatedNavigation.showAnimatedDialog(
       context,
       child: AlertDialog(
-        title: Text(SimpleLocalizations().selectLanguage),
+        title: Text(AppLocalizationsSimple.of(context).selectLanguage),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -778,7 +778,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text(SimpleLocalizations().close),
+            child: Text(AppLocalizationsSimple.of(context).close),
           ),
         ],
       ),
@@ -786,7 +786,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог ежедневного напоминания
-  void _showDailyReminderDialog(SimpleLocalizations l10n) {
+  void _showDailyReminderDialog(AppLocalizationsSimple l10n) {
     TimeOfDay selectedTime = const TimeOfDay(hour: 6, minute: 0);
 
     showDialog(
@@ -846,7 +846,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Устанавливает ежедневное напоминание
   Future<void> _setDailyReminder(
     TimeOfDay time,
-    SimpleLocalizations l10n,
+    AppLocalizationsSimple l10n,
   ) async {
     try {
       await NotificationService.scheduleDailyReminder(
@@ -874,7 +874,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог расписания
-  void _showScheduleDialog(SimpleLocalizations l10n) {
+  void _showScheduleDialog(AppLocalizationsSimple l10n) {
     List<TimeOfDay> scheduledTimes = [];
 
     showDialog(
@@ -962,7 +962,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Устанавливает расписание джапы
   Future<void> _setSchedule(
     List<TimeOfDay> times,
-    SimpleLocalizations l10n,
+    AppLocalizationsSimple l10n,
   ) async {
     try {
       // Сохраняем расписание в SharedPreferences
@@ -998,7 +998,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог настроек звука
-  void _showSoundSettingsDialog(SimpleLocalizations l10n) {
+  void _showSoundSettingsDialog(AppLocalizationsSimple l10n) {
     final audioService = AudioService();
     final settings = audioService.getSettings();
 
@@ -1154,7 +1154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String soundType,
     double volume,
     bool enableSound,
-    SimpleLocalizations l10n,
+    AppLocalizationsSimple l10n,
   ) async {
     try {
       final audioService = AudioService();
@@ -1326,7 +1326,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог настроек AI
-  void _showAISettingsDialog(SimpleLocalizations l10n) {
+  void _showAISettingsDialog(AppLocalizationsSimple l10n) {
     String selectedModel = 'mozgach:latest';
     double temperature = 0.7;
     int maxTokens = 500;
@@ -1495,7 +1495,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     int maxTokens,
     bool useLocalResponses,
     bool enableCache,
-    SimpleLocalizations l10n,
+    AppLocalizationsSimple l10n,
   ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -1522,7 +1522,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог статистики AI
-  void _showAIStatsDialog(SimpleLocalizations l10n) {
+  void _showAIStatsDialog(AppLocalizationsSimple l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1543,7 +1543,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог общей статистики
-  void _showOverallStatsDialog(SimpleLocalizations l10n) {
+  void _showOverallStatsDialog(AppLocalizationsSimple l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1585,7 +1585,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Экспортирует данные
-  Future<void> _exportData(SimpleLocalizations l10n) async {
+  Future<void> _exportData(AppLocalizationsSimple l10n) async {
     try {
       setState(() {
         _isLoading = true;
@@ -1688,7 +1688,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог очистки данных
-  void _showClearDataDialog(SimpleLocalizations l10n) {
+  void _showClearDataDialog(AppLocalizationsSimple l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1739,7 +1739,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Очищает все данные
-  Future<void> _clearAllData(SimpleLocalizations l10n) async {
+  Future<void> _clearAllData(AppLocalizationsSimple l10n) async {
     try {
       setState(() {
         _isLoading = true;
@@ -1821,7 +1821,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог лицензии
-  void _showLicenseDialog(SimpleLocalizations l10n) {
+  void _showLicenseDialog(AppLocalizationsSimple l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1911,7 +1911,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог разработчиков
-  void _showDevelopersDialog(SimpleLocalizations l10n) {
+  void _showDevelopersDialog(AppLocalizationsSimple l10n) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -2033,7 +2033,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог пожертвований
-  void _showDonationDialog(SimpleLocalizations l10n) {
+  void _showDonationDialog(AppLocalizationsSimple l10n) {
     const String donationAddress = '0xffcba0b4980eb2d2336bfdb1e5a0fc49c620908a';
 
     showDialog(
