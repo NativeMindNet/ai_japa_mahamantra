@@ -9,7 +9,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/japa_provider.dart';
 import '../providers/locale_provider.dart';
-import '../providers/profile_provider.dart';
 import '../services/ai_service.dart';
 import '../services/notification_service.dart';
 import '../services/audio_service.dart';
@@ -95,6 +94,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _cloudFeaturesEnabled = prefs.getBool('cloud_features_enabled') ?? false;
     });
+
+    // Автоинициализация Magento при включенных облачных функциях
+    if (_cloudFeaturesEnabled) {
+      try {
+        final baseUrl = prefs.getString('magento_base_url') ?? '';
+        final consumerKey = prefs.getString('magento_consumer_key') ?? '';
+        final consumerSecret = prefs.getString('magento_consumer_secret') ?? '';
+        final accessToken = prefs.getString('magento_access_token') ?? '';
+        final accessTokenSecret =
+            prefs.getString('magento_access_token_secret') ?? '';
+
+        if (baseUrl.isNotEmpty) {
+          await _magentoService.initialize(
+            baseUrl: baseUrl,
+            consumerKey: consumerKey.isEmpty ? null : consumerKey,
+            consumerSecret: consumerSecret.isEmpty ? null : consumerSecret,
+            accessToken: accessToken.isEmpty ? null : accessToken,
+            accessTokenSecret: accessTokenSecret.isEmpty
+                ? null
+                : accessTokenSecret,
+          );
+        }
+      } catch (_) {
+        // silent
+      }
+    }
   }
 
   /// Инициализирует проверку подключения
@@ -190,10 +215,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
 
-    // Вибрация
-    if (Vibration.hasVibrator() != null) {
-      Vibration.vibrate(duration: 200);
-    }
+    // Вибрация (проверяем наличие вибромотора)
+    // ignore: discarded_futures
+    Vibration.hasVibrator().then((hasVibrator) {
+      if (hasVibrator == true) {
+        Vibration.vibrate(duration: 200);
+      }
+    });
   }
 
   @override
@@ -2091,10 +2119,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _magentoService.setCloudFeaturesEnabled(enabled);
 
       if (enabled) {
-        // Инициализируем Magento сервис с базовыми настройками
+        // Загружаем сохраненные настройки Magento
+        final prefs = await SharedPreferences.getInstance();
+        final baseUrl = prefs.getString('magento_base_url') ?? '';
+        final consumerKey = prefs.getString('magento_consumer_key') ?? '';
+        final consumerSecret = prefs.getString('magento_consumer_secret') ?? '';
+        final accessToken = prefs.getString('magento_access_token') ?? '';
+        final accessTokenSecret =
+            prefs.getString('magento_access_token_secret') ?? '';
+
+        // Проверяем наличие обязательных параметров
+        if (baseUrl.isEmpty) {
+          // Откатываем переключатель и просим настроить
+          await _magentoService.setCloudFeaturesEnabled(false);
+          setState(() {
+            _cloudFeaturesEnabled = false;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Сначала укажите URL Magento в настройках облака',
+                ),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            _showCloudSettingsDialog();
+          }
+          return;
+        }
+
+        // Инициализируем Magento сервис с реальными значениями
         await _magentoService.initialize(
-          baseUrl: 'https://your-magento-backend.com', // TODO: Настроить URL
-          // TODO: Добавить токены авторизации
+          baseUrl: baseUrl,
+          consumerKey: consumerKey.isEmpty ? null : consumerKey,
+          consumerSecret: consumerSecret.isEmpty ? null : consumerSecret,
+          accessToken: accessToken.isEmpty ? null : accessToken,
+          accessTokenSecret: accessTokenSecret.isEmpty
+              ? null
+              : accessTokenSecret,
         );
       }
 
@@ -2343,12 +2406,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Показывает диалог настроек облака
-  void _showCloudSettingsDialog() {
-    String baseUrl = 'https://your-magento-backend.com';
-    String consumerKey = '';
-    String consumerSecret = '';
-    String accessToken = '';
-    String accessTokenSecret = '';
+  Future<void> _showCloudSettingsDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    String baseUrl = prefs.getString('magento_base_url') ?? '';
+    String consumerKey = prefs.getString('magento_consumer_key') ?? '';
+    String consumerSecret = prefs.getString('magento_consumer_secret') ?? '';
+    String accessToken = prefs.getString('magento_access_token') ?? '';
+    String accessTokenSecret =
+        prefs.getString('magento_access_token_secret') ?? '';
 
     showDialog(
       context: context,
