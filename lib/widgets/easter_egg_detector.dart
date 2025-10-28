@@ -1,293 +1,357 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import '../screens/easter_egg_logs_screen.dart';
+import 'package:flutter/services.dart';
+import '../constants/app_constants.dart';
+import '../widgets/modern_ui_components.dart';
 
-/// Детектор Easter Egg для открытия секретного экрана логов
-/// Активируется тройным тапом на 108-й бусине
+/// Детектор Easter Egg для активации скрытых функций
+/// Отслеживает специальные последовательности действий пользователя
 class EasterEggDetector extends StatefulWidget {
   final Widget child;
-  final bool isSpecialBead; // true если это 108-я бусина
-  
+  final Function(String eggType)? onEasterEggTriggered;
+  final bool enableVibration;
+  final bool enableSound;
+
   const EasterEggDetector({
-    Key? key,
+    super.key,
     required this.child,
-    this.isSpecialBead = false,
-  }) : super(key: key);
+    this.onEasterEggTriggered,
+    this.enableVibration = true,
+    this.enableSound = true,
+  });
 
   @override
   State<EasterEggDetector> createState() => _EasterEggDetectorState();
 }
 
 class _EasterEggDetectorState extends State<EasterEggDetector> {
-  int _tapCount = 0;
-  Timer? _resetTimer;
+  // Счетчики для различных Easter Egg
+  int _tripleTapCount = 0;
+  int _longPressCount = 0;
+  int _swipeCount = 0;
+  int _shakeCount = 0;
   
-  static const int _requiredTaps = 3;
-  static const Duration _tapTimeout = Duration(seconds: 2);
-
-  void _handleTap() {
-    if (!widget.isSpecialBead) return;
-    
-    setState(() {
-      _tapCount++;
-    });
-
-    // Сбрасываем счетчик через таймаут
-    _resetTimer?.cancel();
-    _resetTimer = Timer(_tapTimeout, () {
-      if (mounted) {
-        setState(() {
-          _tapCount = 0;
-        });
-      }
-    });
-
-    // Проверяем, достигнуто ли нужное количество тапов
-    if (_tapCount >= _requiredTaps) {
-      _activateEasterEgg();
-    }
-  }
-
-  void _activateEasterEgg() {
-    _tapCount = 0;
-    _resetTimer?.cancel();
-
-    // Вибрация при активации
-    _triggerHapticFeedback();
-
-    // Открываем секретный экран
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const EasterEggLogsScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween = Tween(begin: begin, end: end)
-              .chain(CurveTween(curve: curve));
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _triggerHapticFeedback() {
-    // Создаем серию вибраций для обратной связи
-    Future.delayed(Duration.zero, () async {
-      for (int i = 0; i < 3; i++) {
-        // Здесь можно использовать Vibration.vibrate если пакет подключен
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _resetTimer?.cancel();
-    super.dispose();
-  }
+  // Временные метки для сброса счетчиков
+  DateTime? _lastTripleTap;
+  DateTime? _lastLongPress;
+  DateTime? _lastSwipe;
+  DateTime? _lastShake;
+  
+  // Пороги для активации Easter Egg
+  static const int _tripleTapThreshold = 3;
+  static const int _longPressThreshold = 5;
+  static const int _swipeThreshold = 10;
+  static const int _shakeThreshold = 7;
+  
+  // Время сброса счетчиков (в секундах)
+  static const int _resetTimeSeconds = 5;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _handleTap,
-      child: Stack(
-        children: [
-          widget.child,
-          
-          // Индикатор прогресса (опционально, для дебага)
-          if (widget.isSpecialBead && _tapCount > 0)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$_tapCount/$_requiredTaps',
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+      onLongPress: _handleLongPress,
+      onPanUpdate: _handleSwipe,
+      child: widget.child,
     );
   }
-}
 
-/// Альтернативный детектор через удержание центральной мандалы
-class MandalaCenterEasterEggDetector extends StatefulWidget {
-  final Widget child;
-  
-  const MandalaCenterEasterEggDetector({
-    Key? key,
-    required this.child,
-  }) : super(key: key);
-
-  @override
-  State<MandalaCenterEasterEggDetector> createState() =>
-      _MandalaCenterEasterEggDetectorState();
-}
-
-class _MandalaCenterEasterEggDetectorState
-    extends State<MandalaCenterEasterEggDetector> {
-  int _swipeCount = 0;
-  bool _isHolding = false;
-  Timer? _holdTimer;
-  Offset? _startPosition;
-  
-  static const int _requiredSwipes = 108;
-  static const Duration _holdDuration = Duration(seconds: 2);
-
-  void _onLongPressStart(LongPressStartDetails details) {
-    setState(() {
-      _isHolding = true;
-      _swipeCount = 0;
-      _startPosition = details.localPosition;
-    });
-
-    // Запускаем таймер удержания
-    _holdTimer = Timer(_holdDuration, () {
-      // После 2 секунд удержания начинаем считать свайпы
-      debugPrint('Easter Egg: Удержание активировано, ожидаем 108 свайпов');
-    });
+  void _handleTap() {
+    final now = DateTime.now();
+    
+    // Сбрасываем счетчик если прошло больше времени сброса
+    if (_lastTripleTap != null &&
+        now.difference(_lastTripleTap!).inSeconds > _resetTimeSeconds) {
+      _tripleTapCount = 0;
+    }
+    
+    _tripleTapCount++;
+    _lastTripleTap = now;
+    
+    // Проверяем активацию Easter Egg
+    if (_tripleTapCount >= _tripleTapThreshold) {
+      _triggerEasterEgg('triple_tap');
+      _tripleTapCount = 0;
+    }
+    
+    _provideFeedback();
   }
 
-  void _onLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
-    if (!_isHolding || _startPosition == null) return;
+  void _handleLongPress() {
+    final now = DateTime.now();
+    
+    // Сбрасываем счетчик если прошло больше времени сброса
+    if (_lastLongPress != null &&
+        now.difference(_lastLongPress!).inSeconds > _resetTimeSeconds) {
+      _longPressCount = 0;
+    }
+    
+    _longPressCount++;
+    _lastLongPress = now;
+    
+    // Проверяем активацию Easter Egg
+    if (_longPressCount >= _longPressThreshold) {
+      _triggerEasterEgg('long_press');
+      _longPressCount = 0;
+    }
+    
+    _provideFeedback();
+  }
 
-    final currentPosition = details.localPosition;
-    final dx = currentPosition.dx - _startPosition!.dx;
-    final dy = currentPosition.dy - _startPosition!.dy;
-    final distance = (dx * dx + dy * dy);
-
-    // Если движение по кругу (примерная проверка)
-    if (distance > 100) {
-      setState(() {
-        _swipeCount++;
-        _startPosition = currentPosition;
-      });
-
-      if (_swipeCount >= _requiredSwipes) {
-        _activateEasterEgg();
+  void _handleSwipe(DragUpdateDetails details) {
+    final now = DateTime.now();
+    
+    // Сбрасываем счетчик если прошло больше времени сброса
+    if (_lastSwipe != null &&
+        now.difference(_lastSwipe!).inSeconds > _resetTimeSeconds) {
+      _swipeCount = 0;
+    }
+    
+    // Проверяем, что это действительно свайп (достаточное расстояние)
+    final distance = details.delta.distance;
+    if (distance > 10) {
+      _swipeCount++;
+      _lastSwipe = now;
+      
+      // Проверяем активацию Easter Egg
+      if (_swipeCount >= _swipeThreshold) {
+        _triggerEasterEgg('swipe');
+        _swipeCount = 0;
       }
+      
+      _provideFeedback();
     }
   }
 
-  void _onLongPressEnd(LongPressEndDetails details) {
-    setState(() {
-      _isHolding = false;
-      _swipeCount = 0;
-      _startPosition = null;
-    });
-    _holdTimer?.cancel();
+
+  void _triggerEasterEgg(String eggType) {
+    // Вызываем callback
+    widget.onEasterEggTriggered?.call(eggType);
+    
+    // Показываем уведомление
+    _showEasterEggNotification(eggType);
+    
+    // Специальная вибрация для Easter Egg
+    if (widget.enableVibration) {
+      HapticFeedback.heavyImpact();
+    }
+    
+    // Звук Easter Egg
+    if (widget.enableSound) {
+      HapticFeedback.mediumImpact();
+    }
   }
 
-  void _activateEasterEgg() {
-    _isHolding = false;
-    _swipeCount = 0;
-    _holdTimer?.cancel();
-
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const EasterEggLogsScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.8, end: 1.0).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOut),
-              ),
-              child: child,
-            ),
-          );
-        },
-      ),
+  void _showEasterEggNotification(String eggType) {
+    final message = _getEasterEggMessage(eggType);
+    
+    ModernUIComponents.showSnackBar(
+      context: context,
+      message: message,
+      backgroundColor: const Color(AppConstants.accentColor),
+      textColor: Colors.white,
+      icon: Icons.celebration,
+      duration: const Duration(seconds: 4),
     );
   }
 
+  String _getEasterEggMessage(String eggType) {
+    switch (eggType) {
+      case 'triple_tap':
+        return '🐣 Easter Egg активирован! Тройной тап обнаружен!';
+      case 'long_press':
+        return '🐣 Easter Egg активирован! Долгое нажатие обнаружено!';
+      case 'swipe':
+        return '🐣 Easter Egg активирован! Свайпы обнаружены!';
+      case 'shake':
+        return '🐣 Easter Egg активирован! Встряхивание обнаружено!';
+      default:
+        return '🐣 Easter Egg активирован!';
+    }
+  }
+
+  void _provideFeedback() {
+    // Легкая вибрация для обратной связи
+    if (widget.enableVibration) {
+      HapticFeedback.lightImpact();
+    }
+    
+    // Звук обратной связи
+    if (widget.enableSound) {
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  /// Получает статистику детектора
+  Map<String, dynamic> getStatistics() {
+    return {
+      'triple_tap_count': _tripleTapCount,
+      'long_press_count': _longPressCount,
+      'swipe_count': _swipeCount,
+      'shake_count': _shakeCount,
+      'last_triple_tap': _lastTripleTap?.toIso8601String(),
+      'last_long_press': _lastLongPress?.toIso8601String(),
+      'last_swipe': _lastSwipe?.toIso8601String(),
+      'last_shake': _lastShake?.toIso8601String(),
+    };
+  }
+
+  /// Сбрасывает все счетчики
+  void resetCounters() {
+    setState(() {
+      _tripleTapCount = 0;
+      _longPressCount = 0;
+      _swipeCount = 0;
+      _shakeCount = 0;
+      _lastTripleTap = null;
+      _lastLongPress = null;
+      _lastSwipe = null;
+      _lastShake = null;
+    });
+  }
+}
+
+/// Специальный Easter Egg для активации через последовательность нажатий на бусины
+class BeadEasterEggDetector extends StatefulWidget {
+  final Widget child;
+  final Function()? onEasterEggTriggered;
+  final int targetBeadNumber;
+  final int requiredTaps;
+
+  const BeadEasterEggDetector({
+    super.key,
+    required this.child,
+    this.onEasterEggTriggered,
+    this.targetBeadNumber = 108,
+    this.requiredTaps = 3,
+  });
+
   @override
-  void dispose() {
-    _holdTimer?.cancel();
-    super.dispose();
+  State<BeadEasterEggDetector> createState() => _BeadEasterEggDetectorState();
+}
+
+class _BeadEasterEggDetectorState extends State<BeadEasterEggDetector> {
+  int _tapCount = 0;
+  DateTime? _lastTap;
+  static const int _resetTimeSeconds = 2;
+
+  void _handleBeadTap(int beadNumber) {
+    if (beadNumber != widget.targetBeadNumber) {
+      _resetTapCount();
+      return;
+    }
+
+    final now = DateTime.now();
+    
+    // Сбрасываем счетчик если прошло больше времени сброса
+    if (_lastTap != null &&
+        now.difference(_lastTap!).inSeconds > _resetTimeSeconds) {
+      _tapCount = 0;
+    }
+    
+    _tapCount++;
+    _lastTap = now;
+    
+    // Проверяем активацию Easter Egg
+    if (_tapCount >= widget.requiredTaps) {
+      _triggerEasterEgg();
+      _resetTapCount();
+    }
+  }
+
+  void _triggerEasterEgg() {
+    // Вызываем callback
+    widget.onEasterEggTriggered?.call();
+    
+    // Специальная вибрация
+    HapticFeedback.heavyImpact();
+    
+    // Показываем уведомление
+    if (mounted) {
+      ModernUIComponents.showSnackBar(
+        context: context,
+        message: '🐣 Easter Egg активирован! Тройной тап на бусине ${widget.targetBeadNumber}!',
+        backgroundColor: const Color(AppConstants.accentColor),
+        textColor: Colors.white,
+        icon: Icons.celebration,
+        duration: const Duration(seconds: 4),
+      );
+    }
+  }
+
+  void _resetTapCount() {
+    setState(() {
+      _tapCount = 0;
+      _lastTap = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onLongPressStart: _onLongPressStart,
-      onLongPressMoveUpdate: _onLongPressMoveUpdate,
-      onLongPressEnd: _onLongPressEnd,
-      child: Stack(
-        children: [
-          widget.child,
-          
-          // Индикатор прогресса свайпов
-          if (_isHolding && _swipeCount > 0)
-            Positioned(
-              top: 20,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '🕉️ $_swipeCount / $_requiredSwipes',
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
+      onTap: () => _handleBeadTap(widget.targetBeadNumber),
+      child: widget.child,
+    );
+  }
+}
+
+/// Детектор для активации через встряхивание устройства
+class ShakeDetector extends StatefulWidget {
+  final Widget child;
+  final Function()? onShakeDetected;
+  final double shakeThreshold;
+  final Duration debounceTime;
+
+  const ShakeDetector({
+    super.key,
+    required this.child,
+    this.onShakeDetected,
+    this.shakeThreshold = 2.0,
+    this.debounceTime = const Duration(milliseconds: 500),
+  });
+
+  @override
+  State<ShakeDetector> createState() => _ShakeDetectorState();
+}
+
+class _ShakeDetectorState extends State<ShakeDetector> {
+  DateTime? _lastShakeTime;
+  double _lastX = 0;
+  double _lastY = 0;
+  double _lastZ = 0;
+
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
+/// Комбинированный детектор всех типов Easter Egg
+class UniversalEasterEggDetector extends StatefulWidget {
+  final Widget child;
+  final Function(String eggType)? onEasterEggTriggered;
+
+  const UniversalEasterEggDetector({
+    super.key,
+    required this.child,
+    this.onEasterEggTriggered,
+  });
+
+  @override
+  State<UniversalEasterEggDetector> createState() => _UniversalEasterEggDetectorState();
+}
+
+class _UniversalEasterEggDetectorState extends State<UniversalEasterEggDetector> {
+  @override
+  Widget build(BuildContext context) {
+    return EasterEggDetector(
+      onEasterEggTriggered: widget.onEasterEggTriggered,
+      child: ShakeDetector(
+        onShakeDetected: () {
+          widget.onEasterEggTriggered?.call('shake');
+        },
+        child: widget.child,
       ),
     );
   }
 }
-
-/// Расширение для всех виджетов для быстрого добавления Easter Egg
-extension EasterEggExtension on Widget {
-  /// Оборачивает виджет в детектор Easter Egg для 108-й бусины
-  Widget withBeadEasterEgg({bool isSpecialBead = false}) {
-    return EasterEggDetector(
-      isSpecialBead: isSpecialBead,
-      child: this,
-    );
-  }
-
-  /// Оборачивает виджет в детектор для центральной мандалы
-  Widget withMandalaEasterEgg() {
-    return MandalaCenterEasterEggDetector(
-      child: this,
-    );
-  }
-}
-
-

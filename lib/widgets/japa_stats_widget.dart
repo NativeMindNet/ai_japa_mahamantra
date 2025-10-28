@@ -30,9 +30,8 @@ class JapaStatsWidget extends StatelessWidget {
         children: [
           // Заголовок
           ModernUIComponents.modernSectionHeader(
-            context: context,
-            title: 'Прогресс сессии',
-            subtitle: 'Отслеживайте свой духовный прогресс',
+            context,
+            'Прогресс сессии',
           ),
 
           const SizedBox(height: AppConstants.defaultPadding),
@@ -115,11 +114,9 @@ class JapaStatsWidget extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               ModernUIComponents.modernProgressIndicator(
-                context: context,
-                value: _calculateOverallProgress(),
-                height: 8,
-                backgroundColor: Colors.grey[300],
-                progressColor: const Color(AppConstants.primaryColor),
+                context,
+                _calculateOverallProgress(),
+                'Общий прогресс',
               ),
               const SizedBox(height: 4),
               Text(
@@ -169,11 +166,9 @@ class JapaStatsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           ModernUIComponents.modernProgressIndicator(
-            context: context,
-            value: progress,
-            height: 4,
-            backgroundColor: color.withOpacity(0.2),
-            progressColor: color,
+            context,
+            progress,
+            title,
           ),
         ],
       ),

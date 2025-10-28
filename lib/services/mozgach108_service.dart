@@ -316,6 +316,9 @@ $mantra
     _processingResults.clear();
     debugPrint('Mozgach108Service сброшен');
   }
+  
+  /// Проверяет, инициализирован ли сервис
+  bool get isInitialized => _isInitialized;
 }
 
 /// Результат обработки мантры одной моделью

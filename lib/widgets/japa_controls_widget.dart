@@ -78,7 +78,6 @@ class JapaControlsWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: ModernUIComponents.animatedButton(
-                context: context,
                 text: 'Возобновить сессию',
                 icon: Icons.play_arrow,
                 onPressed: onResumeSession,

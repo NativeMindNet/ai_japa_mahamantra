@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/encrypted_log_service.dart';
-import '../services/ai_power_mode_service.dart';
+import '../services/braindler108_service.dart';
 import '../services/mozgach108_service.dart';
+import '../services/local_ai_service.dart';
+import '../constants/app_constants.dart';
+import '../widgets/modern_ui_components.dart';
 
-/// Секретный экран для просмотра зашифрованных логов
-/// Доступен только через Easter Egg:
-/// - Тройной тап на 108-й бусине
-/// - Или удержание центральной мандалы + свайп по часовой стрелке 108 раз
+/// Экран для просмотра всех зашифрованных логов AI систем
+/// Доступен только через Easter Egg активацию
 class EasterEggLogsScreen extends StatefulWidget {
-  const EasterEggLogsScreen({Key? key}) : super(key: key);
+  const EasterEggLogsScreen({super.key});
 
   @override
   State<EasterEggLogsScreen> createState() => _EasterEggLogsScreenState();
@@ -17,30 +18,21 @@ class EasterEggLogsScreen extends StatefulWidget {
 
 class _EasterEggLogsScreenState extends State<EasterEggLogsScreen>
     with SingleTickerProviderStateMixin {
+  final _encryptedLogService = EncryptedLogService.instance;
+  final _braindlerService = Braindler108Service.instance;
+  final _mozgachService = Mozgach108Service.instance;
+  final _localAIService = LocalAIService.instance;
+
   late TabController _tabController;
-  
-  // Данные логов
-  List<Map<String, dynamic>> _highPowerLogs = [];
-  List<Map<String, dynamic>> _lowPowerLogs = [];
-  Map<String, int> _logsStatistics = {};
-  Map<String, dynamic> _aiStats = {};
-  Map<String, dynamic> _mozgachStats = {};
-  
   bool _isLoading = true;
-  bool _showConfetti = false;
+  Map<String, List<Map<String, dynamic>>> _allLogs = {};
+  Map<String, int> _logStatistics = {};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _loadAllData();
-    
-    // Показываем конфетти при открытии Easter Egg
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() => _showConfetti = true);
-      }
-    });
+    _loadAllLogs();
   }
 
   @override
@@ -49,769 +41,630 @@ class _EasterEggLogsScreenState extends State<EasterEggLogsScreen>
     super.dispose();
   }
 
-  Future<void> _loadAllData() async {
+  Future<void> _loadAllLogs() async {
     setState(() => _isLoading = true);
-    
+
     try {
-      // Загружаем логи
-      final highPower = await EncryptedLogService.instance.getHighPowerLogs();
-      final lowPower = await EncryptedLogService.instance.getLowPowerLogs();
-      final stats = await EncryptedLogService.instance.getLogsStatistics();
-      
-      // Загружаем статистику AI
-      final aiPowerStats = AIPowerModeService.instance.getStatistics();
-      final mozgachStats = await Mozgach108Service.instance.getStatistics();
-      
+      // Загружаем все типы логов
+      final allLogs = await _encryptedLogService.getAllLogs();
+      final logStats = await _encryptedLogService.getLogsStatistics();
+
       setState(() {
-        _highPowerLogs = highPower;
-        _lowPowerLogs = lowPower;
-        _logsStatistics = stats;
-        _aiStats = aiPowerStats;
-        _mozgachStats = mozgachStats;
+        _allLogs = allLogs;
+        _logStatistics = logStats;
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Ошибка загрузки данных: $e');
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ModernUIComponents.showSnackBar(
+          context: context,
+          message: 'Ошибка загрузки логов: $e',
+          backgroundColor: Colors.red,
+        );
+      }
     }
+  }
+
+  Future<void> _clearLogs(String logType) async {
+    final confirm = await ModernUIComponents.showConfirmDialog(
+      context: context,
+      title: 'Очистить логи?',
+      message: 'Это действие удалит все логи типа "$logType". Продолжить?',
+      confirmText: 'Очистить',
+      cancelText: 'Отмена',
+    );
+
+    if (confirm == true) {
+      await _encryptedLogService.clearLogs(logType);
+      await _loadAllLogs();
+      if (mounted) {
+        ModernUIComponents.showSnackBar(
+          context: context,
+          message: 'Логи очищены',
+          backgroundColor: Colors.green,
+        );
+      }
+    }
+  }
+
+  Future<void> _clearAllLogs() async {
+    final confirm = await ModernUIComponents.showConfirmDialog(
+      context: context,
+      title: 'Очистить ВСЕ логи?',
+      message: 'Это действие удалит все зашифрованные логи. Продолжить?',
+      confirmText: 'Очистить все',
+      cancelText: 'Отмена',
+      confirmColor: Colors.red,
+    );
+
+    if (confirm == true) {
+      await _encryptedLogService.clearAllLogs();
+      await _loadAllLogs();
+      if (mounted) {
+        ModernUIComponents.showSnackBar(
+          context: context,
+          message: 'Все логи очищены',
+          backgroundColor: Colors.green,
+        );
+      }
+    }
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ModernUIComponents.showSnackBar(
+      context: context,
+      message: 'Скопировано в буфер обмена',
+      backgroundColor: Colors.blue,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            const Icon(Icons.lock, color: Colors.amber, size: 20),
-            const SizedBox(width: 8),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [Colors.amber, Colors.orange, Colors.deepOrange],
-              ).createShader(bounds),
-              child: const Text(
-                '🕉️ ENCRYPTED LOGS',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-            ),
+        title: const Text('🔐 AI Системы - Зашифрованные Логи'),
+        backgroundColor: const Color(AppConstants.primaryColor),
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: const [
+            Tab(text: '📊 Статистика'),
+            Tab(text: '🧠 Braindler108'),
+            Tab(text: '⚡ Mozgach108'),
+            Tab(text: '📱 LocalAI'),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.amber),
-            onPressed: _loadAllData,
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadAllLogs,
+            tooltip: 'Обновить',
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.amber),
-            color: Colors.grey[900],
+            icon: const Icon(Icons.more_vert),
             onSelected: (value) {
-              switch (value) {
-                case 'export':
-                  _exportLogs();
-                  break;
-                case 'clear':
-                  _confirmClearLogs();
-                  break;
-                case 'stats':
-                  _showStatistics();
-                  break;
+              if (value == 'clear_all') {
+                _clearAllLogs();
               }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    Icon(Icons.file_download, color: Colors.amber),
-                    SizedBox(width: 8),
-                    Text('Экспорт логов', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'stats',
-                child: Row(
-                  children: [
-                    Icon(Icons.bar_chart, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Text('Статистика', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'clear',
+                value: 'clear_all',
                 child: Row(
                   children: [
                     Icon(Icons.delete_forever, color: Colors.red),
                     SizedBox(width: 8),
-                    Text('Очистить логи', style: TextStyle(color: Colors.white)),
+                    Text('Очистить все логи'),
                   ],
                 ),
               ),
             ],
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.amber,
-          labelColor: Colors.amber,
-          unselectedLabelColor: Colors.grey,
-          isScrollable: true,
-          tabs: const [
-            Tab(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.rocket_launch, size: 18),
-                  SizedBox(height: 4),
-                  Text('High Power', style: TextStyle(fontSize: 10)),
-                ],
-              ),
-            ),
-            Tab(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.battery_saver, size: 18),
-                  SizedBox(height: 4),
-                  Text('Low Power', style: TextStyle(fontSize: 10)),
-                ],
-              ),
-            ),
-            Tab(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.analytics, size: 18),
-                  SizedBox(height: 4),
-                  Text('Statistics', style: TextStyle(fontSize: 10)),
-                ],
-              ),
-            ),
-            Tab(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.info, size: 18),
-                  SizedBox(height: 4),
-                  Text('About', style: TextStyle(fontSize: 10)),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
-      body: Stack(
-        children: [
-          // Фон с эффектом матрицы
-          _buildMatrixBackground(),
-          
-          // Контент
-          _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.amber),
-                )
-              : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildHighPowerTab(),
-                    _buildLowPowerTab(),
-                    _buildStatisticsTab(),
-                    _buildAboutTab(),
-                  ],
-                ),
-          
-          // Конфетти эффект
-          if (_showConfetti) _buildConfettiEffect(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMatrixBackground() {
-    return Opacity(
-      opacity: 0.05,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.green.shade900,
-              Colors.black,
-              Colors.amber.shade900,
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHighPowerTab() {
-    if (_highPowerLogs.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.rocket_launch,
-        title: 'Нет High Power логов',
-        subtitle: 'Обработайте мантру через 108 моделей мозgач108',
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _highPowerLogs.length,
-      itemBuilder: (context, index) {
-        final log = _highPowerLogs[index];
-        final metadata = log['metadata'] as Map<String, dynamic>?;
-        
-        return _buildLogCard(
-          index: index + 1,
-          title: 'Модель #${metadata?['model_number'] ?? '?'}',
-          subtitle: metadata?['model_name'] ?? 'Unknown',
-          timestamp: log['timestamp'] ?? '',
-          color: Colors.amber,
-          icon: Icons.precision_manufacturing,
-          children: [
-            _buildLogDetail('Бусина', '${metadata?['bead_number'] ?? '?'} / 108'),
-            _buildLogDetail('Круг', '#${metadata?['round_number'] ?? '?'}'),
-            _buildLogDetail('Время обработки', '${metadata?['processing_time_ms'] ?? 0} ms'),
-            const Divider(color: Colors.grey),
-            _buildLogDetail('Мантра', metadata?['mantra'] ?? '', isMultiline: true),
-            const Divider(color: Colors.grey),
-            _buildLogDetail('Ответ AI', metadata?['response'] ?? '', isMultiline: true),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildLowPowerTab() {
-    if (_lowPowerLogs.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.battery_saver,
-        title: 'Нет Low Power логов',
-        subtitle: 'Завершите цикл 108 мантр в энергоэффективном режиме',
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _lowPowerLogs.length,
-      itemBuilder: (context, index) {
-        final log = _lowPowerLogs[index];
-        final metadata = log['metadata'] as Map<String, dynamic>?;
-        
-        return _buildLogCard(
-          index: index + 1,
-          title: 'Цикл #${metadata?['cycle_number'] ?? '?'}',
-          subtitle: 'Low Power Mode',
-          timestamp: log['timestamp'] ?? '',
-          color: Colors.green,
-          icon: Icons.eco,
-          children: [
-            _buildLogDetail('Мантр обработано', '${metadata?['mantras_count'] ?? 0}'),
-            _buildLogDetail('Длина текста', '${metadata?['text_length'] ?? 0} символов'),
-            const Divider(color: Colors.grey),
-            _buildLogDetail(
-              'Накопленный текст',
-              _truncateText(metadata?['accumulated_text'] ?? '', 500),
-              isMultiline: true,
+      body: _isLoading
+          ? ModernUIComponents.loadingIndicator(message: 'Загрузка логов...')
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildStatisticsTab(),
+                _buildBraindlerLogsTab(),
+                _buildMozgachLogsTab(),
+                _buildLocalAILogsTab(),
+              ],
             ),
-          ],
-        );
-      },
     );
   }
 
   Widget _buildStatisticsTab() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildStatCard(
-          'Логи',
-          [
-            {'label': 'High Power', 'value': _logsStatistics['high_power_count'] ?? 0},
-            {'label': 'Low Power', 'value': _logsStatistics['low_power_count'] ?? 0},
-            {'label': 'Всего', 'value': _logsStatistics['total_count'] ?? 0},
-          ],
-          Colors.amber,
-          Icons.file_present,
-        ),
-        const SizedBox(height: 16),
-        _buildStatCard(
-          'AI Power Mode',
-          [
-            {'label': 'Текущий режим', 'value': _aiStats['currentMode'] ?? 'Unknown'},
-            {'label': 'Ускоритель доступен', 'value': _aiStats['isAcceleratorAvailable'] ?? false ? 'Да' : 'Нет'},
-            {'label': 'Low Power циклы', 'value': _aiStats['lowPowerCycleCount'] ?? 0},
-            {'label': 'Размер аккумулятора', 'value': '${_aiStats['accumulatorLength'] ?? 0} символов'},
-          ],
-          Colors.blue,
-          Icons.power_settings_new,
-        ),
-        const SizedBox(height: 16),
-        _buildStatCard(
-          'Мозgач108',
-          [
-            {'label': 'Всего моделей', 'value': _mozgachStats['total_models'] ?? 108},
-            {'label': 'Обработано', 'value': _mozgachStats['total_models_processed'] ?? 0},
-            {'label': 'Текущий индекс', 'value': _mozgachStats['current_model_index'] ?? 0},
-            {'label': 'Инициализирован', 'value': _mozgachStats['is_initialized'] ?? false ? 'Да' : 'Нет'},
-          ],
-          Colors.purple,
-          Icons.psychology,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAboutTab() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Card(
-          color: Colors.grey[900],
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ModernUIComponents.sectionHeader(
+            title: 'Общая статистика логов',
+            subtitle: 'Зашифрованные данные AI систем',
+          ),
+          const SizedBox(height: AppConstants.defaultPadding),
+          
+          // Статистика по типам логов
+          ModernUIComponents.gradientCard(
+            context: context,
+            gradientColors: [
+              Colors.blue.withValues(alpha: 0.1),
+              Colors.purple.withValues(alpha: 0.1),
+            ],
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.lock, color: Colors.amber, size: 32),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Encrypted Logs System',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'AES-256 Encryption',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
                 const Text(
-                  'О системе логирования',
+                  '📊 Статистика по типам логов',
                   style: TextStyle(
-                    color: Colors.amber,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Этот экран доступен только через Easter Egg и содержит зашифрованные логи обработки мантр через AI модели.',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                const SizedBox(height: 16),
-                const Divider(color: Colors.grey),
-                const SizedBox(height: 16),
-                _buildAboutItem(
-                  '🔒 Шифрование',
-                  'AES-256 с уникальным ключом для каждого устройства',
-                ),
-                _buildAboutItem(
-                  '🚀 High Power Mode',
-                  'Обработка через 108 квантовых моделей мозgач108',
-                ),
-                _buildAboutItem(
-                  '🔋 Low Power Mode',
-                  'Энергоэффективная конкатенация строк',
-                ),
-                _buildAboutItem(
-                  '📊 Метаданные',
-                  'Timestamp, номер модели, время обработки, ответы AI',
-                ),
-                _buildAboutItem(
-                  '🔐 Безопасность',
-                  'Логи хранятся только на устройстве и никуда не передаются',
-                ),
+                const SizedBox(height: AppConstants.defaultPadding),
+                ..._logStatistics.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(_getLogTypeDisplayName(entry.key)),
+                        Text(
+                          '${entry.value} записей',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
+          ),
+          
+          const SizedBox(height: AppConstants.defaultPadding),
+          
+          // Статистика сервисов
+          ModernUIComponents.gradientCard(
+            context: context,
+            gradientColors: [
+              Colors.green.withValues(alpha: 0.1),
+              Colors.teal.withValues(alpha: 0.1),
+            ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '🔧 Статус AI сервисов',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppConstants.defaultPadding),
+                _buildServiceStatus('Braindler108', _braindlerService.isAvailable),
+                _buildServiceStatus('Mozgach108', _mozgachService.isInitialized),
+                _buildServiceStatus('LocalAI', _localAIService.isAvailable),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: AppConstants.defaultPadding),
+          
+          // Размеры логов
+          FutureBuilder<Map<String, int>>(
+            future: _encryptedLogService.getLogsSizeInBytes(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final sizes = snapshot.data!;
+                return ModernUIComponents.gradientCard(
+                  context: context,
+                  gradientColors: [
+                    Colors.orange.withValues(alpha: 0.1),
+                    Colors.red.withValues(alpha: 0.1),
+                  ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '💾 Размеры логов',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: AppConstants.defaultPadding),
+                      ...sizes.entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(_getLogTypeDisplayName(entry.key)),
+                              Text(
+                                _formatBytes(entry.value),
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceStatus(String serviceName, bool isAvailable) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(serviceName),
+          Row(
+            children: [
+              Icon(
+                isAvailable ? Icons.check_circle : Icons.error,
+                color: isAvailable ? Colors.green : Colors.red,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isAvailable ? 'Активен' : 'Неактивен',
+                style: TextStyle(
+                  color: isAvailable ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBraindlerLogsTab() {
+    final logs = _allLogs['high_power'] ?? [];
+    
+    if (logs.isEmpty) {
+      return ModernUIComponents.emptyState(
+        icon: Icons.psychology,
+        title: 'Логи Braindler108 пусты',
+        subtitle: 'Завершите хотя бы один цикл обработки через 108 моделей Braindler',
+        action: ModernUIComponents.animatedButton(
+          text: 'Обновить',
+          onPressed: _loadAllLogs,
+          icon: Icons.refresh,
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          color: const Color(AppConstants.primaryColor),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Braindler108 Логи (${logs.length})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.copy, color: Colors.white),
+                    onPressed: () => _copyToClipboard(
+                      logs.map((log) => log.toString()).join('\n'),
+                    ),
+                    tooltip: 'Копировать',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    onPressed: () => _clearLogs('high_power_108'),
+                    tooltip: 'Очистить',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            itemCount: logs.length,
+            itemBuilder: (context, index) {
+              final log = logs[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.psychology, color: Colors.blue),
+                          const SizedBox(width: AppConstants.smallPadding),
+                          Expanded(
+                            child: Text(
+                              log['message'] ?? 'Нет сообщения',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Text(
+                            _formatTimestamp(log['timestamp']),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (log['metadata'] != null) ...[
+                        const SizedBox(height: AppConstants.smallPadding),
+                        Text(
+                          'Метаданные: ${log['metadata']}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLogCard({
-    required int index,
-    required String title,
-    required String subtitle,
-    required String timestamp,
-    required Color color,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Card(
-      color: Colors.grey[900],
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Theme(
-        data: ThemeData(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildMozgachLogsTab() {
+    final logs = _allLogs['high_power'] ?? [];
+    
+    if (logs.isEmpty) {
+      return ModernUIComponents.emptyState(
+        icon: Icons.flash_on,
+        title: 'Логи Mozgach108 пусты',
+        subtitle: 'Завершите хотя бы один цикл обработки через 108 моделей Mozgach',
+        action: ModernUIComponents.animatedButton(
+          text: 'Обновить',
+          onPressed: _loadAllLogs,
+          icon: Icons.refresh,
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          color: const Color(AppConstants.accentColor),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                subtitle,
-                style: TextStyle(color: color, fontSize: 12),
+                'Mozgach108 Логи (${logs.length})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              Text(
-                _formatTimestamp(timestamp),
-                style: const TextStyle(color: Colors.grey, fontSize: 11),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.copy, color: Colors.white),
+                    onPressed: () => _copyToClipboard(
+                      logs.map((log) => log.toString()).join('\n'),
+                    ),
+                    tooltip: 'Копировать',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    onPressed: () => _clearLogs('high_power_108'),
+                    tooltip: 'Очистить',
+                  ),
+                ],
               ),
             ],
           ),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.black.withOpacity(0.3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: children,
-              ),
-            ),
-          ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLogDetail(String label, String value, {bool isMultiline = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.amber,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            maxLines: isMultiline ? null : 1,
-            overflow: isMultiline ? null : TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    List<Map<String, dynamic>> items,
-    Color color,
-    IconData icon,
-  ) {
-    return Card(
-      color: Colors.grey[900],
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: color, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            itemCount: logs.length,
+            itemBuilder: (context, index) {
+              final log = logs[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item['label'],
-                        style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      Row(
+                        children: [
+                          const Icon(Icons.flash_on, color: Colors.orange),
+                          const SizedBox(width: AppConstants.smallPadding),
+                          Expanded(
+                            child: Text(
+                              log['message'] ?? 'Нет сообщения',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Text(
+                            _formatTimestamp(log['timestamp']),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        item['value'].toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      if (log['metadata'] != null) ...[
+                        const SizedBox(height: AppConstants.smallPadding),
+                        Text(
+                          'Метаданные: ${log['metadata']}',
+                          style: const TextStyle(fontSize: 12),
                         ),
-                      ),
+                      ],
                     ],
                   ),
-                )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAboutItem(String title, String description) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.amber,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              description,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 80, color: Colors.grey[700]),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[700], fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildConfettiEffect() {
-    return IgnorePointer(
-      child: AnimatedOpacity(
-        opacity: _showConfetti ? 1.0 : 0.0,
-        duration: const Duration(seconds: 2),
-        onEnd: () {
-          if (mounted) {
-            setState(() => _showConfetti = false);
-          }
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              colors: [
-                Colors.amber.withOpacity(0.3),
-                Colors.transparent,
-              ],
-            ),
+                ),
+              );
+            },
           ),
         ),
-      ),
+      ],
     );
   }
 
-  String _formatTimestamp(String timestamp) {
-    try {
-      final dt = DateTime.parse(timestamp);
-      return '${dt.day}.${dt.month}.${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return timestamp;
+  Widget _buildLocalAILogsTab() {
+    final logs = _allLogs['general'] ?? [];
+    
+    if (logs.isEmpty) {
+      return ModernUIComponents.emptyState(
+        icon: Icons.phone_android,
+        title: 'Логи LocalAI пусты',
+        subtitle: 'Используйте локальный AI для обработки мантр',
+        action: ModernUIComponents.animatedButton(
+          text: 'Обновить',
+          onPressed: _loadAllLogs,
+          icon: Icons.refresh,
+        ),
+      );
     }
-  }
 
-  String _truncateText(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    return '${text.substring(0, maxLength)}...';
-  }
-
-  Future<void> _exportLogs() async {
-    try {
-      final highPowerText = await EncryptedLogService.instance
-          .exportLogsAsText(EncryptedLogService.logTypeHighPower);
-      final lowPowerText = await EncryptedLogService.instance
-          .exportLogsAsText(EncryptedLogService.logTypeLowPower);
-      
-      final fullExport = '$highPowerText\n\n$lowPowerText';
-      
-      await Clipboard.setData(ClipboardData(text: fullExport));
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Логи скопированы в буфер обмена'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка экспорта: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _confirmClearLogs() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('Очистить все логи?', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Это действие необратимо. Все зашифрованные логи будут удалены.',
-          style: TextStyle(color: Colors.grey),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена', style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await EncryptedLogService.instance.clearAllLogs();
-      await _loadAllData();
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Все логи очищены'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    }
-  }
-
-  void _showStatistics() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Row(
-          children: [
-            Icon(Icons.analytics, color: Colors.amber),
-            SizedBox(width: 8),
-            Text('Детальная статистика', style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          color: Colors.green,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem('High Power логов', _logsStatistics['high_power_count'] ?? 0),
-              _buildStatItem('Low Power логов', _logsStatistics['low_power_count'] ?? 0),
-              _buildStatItem('Всего записей', _logsStatistics['total_count'] ?? 0),
-              const Divider(color: Colors.grey),
-              _buildStatItem('Моделей обработано', _mozgachStats['total_models_processed'] ?? 0),
-              _buildStatItem('Текущий прогресс', '${_mozgachStats['current_model_index'] ?? 0}/108'),
+              Text(
+                'LocalAI Логи (${logs.length})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.copy, color: Colors.white),
+                    onPressed: () => _copyToClipboard(
+                      logs.map((log) => log.toString()).join('\n'),
+                    ),
+                    tooltip: 'Копировать',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    onPressed: () => _clearLogs('general'),
+                    tooltip: 'Очистить',
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Закрыть', style: TextStyle(color: Colors.amber)),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            itemCount: logs.length,
+            itemBuilder: (context, index) {
+              final log = logs[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.phone_android, color: Colors.green),
+                          const SizedBox(width: AppConstants.smallPadding),
+                          Expanded(
+                            child: Text(
+                              log['message'] ?? 'Нет сообщения',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Text(
+                            _formatTimestamp(log['timestamp']),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (log['metadata'] != null) ...[
+                        const SizedBox(height: AppConstants.smallPadding),
+                        Text(
+                          'Метаданные: ${log['metadata']}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildStatItem(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(
-            value.toString(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _getLogTypeDisplayName(String logType) {
+    switch (logType) {
+      case 'high_power_count':
+        return '🧠 Braindler108';
+      case 'low_power_count':
+        return '⚡ Low Power';
+      case 'general_count':
+        return '📱 LocalAI';
+      case 'total_count':
+        return '📊 Всего';
+      default:
+        return logType;
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return 'Неизвестно';
+    try {
+      final dateTime = DateTime.parse(timestamp.toString());
+      return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return 'Неверный формат';
+    }
   }
 }
-

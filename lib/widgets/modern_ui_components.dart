@@ -1,49 +1,52 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 
-/// Современные UI компоненты в стиле Material Design 3
+/// Современные UI компоненты для приложения MahaManatra
 class ModernUIComponents {
-  /// Создает современную карточку с градиентом
+  
+  /// Создает карточку с градиентом
   static Widget gradientCard({
     required BuildContext context,
+    required List<Color> gradientColors,
     required Widget child,
-    List<Color>? gradientColors,
-    double? elevation,
-    EdgeInsetsGeometry? padding,
-    BorderRadius? borderRadius,
+    EdgeInsets? margin,
+    EdgeInsets? padding,
+    double? borderRadius,
+    List<BoxShadow>? boxShadow,
   }) {
     return Container(
+      margin: margin ?? const EdgeInsets.all(AppConstants.defaultPadding),
       decoration: BoxDecoration(
         gradient: LinearGradient(
+          colors: gradientColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors:
-              gradientColors ??
-              [
-                Theme.of(context).colorScheme.surface,
-                Theme.of(context).colorScheme.surface.withOpacity(0.8),
-              ],
         ),
-        borderRadius:
-            borderRadius ?? BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(
+          borderRadius ?? AppConstants.borderRadius,
+        ),
+        boxShadow: boxShadow ?? [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: elevation ?? 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: padding ?? const EdgeInsets.all(AppConstants.defaultPadding),
-        child: child,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(
+          borderRadius ?? AppConstants.borderRadius,
+        ),
+        child: Padding(
+          padding: padding ?? const EdgeInsets.all(AppConstants.defaultPadding),
+          child: child,
+        ),
       ),
     );
   }
-
-  /// Создает современную кнопку с анимацией
+  
+  /// Создает анимированную кнопку
   static Widget animatedButton({
-    required BuildContext context,
     required String text,
     required VoidCallback onPressed,
     IconData? icon,
@@ -53,419 +56,365 @@ class ModernUIComponents {
     double? height,
     bool isLoading = false,
   }) {
-    return Container(
+    return AnimatedContainer(
+      duration: AppConstants.shortAnimation,
       width: width,
-      height: height ?? 56,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: backgroundColor != null
-              ? [backgroundColor, backgroundColor.withOpacity(0.8)]
-              : [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                ],
+      height: height ?? 48,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? const Color(AppConstants.primaryColor),
+          foregroundColor: textColor ?? Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          ),
+          elevation: 4,
         ),
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: (backgroundColor ?? Theme.of(context).colorScheme.primary)
-                .withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isLoading ? null : onPressed,
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-          child: Center(
-            child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon != null) ...[
-                        Icon(icon, color: textColor ?? Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        text,
-                        style: TextStyle(
-                          color: textColor ?? Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Создает современный индикатор прогресса
-  static Widget modernProgressIndicator({
-    required BuildContext context,
-    required double value,
-    double? height,
-    Color? backgroundColor,
-    Color? progressColor,
-    String? label,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label != null) ...[
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-        ],
-        Container(
-          height: height ?? 8,
-          decoration: BoxDecoration(
-            color:
-                backgroundColor ??
-                Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: value,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                progressColor ?? Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Создает современный чип
-  static Widget modernChip({
-    required BuildContext context,
-    required String label,
-    bool isSelected = false,
-    VoidCallback? onTap,
-    IconData? icon,
-    Color? backgroundColor,
-    Color? textColor,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (backgroundColor ?? Theme.of(context).colorScheme.primary)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? (backgroundColor ?? Theme.of(context).colorScheme.primary)
-                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected
-                    ? (textColor ?? Colors.white)
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? (textColor ?? Colors.white)
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Создает современный список
-  static Widget modernListTile({
-    required BuildContext context,
-    required String title,
-    String? subtitle,
-    IconData? leadingIcon,
-    Widget? trailing,
-    VoidCallback? onTap,
-    Color? backgroundColor,
-    EdgeInsetsGeometry? padding,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-          child: Padding(
-            padding:
-                padding ?? const EdgeInsets.all(AppConstants.defaultPadding),
-            child: Row(
-              children: [
-                if (leadingIcon != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      leadingIcon,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
-                if (trailing != null) ...[const SizedBox(width: 16), trailing],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Создает современный переключатель
-  static Widget modernSwitch({
-    required BuildContext context,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    String? label,
-    String? subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (label != null)
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 20),
+                    const SizedBox(width: 8),
+                  ],
                   Text(
-                    label,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    text,
+                    style: const TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ],
+              ),
+      ),
+    );
+  }
+  
+  /// Создает карточку статистики
+  static Widget statsCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    Color? iconColor,
+    String? subtitle,
+    VoidCallback? onTap,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: iconColor ?? const Color(AppConstants.primaryColor),
+                    size: 24,
+                  ),
+                  const SizedBox(width: AppConstants.smallPadding),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
+                      ),
                     ),
                   ),
                 ],
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Создает современный слайдер
-  static Widget modernSlider({
-    required BuildContext context,
-    required double value,
-    required ValueChanged<double> onChanged,
-    double min = 0.0,
-    double max = 1.0,
-    int? divisions,
-    String? label,
-    String? subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (label != null) ...[
-            Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-          ],
-          if (subtitle != null) ...[
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          Slider(
-            value: value,
-            onChanged: onChanged,
-            min: min,
-            max: max,
-            divisions: divisions,
-            activeColor: Theme.of(context).colorScheme.primary,
-            inactiveColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest,
+              const SizedBox(height: AppConstants.smallPadding),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
-
-  /// Создает современный индикатор загрузки
-  static Widget modernLoadingIndicator({
-    required BuildContext context,
-    String? message,
-    double size = 40,
+  
+  /// Создает прогресс-бар с анимацией
+  static Widget animatedProgressBar({
+    required double progress,
+    required Color backgroundColor,
+    required Color progressColor,
+    double height = 8,
+    Duration animationDuration = const Duration(milliseconds: 500),
+  }) {
+    return AnimatedContainer(
+      duration: animationDuration,
+      height: height,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(height / 2),
+      ),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: progress.clamp(0.0, 1.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: progressColor,
+            borderRadius: BorderRadius.circular(height / 2),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  /// Создает индикатор загрузки с текстом
+  static Widget loadingIndicator({
+    required String message,
     Color? color,
   }) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              color: color ?? Theme.of(context).colorScheme.primary,
-              strokeWidth: 3,
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              color ?? const Color(AppConstants.primaryColor),
             ),
           ),
-          if (message != null) ...[
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
+          const SizedBox(height: AppConstants.defaultPadding),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 16,
+              color: color ?? Colors.grey[600],
             ),
-          ],
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
   }
-
-  /// Создает современный разделитель
-  static Widget modernDivider({
-    required BuildContext context,
-    double? height,
-    Color? color,
-    EdgeInsetsGeometry? margin,
+  
+  /// Создает пустое состояние
+  static Widget emptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    Widget? action,
+    Color? iconColor,
   }) {
-    return Container(
-      height: height ?? 1,
-      margin: margin ?? const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: color ?? Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(0.5),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.largePadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 64,
+              color: iconColor ?? Colors.grey[400],
+            ),
+            const SizedBox(height: AppConstants.defaultPadding),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppConstants.smallPadding),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (action != null) ...[
+              const SizedBox(height: AppConstants.defaultPadding),
+              action,
+            ],
+          ],
+        ),
       ),
     );
   }
-
-  /// Создает современный заголовок секции
-  static Widget modernSectionHeader({
+  
+  /// Создает уведомление-снекбар
+  static void showSnackBar({
     required BuildContext context,
+    required String message,
+    Color? backgroundColor,
+    Color? textColor,
+    IconData? icon,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: textColor ?? Colors.white),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: textColor ?? Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: backgroundColor ?? const Color(AppConstants.primaryColor),
+        duration: duration,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        ),
+      ),
+    );
+  }
+  
+  /// Создает диалог подтверждения
+  static Future<bool?> showConfirmDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+    String confirmText = 'Да',
+    String cancelText = 'Нет',
+    Color? confirmColor,
+    Color? cancelColor,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          ),
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                cancelText,
+                style: TextStyle(
+                  color: cancelColor ?? Colors.grey[600],
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: confirmColor ?? const Color(AppConstants.primaryColor),
+                foregroundColor: Colors.white,
+              ),
+              child: Text(confirmText),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  /// Создает информационный диалог
+  static Future<void> showInfoDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+    String buttonText = 'Понятно',
+    IconData? icon,
+  }) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          ),
+          title: Row(
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  color: const Color(AppConstants.primaryColor),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(child: Text(title)),
+            ],
+          ),
+          content: Text(message),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(buttonText),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  /// Создает список с разделителями
+  static Widget listWithDividers({
+    required List<Widget> children,
+    Color? dividerColor,
+    double? dividerHeight,
+  }) {
+    if (children.isEmpty) return const SizedBox.shrink();
+    
+    final List<Widget> items = [];
+    for (int i = 0; i < children.length; i++) {
+      items.add(children[i]);
+      if (i < children.length - 1) {
+        items.add(Divider(
+          color: dividerColor ?? Colors.grey[300],
+          height: dividerHeight ?? 1,
+        ));
+      }
+    }
+    
+    return Column(children: items);
+  }
+  
+  /// Создает заголовок секции
+  static Widget sectionHeader({
     required String title,
     String? subtitle,
     Widget? action,
@@ -483,16 +432,19 @@ class ModernUIComponents {
               children: [
                 Text(
                   title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
                     ),
                   ),
                 ],
@@ -504,47 +456,102 @@ class ModernUIComponents {
       ),
     );
   }
-
-  /// Создает современный бейдж
-  static Widget modernBadge({
-    required BuildContext context,
-    required String text,
-    Color? backgroundColor,
-    Color? textColor,
-    double? fontSize,
+  
+  /// Создает переключатель с описанием
+  static Widget switchTile({
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    String? subtitle,
+    IconData? icon,
+    Color? activeColor,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppConstants.defaultPadding,
+        vertical: AppConstants.smallPadding / 2,
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: textColor ?? Colors.white,
-          fontSize: fontSize ?? 12,
-          fontWeight: FontWeight.w600,
+      child: SwitchListTile(
+        title: Text(title),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        secondary: icon != null ? Icon(icon) : null,
+        value: value,
+        onChanged: onChanged,
+        activeColor: activeColor ?? const Color(AppConstants.primaryColor),
+      ),
+    );
+  }
+
+  /// Создает индикатор загрузки
+  static Widget modernLoadingIndicator(BuildContext context) {
+    return Center(
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(
+          Theme.of(context).colorScheme.primary,
         ),
       ),
     );
   }
-}
 
-/// Расширения для контекста
-extension BuildContextExtension on BuildContext {
-  /// Получает цветовую схему
-  ColorScheme get colorScheme => Theme.of(this).colorScheme;
+  /// Создает заголовок секции
+  static Widget modernSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    );
+  }
 
-  /// Получает текстовую тему
-  TextTheme get textTheme => Theme.of(this).textTheme;
+  /// Создает индикатор прогресса
+  static Widget modernProgressIndicator(
+    BuildContext context,
+    double value,
+    String label,
+  ) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(
+          value: value,
+          backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${(value * 100).toInt()}%',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
 
-  /// Получает размеры экрана
-  Size get screenSize => MediaQuery.of(this).size;
-
-  /// Проверяет, является ли экран маленьким
-  bool get isSmallScreen => screenSize.width < 600;
-
-  /// Проверяет, является ли экран большим
-  bool get isLargeScreen => screenSize.width > 1200;
+  /// Создает бейдж
+  static Widget modernBadge(BuildContext context, String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
 }

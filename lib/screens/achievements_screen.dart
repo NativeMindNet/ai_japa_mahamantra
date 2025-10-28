@@ -69,9 +69,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         ),
       ),
       body: _isLoading
-          ? ModernUIComponents.modernLoadingIndicator(
-              message: 'Загрузка достижений...',
-            )
+          ? ModernUIComponents.modernLoadingIndicator(context)
           : TabBarView(
               controller: _tabController,
               children: [
@@ -198,9 +196,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   Widget _buildStatsTab() {
     if (_stats == null) {
       return Center(
-        child: ModernUIComponents.modernLoadingIndicator(
-          message: 'Загрузка статистики...',
-        ),
+        child: ModernUIComponents.modernLoadingIndicator(context),
       );
     }
 
@@ -211,12 +207,17 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         children: [
           // Общая статистика
           ModernUIComponents.gradientCard(
+            context: context,
+            gradientColors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            ],
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ModernUIComponents.modernSectionHeader(
-                  title: 'Общая статистика',
-                  subtitle: 'Ваш прогресс в достижениях',
+                  context,
+                  'Общая статистика',
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -242,9 +243,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 ),
                 const SizedBox(height: 16),
                 ModernUIComponents.modernProgressIndicator(
-                  value: _stats!.completionPercentage / 100,
-                  label:
-                      'Прогресс: ${_stats!.completionPercentage.toStringAsFixed(1)}%',
+                  context,
+                  _stats!.completionPercentage / 100,
+                  'Прогресс: ${_stats!.completionPercentage.toStringAsFixed(1)}%',
                 ),
               ],
             ),
@@ -254,12 +255,17 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
           // Статистика по редкости
           ModernUIComponents.gradientCard(
+            context: context,
+            gradientColors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            ],
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ModernUIComponents.modernSectionHeader(
-                  title: 'По редкости',
-                  subtitle: 'Разблокированные достижения по категориям',
+                  context,
+                  'По редкости',
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -309,12 +315,17 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
           // Статистика по типам
           ModernUIComponents.gradientCard(
+            context: context,
+            gradientColors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            ],
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ModernUIComponents.modernSectionHeader(
-                  title: 'По типам',
-                  subtitle: 'Достижения по категориям',
+                  context,
+                  'По типам',
                 ),
                 const SizedBox(height: 16),
                 ...AchievementType.values.map((type) {
@@ -334,8 +345,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ModernUIComponents.modernSectionHeader(
-                    title: 'Недавние разблокировки',
-                    subtitle: 'Последние достижения',
+                    context,
+                    'Недавние разблокировки',
                   ),
                   const SizedBox(height: 16),
                   ..._stats!.recentUnlocks.map((achievementId) {
@@ -355,6 +366,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   Widget _buildAchievementCard(Achievement achievement) {
     return ModernUIComponents.gradientCard(
+      context: context,
       gradientColors: achievement.isUnlocked
           ? [
               Color(
@@ -421,23 +433,19 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 Row(
                   children: [
                     ModernUIComponents.modernBadge(
-                      text: achievement.rarityName,
-                      backgroundColor: achievement.isUnlocked
+                      context,
+                      achievement.rarityName,
+                      achievement.isUnlocked
                           ? Colors.white.withAlpha(51)
-                          : Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant.withAlpha(25),
-                      textColor: achievement.isUnlocked
-                          ? Colors.white
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                          : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(25),
                     ),
                     const SizedBox(width: 8),
                     if (achievement.isUnlocked &&
                         achievement.unlockedAt != null)
                       ModernUIComponents.modernBadge(
-                        text: 'Разблокировано',
-                        backgroundColor: Colors.green.withAlpha(51),
-                        textColor: Colors.green,
+                        context,
+                        'Разблокировано',
+                        Colors.green.withAlpha(51),
                       ),
                   ],
                 ),
@@ -461,16 +469,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               SizedBox(
                 width: 60,
                 child: ModernUIComponents.modernProgressIndicator(
-                  value: achievement.progress,
-                  height: 4,
-                  backgroundColor: achievement.isUnlocked
-                      ? Colors.white.withAlpha(76)
-                      : Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withAlpha(76),
-                  progressColor: achievement.isUnlocked
-                      ? Colors.white
-                      : Theme.of(context).colorScheme.primary,
+                  context,
+                  achievement.progress,
+                  'Прогресс',
                 ),
               ),
             ],

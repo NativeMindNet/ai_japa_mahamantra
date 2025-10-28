@@ -34,11 +34,8 @@ migrate_working_dir/
 .pub/
 /build/
 
-# iOS build artifacts
-ios/build/
-ios/Runner.xcarchive/
-ios/Pods/
-ios/Podfile.lock
+# Web related
+lib/generated_plugin_registrant.dart
 
 # Symbolication related
 app.*.symbols
@@ -56,19 +53,193 @@ app.*.map.json
 *.freezed.dart
 *.mocks.dart
 
-# AI model files (if any)
+# ========================================
+# Android specific
+# ========================================
+
+# Local configuration file (sdk path, etc)
+android/local.properties
+android/.gradle
+android/gradle.properties.local
+
+# Keystore files - CRITICAL: Never commit keystores!
+*.jks
+*.keystore
+android/key.properties
+android/upload-keystore.jks
+android/app/upload-keystore.jks
+
+# Android build artifacts
+android/build/
+android/app/build/
+android/.gradle/
+android/captures/
+android/local.properties
+
+# ========================================
+# iOS specific  
+# ========================================
+
+# iOS build artifacts
+ios/build/
+ios/Runner.xcarchive/
+ios/Runner.ipa
+ios/Runner.app.dSYM.zip
+ios/*.ipa
+ios/*.dSYM.zip
+
+# iOS dependencies
+ios/Pods/
+ios/Podfile.lock
+ios/.symlinks/
+
+# Fastlane
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots/**/*.png
+ios/fastlane/test_output
+ios/fastlane/README.md
+ios/fastlane/*.log
+
+# Ruby / Bundler (for Fastlane)
+ios/vendor/
+ios/.bundle/
+ios/Gemfile.lock
+
+# iOS signing
+ios/exportOptions.plist
+ios/*.mobileprovision
+ios/*.certSigningRequest
+ios/*.p12
+ios/*.cer
+
+# Xcode workspace and user data
+ios/**/*.mode1v3
+ios/**/*.mode2v3
+ios/**/*.moved-aside
+ios/**/*.pbxuser
+ios/**/*.perspectivev3
+ios/**/*sync/
+ios/**/.sconsign.dblite
+ios/**/.tags*
+ios/**/.vagrant/
+ios/**/DerivedData/
+ios/**/.idea/
+ios/**/*.hmap
+ios/**/*.ipa
+ios/**/*.dSYM.zip
+ios/**/*.dSYM
+
+# ========================================
+# macOS specific
+# ========================================
+macos/build/
+macos/Pods/
+macos/Podfile.lock
+
+# ========================================
+# Python specific (for chant/)
+# ========================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+chant/env/
+chant/venv/
+chant/ENV/
+chant/.venv/
+
+# ========================================
+# App Store / Play Store
+# ========================================
+
+# Configuration files with sensitive data
+app_store_config.env
+*.env.local
+*.env.production
+*.env.staging
+.env.local
+.env.production
+.env.staging
+google-services.json.local
+GoogleService-Info.plist.local
+
+# Credentials
+credentials/
+secrets/
+*.pem
+*.p8
+*.p12
+*.mobileprovision
+
+# ========================================
+# AI model files
+# ========================================
 *.gguf
 *.bin
 *.safetensors
+*.model
+*.tflite
+*.mlmodel
+*.mlmodelc
 
-# Environment files
-.env
-.env.local
-.env.production
-
-# Logs
+# ========================================
+# Logs and databases
+# ========================================
 logs/
 *.log
+*.sql
+*.sqlite
+*.sqlite3
+*.db
 
 # Runtime data
 pids/
@@ -76,39 +247,37 @@ pids/
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+# ========================================
+# Test coverage
+# ========================================
 coverage/
-
-# nyc test coverage
 .nyc_output
+test/coverage/
 
-# Dependency directories
+# ========================================
+# Node.js related (if any)
+# ========================================
 node_modules/
 jspm_packages/
-
-# Optional npm cache directory
 .npm
-
-# Optional REPL history
 .node_repl_history
-
-# Output of 'npm pack'
 *.tgz
-
-# Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
-
-# IDE files
+# ========================================
+# IDE and Editor files
+# ========================================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-workspace
+*.sublime-project
 
+# ========================================
 # OS generated files
+# ========================================
 .DS_Store
 .DS_Store?
 ._*
@@ -116,3 +285,50 @@ jspm_packages/
 .Trashes
 ehthumbs.db
 Thumbs.db
+Desktop.ini
+
+# ========================================
+# Backup files
+# ========================================
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*~
+
+# ========================================
+# Documentation builds
+# ========================================
+docs/_build/
+site/
+
+# ========================================
+# Temporary files
+# ========================================
+*.tmp
+*.temp
+.temp/
+.tmp/
+
+# ========================================
+# Clean folder (appears to be a backup)
+# ========================================
+/clean/
+
+# ========================================
+# Test files
+# ========================================
+/test_beads_app/
+test_beads_simple.dart
+test_beads.dart
+
+# ========================================
+# Gitbook
+# ========================================
+gitbook/
+
+# ========================================
+# Bugs folder (contains screenshots)
+# ========================================
+/bugs/
