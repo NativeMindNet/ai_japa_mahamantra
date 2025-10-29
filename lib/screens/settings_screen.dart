@@ -18,6 +18,7 @@ import '../services/charging_chanting_service.dart';
 import '../constants/app_constants.dart';
 import '../screens/profile_screen.dart';
 import '../screens/easter_egg_logs_screen.dart';
+import '../screens/mahabharata_comics_screen.dart';
 // import '../l10n/app_localizations_delegate.dart'; // Временно отключено
 import '../l10n/app_localizations_simple.dart';
 import '../animations/custom_page_transitions.dart';
@@ -280,6 +281,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           initialValue: localeProvider.isDarkTheme,
                           onToggle: (value) {
                             localeProvider.toggleTheme();
+                          },
+                        ),
+                      ],
+                    ),
+
+                    // Комиксы Махабхараты
+                    SettingsSection(
+                      title: const Text('📖 Духовные истории'),
+                      tiles: [
+                        SettingsTile(
+                          title: const Text('Махабхарата'),
+                          description: const Text('Читайте священный эпос в формате комиксов'),
+                          leading: const Icon(Icons.menu_book, color: Colors.orange),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onPressed: (context) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MahabharataComicsScreen(),
+                              ),
+                            );
                           },
                         ),
                       ],

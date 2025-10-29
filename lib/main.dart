@@ -18,6 +18,8 @@ import 'services/braindler108_service.dart';
 import 'services/mozgach108_service.dart';
 import 'services/ai_power_mode_service.dart';
 import 'services/encrypted_log_service.dart';
+import 'services/mahabharata_service.dart';
+import 'services/local_ai_service.dart';
 import 'l10n/harkonnen_material_localizations.dart';
 import 'l10n/harkonnen_cupertino_localizations.dart';
 import 'l10n/app_localizations_simple.dart';
@@ -60,6 +62,12 @@ void main() async {
 
   // Регистрируем фоновую задачу для воспевания на зарядке
   await BackgroundService.registerChargingChanting();
+
+  // Инициализируем локальный AI с flutter_llama
+  await LocalAIService.instance.initialize();
+
+  // Инициализируем сервис комиксов Махабхараты
+  await MahabharataService.instance.initialize();
 
   runApp(const AIJapaMahamantraApp());
 }

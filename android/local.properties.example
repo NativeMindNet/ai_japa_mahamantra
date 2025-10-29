@@ -1,0 +1,18 @@
+# Android Local Properties Template
+# Copy this file to local.properties and update the SDK path
+# NEVER commit local.properties to git!
+
+# SDK Location
+# macOS/Linux example:
+sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+# Windows example:
+# sdk.dir=C:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\sdk
+
+# Optional: Flutter SDK path (if needed)
+# flutter.sdk=/path/to/flutter
+
+# Optional: NDK path (if using native code)
+# ndk.dir=/Users/YOUR_USERNAME/Library/Android/sdk/ndk/version
+
+
+

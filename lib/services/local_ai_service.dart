@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_llama/flutter_llama.dart';
 import 'encrypted_log_service.dart';
 
 /// Сервис для работы с локальными AI моделями на устройстве
@@ -14,6 +15,9 @@ class LocalAIService {
   String? _modelPath;
   String? _modelName;
   
+  // Flutter LLaMA instance
+  FlutterLlama? _llama;
+  
   // Статистика использования
   int _totalRequests = 0;
   int _successfulRequests = 0;
@@ -24,7 +28,7 @@ class LocalAIService {
   bool _enableLocalAI = true;
   
   // Константы
-  static const String _modelFileName = 'mozgach108.gguf';
+  static const String _modelFileName = 'braindler-q2_k.gguf';
   static const String _prefKeyModelPath = 'local_ai_model_path';
   static const String _prefKeyModelName = 'local_ai_model_name';
   static const String _prefKeyEnableLocalAI = 'local_ai_enabled';
@@ -85,9 +89,12 @@ class LocalAIService {
     }
   }
   
-  /// Проверяет наличие модели GGUF
+  /// Проверяет наличие модели GGUF и загружает её через flutter_llama
   Future<void> _checkForModel() async {
     try {
+      // Проверяем в assets директории (встроенная модель)
+      final assetsModelPath = 'assets/models/$_modelFileName';
+      
       // Проверяем в Documents директории
       final documentsDir = await getApplicationDocumentsDirectory();
       final documentsModelPath = '${documentsDir.path}/models/$_modelFileName';
@@ -101,28 +108,62 @@ class LocalAIService {
       // Ищем модель в разных местах
       String? foundModelPath;
       
+      // Приоритет: Documents -> Downloads -> Assets
       if (await File(documentsModelPath).exists()) {
         foundModelPath = documentsModelPath;
-        debugPrint('Найдена модель в Documents: $foundModelPath');
+        debugPrint('✅ Найдена модель в Documents: $foundModelPath');
       } else if (downloadsModelPath != null && await File(downloadsModelPath).exists()) {
         foundModelPath = downloadsModelPath;
-        debugPrint('Найдена модель в Downloads: $foundModelPath');
+        debugPrint('✅ Найдена модель в Downloads: $foundModelPath');
+      } else {
+        // Проверяем assets (встроенная модель)
+        foundModelPath = assetsModelPath;
+        debugPrint('ℹ️ Используется встроенная модель из assets');
       }
       
-      if (foundModelPath != null) {
+      // Пытаемся загрузить модель
+      if (foundModelPath.isNotEmpty) {
+        // Загружаем модель через flutter_llama
+        await _loadLlamaModel(foundModelPath);
+        
         _modelPath = foundModelPath;
         _modelName = _modelFileName;
         _isModelLoaded = true;
         
         await _saveSettings();
-        debugPrint('Модель GGUF загружена: $_modelName');
+        debugPrint('✅ Модель GGUF загружена через flutter_llama: $_modelName');
       } else {
-        debugPrint('Модель GGUF не найдена. Поместите $_modelFileName в папку Documents или Downloads');
+        debugPrint('❌ Модель GGUF не найдена. Поместите $_modelFileName в папку Documents/models или Downloads');
         _isModelLoaded = false;
       }
     } catch (e) {
-      debugPrint('Ошибка проверки модели: $e');
+      debugPrint('❌ Ошибка проверки модели: $e');
       _isModelLoaded = false;
+    }
+  }
+  
+  /// Загружает модель через flutter_llama
+  Future<void> _loadLlamaModel(String modelPath) async {
+    try {
+      debugPrint('⏳ Загрузка модели через flutter_llama: $modelPath');
+      
+      _llama = FlutterLlama.instance;
+      
+      final config = LlamaConfig(
+        modelPath: modelPath,
+        nThreads: 4,
+        nGpuLayers: 0, // CPU only for mobile compatibility
+        contextSize: 2048,
+        useGpu: false, // Disable GPU for mobile
+      );
+      
+      await _llama!.loadModel(config);
+      
+      debugPrint('✅ Модель успешно загружена через flutter_llama');
+    } catch (e) {
+      debugPrint('❌ Ошибка загрузки модели через flutter_llama: $e');
+      _llama = null;
+      throw e;
     }
   }
   
@@ -190,38 +231,64 @@ class LocalAIService {
     }
   }
   
-  /// Обрабатывает промпт через локальный AI
+  /// Обрабатывает промпт через локальный AI с использованием flutter_llama
   Future<String> _processWithLocalAI(String prompt) async {
     try {
-      // Используем flutter_llama для обработки
-      // Это упрощенная реализация - в реальности нужно настроить llama.cpp
+      if (_llama == null) {
+        debugPrint('❌ Flutter LLaMA не инициализирован');
+        throw Exception('Flutter LLaMA не инициализирован');
+      }
       
-      // Пока что возвращаем локальный ответ
-      return _generateLocalResponse(prompt);
+      debugPrint('⏳ Обработка через flutter_llama...');
+      
+      // Генерируем ответ через реальную GGUF модель
+      final params = GenerationParams(
+        prompt: prompt,
+        temperature: 0.8,
+        topP: 0.9,
+        topK: 40,
+        maxTokens: 128,
+        repeatPenalty: 1.1,
+      );
+      
+      // Используем stream для получения ответа
+      final buffer = StringBuffer();
+      
+      await for (final token in _llama!.generateStream(params)) {
+        buffer.write(token);
+      }
+      
+      final response = buffer.toString();
+      
+      if (response.isNotEmpty) {
+        debugPrint('✅ Получен ответ от flutter_llama: ${response.length > 50 ? "${response.substring(0, 50)}..." : response}');
+        return response.trim();
+      } else {
+        debugPrint('⚠️ Flutter LLaMA вернул пустой ответ');
+        throw Exception('Пустой ответ от модели');
+      }
     } catch (e) {
-      debugPrint('Ошибка обработки через flutter_llama: $e');
-      return _generateLocalResponse(prompt);
+      debugPrint('❌ Ошибка обработки через flutter_llama: $e');
+      // В случае ошибки используем fallback
+      return _generateFallbackResponse(prompt);
     }
   }
   
-  /// Генерирует локальный ответ
-  String _generateLocalResponse(String prompt) {
+  /// Генерирует fallback ответ когда модель недоступна
+  String _generateFallbackResponse(String prompt) {
+    debugPrint('ℹ️ Используется fallback ответ');
+    
     final responses = [
-      'Пусть эта мантра очистит ваше сердце. Харе Кришна! 🕉️',
-      'Пение святых имен приносит духовное блаженство. 🙏',
-      'Каждая мантра приближает вас к божественному. 🌟',
-      'Ваша преданность вдохновляет. Продолжайте практику! 💫',
-      'Священные вибрации очищают сознание. 🔮',
-      'Духовный прогресс неизбежен при искренней практике. 🌸',
-      'Махамантра - путь к освобождению. 🛐',
-      'Ваша джапа создает благоприятную карму. ✨',
-      'Продолжайте с любовью и преданностью. 💖',
-      'Священные имена защищают и благословляют. 🙌',
-      'Каждая бусина приближает к Кришне. 🕉️',
-      'Джапа очищает ум и сердце. 🌸',
-      'Практика преданности приносит мир. ☮️',
-      'Священные звуки пробуждают душу. 🔔',
-      'Преданность - высшая форма любви. 💕',
+      'Харе Кришна! Пусть эта священная мантра очистит ваше сердце. 🕉️',
+      'Продолжайте воспевание с преданностью. Кришна слышит каждую мантру. 🙏',
+      'Каждая бусина приближает вас к божественному. Харе Кришна! 🌟',
+      'Ваша практика вдохновляет. Продолжайте с любовью! 💫',
+      'Священные вибрации очищают сознание и сердце. 🔮',
+      'Духовный прогресс приходит через искреннюю практику. 🌸',
+      'Махамантра - прямой путь к освобождению. 🛐',
+      'Ваша джапа создает благоприятную карму. Харе Рама! ✨',
+      'Продолжайте с любовью и преданностью к Кришне. 💖',
+      'Священные имена защищают и благословляют вас. 🙌',
     ];
     
     // Выбираем ответ на основе хэша промпта для консистентности
@@ -345,19 +412,40 @@ $mantra
   /// Перезагружает модель
   Future<bool> reloadModel() async {
     try {
+      debugPrint('⏳ Перезагрузка модели...');
+      
+      // Выгружаем текущую модель
+      if (_llama != null) {
+        // flutter_llama не требует явного dispose
+        _llama = null;
+      }
+      
       _isModelLoaded = false;
       await _checkForModel();
       
       if (_isModelLoaded) {
-        debugPrint('Модель перезагружена успешно');
+        debugPrint('✅ Модель перезагружена успешно');
         return true;
       } else {
-        debugPrint('Не удалось перезагрузить модель');
+        debugPrint('❌ Не удалось перезагрузить модель');
         return false;
       }
     } catch (e) {
-      debugPrint('Ошибка перезагрузки модели: $e');
+      debugPrint('❌ Ошибка перезагрузки модели: $e');
       return false;
+    }
+  }
+  
+  /// Освобождает ресурсы
+  Future<void> dispose() async {
+    try {
+      if (_llama != null) {
+        // flutter_llama управляет ресурсами автоматически
+        _llama = null;
+        debugPrint('✅ Flutter LLaMA ресурсы освобождены');
+      }
+    } catch (e) {
+      debugPrint('❌ Ошибка освобождения ресурсов: $e');
     }
   }
 }
